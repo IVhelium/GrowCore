@@ -1,0 +1,43 @@
+
+/* =========== Imports =========== */
+
+/* base */
+@import url(base/typography.css);
+@import url(base/variables.css);
+@import url(base/animations.css);
+
+
+/* components */
+@import url(components/nav.css);
+@import url(components/footer.css);
+
+
+/* layout */
+
+
+/* pages */
+@import url(pages/main.css);
+
+
+/* ========= Index ========= */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(22, 22, 22);
+    font-family: "Montserrat", sans-serif;
+    scroll-behavior: smooth;
+}
+

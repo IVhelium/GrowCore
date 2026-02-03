@@ -1,0 +1,149 @@
+
+.footer__div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    height: 42vh;
+    max-width: 98%;
+    max-height: 450px;
+    padding: 25px 15px;
+    border-top: white 1px solid;
+    background-color: rgb(22, 22, 22);
+}
+
+.footer__content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: stretch;
+    height: 100vh;
+    max-height: 33vh;
+}
+
+.footer__form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.footer__title {
+    color: white;
+    font-family: "Lexend Deca", "sans-serif";
+}
+
+h4 {
+    font-size: 19px;
+    font-family: "Lexend Deca", "sans-serif";
+}
+
+.footer__content__section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 60%;
+}
+
+.footer__content__columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 30px;
+    width: 100%;
+}
+
+.footer__section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 100px;
+    max-width: 150px;
+    color: white;
+}
+
+.footer__section.contact-info {
+    min-width: 250px;
+}
+
+.social-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.footer__copy {
+    display: inline-block;
+    vertical-align: top;
+    justify-items: center;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    height: 50px;
+    color: white;
+}
+
+.footer__copy::before {
+    content: "";
+    display: block;
+    top: 100%;
+    width: 80%;
+    height: 1px;
+    max-width: 800px;
+    margin-bottom: 20px;
+    background-color: white;
+}
+
+.footer__copy p {
+    font-size: 14px;
+    opacity: 0.87;
+}
+
+.footer__privacy {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    max-height: 2vh;
+    color: white;
+}
+
+/* Footer - inputs */
+
+.footer__input {
+    padding: 10px;
+    border: white 2px solid;
+}
+
+.footer__textarea {
+    padding: 10px;
+    border: white 2px solid;
+}
+
+.footer__form__inputs {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+}
+
+.footer__form__inputs input[type="text"] {
+    width: 100%;
+    max-width: 40%;
+}
+
+.footer__form__inputs input[type="email"] {
+    width: 100%;
+    max-width: 60%;
+}
+
+.footer__input__submit {
+    height: 50px;
+    border: white 2px solid;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+}

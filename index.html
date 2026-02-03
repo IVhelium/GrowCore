@@ -1,46 +1,158 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <title>GrowCore</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cagliostro&family=Lexend+Deca:wght@100..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet">
+
+    <!-- Style -->
+    <link rel="stylesheet" href="CSS/index.css">
+
+    <!-- Lottie Animation -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
 </head>
+
 <body>
-    <header>
-        <div id="top__conteiner">
-            <div id="logo">
-                <h1>GrowCore</h1>
-            </div>
-            <div class="number__conteiner">
-                <div class="lang__selector">
-                    <div class="lang__line"></div>
-                    <select>
-                        <option value="ru">RU</option>
-                        <option value="en">EN</option>
-                        <option value="pt">PT</option>
-                    </select>
+    <nav class="nav__container">
+        <div class="nav__logo">GrowCore</div>
+        <nav class="nav__components">
+            <a href="#home" class="nav__component">Home</a>
+            <a href="#about" class="nav__component">About Us</a>
+            <a href="#" class="nav__component">Shop</a>
+            <a href="#" class="nav__component">Forum</a>
+        </nav>
+    </nav>
+    <header class="header__div" id="home">
+        <div class="header__container">
+            <div class="header__content">
+                <div class="header__text fade-in fade-delay-text">
+                    <h1 class="header__title">Smart Greenhouse Solutions</h1>
+                    <h3 class="header__subtitle">GrowCore is an intelligent greenhouse management system that monitors, controls and optimizes plant growth using modern technologies</h3>
                 </div>
-                <p id="number">+351 969-18-15</p>
-                <a href id="number__a">Request a call</a>
+                <div class="header__buttons fade-in fade-delay-buttons">
+                    <a class="header__button button__learn__more" href="#about">Learn More</a>
+                    <a class="header__button button__contact__me" href="#contact">Contact Us</a>
+                </div>
+                <p class="header__secret__text fade-in fade-delay-secret-text">Automated climate control, smart monitoring, and sustainable growth — all in one system</p>
             </div>
-        </div>
-        <div id="down__conteiner">
-            <div id="header__content">
-                <h2 id="content__title">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Possimus assumenda aspernatur fuga
-                    vero</h2>
-                <h3 id="content__subcontent">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Dolorem voluptatum totam
-                    aperiam illum repellendus asperiores veniam deleniti aliquam iusto consequatur! Explicabo dolor doloribus
-                    impedit dignissimos!</h3>
-                <a href="#" id="content__button">Узнать стоимость</a>
-            </div>
-            <nav class="navigation">
-                <a href="#">Home</a>
-                <a href="#">About</a>
-                <a href="#">Services</a>
-                <a href="#">Contact</a>
-            </nav>
+            <img src="Images/Black-Shadow.avif" class="black-shadow__image">
         </div>
     </header>
+
+    <main class="main__div" id="about">
+        <div class="fog-container">
+            <div class="fog-layer fog-layer-1"></div>
+        </div>
+
+        <section class="main__div__section-1">
+            <div class="about__us__container">
+                <h2 class="about__us__title title">About Us</h2>
+                <div class="about__us__text__container">
+                    <p class="about__us__text text">We are GrowCore &mdash; a startup founded in 2025 with a mission to make smart greenhouse technology accessible to everyone.</p>
+                    <p class="about__us__text text">We design and develop automated home greenhouse systems that combine climate control, smart monitoring, and efficient resource management in one integrated solution</p>
+                    <p class="about__us__text text">Our goal is to help people grow healthier plants with less effort by using modern electronics, automation, and data-driven control. GrowCore systems monitor temperature, humidity, soil conditions, and lighting, allowing users to create the ideal environment for plant growth.</p>
+                    <p class="about__us__text text">As a young and innovative startup, we focus on sustainability, simplicity, and reliability. We believe that the future of home gardening lies in smart automation and conscious resource use.</p>
+                    <p class="about__us__text text">GrowCore is more than just a product &mdash; it's a step toward smarter, greener living.</p>
+                </div>
+            </div>
+
+            <div class="services__container">
+                <dotlottie-wc src="https://lottie.host/1324f224-8388-465d-87c5-e674d85007c5/z5tODF8wid.lottie" speed="0.5" style="width: 500px;height: 500px;" class="earth-lottie" autoplay loop></dotlottie-wc>
+
+                <div class="services__content__container">
+                    <h2 class="services__title title">Our Services</h2>
+                    <div class="services__text__container">
+                        <p class="services__text text">GrowCore operates without borders.</p>
+                        <p class="services__text text">Our solutions, services, and products are designed to be accessible worldwide, enabling smart and sustainable plant growth wherever you are.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="main__div__section-2">
+            <h1 class="grow__title title">GrowCore</h1>
+            <div class="why__GrowCore__container">
+                <div style="width: 100%; height: 45rem; max-width: 1600px;">
+                    <div class="why__GrowCore__content__container">
+                        <h2 class="why__GrowCore__title title">Why GrowCore</h2>
+                        <div class="why__GrowCore__text__container">
+                            <p class="why__GrowCore__text text">GrowCore was built to simplify modern home growing through smart automation and thoughtful design.</p>
+                            <p class="why__GrowCore__text text">We develop intelligent greenhouse systems that continuously monitor and adjust the growing environment in real-time.</p>
+                            <p class="why__GrowCore__text text">Temperature, humidity, soil moisture, and lighting are controlled automatically to create stable conditions for healthy plant growth.</p>
+                            <p class="why__GrowCore__text text">Our products are designed with reliability, efficiency, and sustainability in mind, reducing manual work and resource waste.</p>
+                            <p class="why__GrowCore__text text">GrowCore is more than just a product &mdash; it is a smart ecosystem that adapts to your plants and your lifestyle.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="main__div__section-3">
+
+        </section>
+    </main>
+
+    <footer class="footer__div" id="contact">
+        <div class="footer__content">
+            <form action="" method="post" class="footer__form">
+                <h2 class="footer__title">Contact Us</h2>
+                <div class="footer__form__inputs">
+                    <input type="text" name="Name" class="footer__input" id="Name" placeholder="Your Name">
+                    <input type="email" name="Email" class="footer__input" id="Email" placeholder="Your Email">
+                </div>
+                <textarea name="Message" class="footer__textarea" id="Message" cols="30" rows="10" placeholder="Your Message"></textarea>
+                <input type="submit" name="Send" class="footer__input footer__input__submit" id="Send" value="Send Message">
+            </form>
+
+            <div class="footer__content__section">
+                <div class="footer__content__columns">
+                    <div class="footer__section navigation">
+                        <h4>Navigation</h4>
+                        <a href="#home">Home</a>
+                        <a href="#">About Us</a>
+                        <a href="#">Shop</a>
+                        <a href="#">Forum</a>
+                    </div>
+
+                    <div class="footer__section social-links">
+                        <h4>Follow Me</h4>
+                        <div class="social-icons">
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/GitHub-Icon-32px.png" alt="GitHub"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/LinkedIn-Icon-32px.png" alt="LinkedIn"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/YouTube-Icon-32px.png" alt="YouTube"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/TikTok-Icon-32px.png"  alt="TikTok"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Instagram-Icon-32px.png" alt="Instagram"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Facebook-Icon-32px.png" alt="Facebook"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Telegram-Icon-32px.png" alt="Telegram"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Whatsapp-Icon-32px.png" alt="WhatsApp"></a>
+                        </div>
+                    </div>
+
+                    <div class="footer__section contact-info">
+                        <h4>Get In Touch</h4>
+                        <p>Email: <a href="mailto:ivanevcp@gmail.com">ivanevcp@gmail.com</a></p>
+                        <p>Phone: <a href="tel:+1234567890">+1 (234) 567-890</a></p>
+                    </div>
+                </div>
+
+                <div class="footer__copy">
+                    <p>&copy;2025 GrowCore - Always growing</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer__privacy">
+            
+        </div>
+    </footer>
+
+    <script src="index.js"></script>
 </body>
 </html>
