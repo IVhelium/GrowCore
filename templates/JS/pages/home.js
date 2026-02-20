@@ -1,18 +1,6 @@
-
 // Variables
 const aboutUsSection = document.querySelector('.about__us__container');
 const servicesSection = document.querySelector('.services__container');
-
-// Scroll event for changing nav bar style
-const navContainer = document.querySelector('.nav__container');
-
-window.addEventListener('scroll', () => {       
-    if (window.scrollY > 50) {                  // If scrolled more than 50px
-        navContainer.classList.add('scrolled');
-    } else {
-        navContainer.classList.remove('scrolled');            
-    }
-});
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollTriggeredAnimation(aboutUsSection, 'animate-active', 0.20);   // Scroll-triggered animation for About Us section
     scrollTriggeredAnimation(servicesSection, 'animate-active', 0.40);  // Scroll-triggered animation for Services section
 });
-
 
 
 //--- Functions ---//

@@ -24,9 +24,25 @@
     color: white;
 }
 
+.nav__content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
 .nav__components {
     text-transform: uppercase;
     font-size: 15px;
+}
+
+.nav__components::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 50%;
+    background-color: white;
 }
 
 .nav__component {
@@ -61,4 +77,11 @@
 
 .nav__component:hover {
     color: #fce38a;
+}
+
+.user__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
 }

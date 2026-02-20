@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Response, Depends, BackgroundTasks, 
 from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import Engine, select
-import asyncio
+
 from src.dependencies import SessionDependency
 from src.database import Base
 from src.models.books import BookModel
@@ -14,7 +14,7 @@ router = APIRouter()
 
 
 # Create database connection and session management
-engine = create_async_engine('sqlite+aiosqlite:///books.db')  # Create an async engine for connecting to a SQLite database
+engine = create_async_engine('sqlite+aiosqlite:///../database/books.db')  # Create an async engine for connecting to a SQLite database
 
 new_session = async_sessionmaker(engine, expire_on_commit=False)  # Create an async sessionmaker for managing database
 
@@ -28,6 +28,7 @@ async def setup_database():
     return {"success": True, "message": "Database setup completed successfully"}
     
 
+
 # Get all books
 @router.get("/books", tags=["Books"], summary="Get all books")
 async def get_books(session: SessionDependency):
@@ -36,13 +37,6 @@ async def get_books(session: SessionDependency):
     result = await session.execute(query)
     
     return result.scalars().all()  # Return all books as a list of BookModel instances
-    
-
-
-# Get book by id
-@router.get("/books/{book_id}", tags=["Books"], summary="Get book by id")
-async def get_book(book_id: int):
-    ...
     
 
 @router.post("/books", tags=["Books"], summary="Add a new book")
