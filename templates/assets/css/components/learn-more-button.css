@@ -1,0 +1,28 @@
+.learn__more__button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    border: solid white 1px;
+    border-radius: 10px;
+    min-width: 159px;
+    max-width: 160px;
+    height: 34px;
+}
+
+.learn__more__link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 85%;
+    border-right: solid white 1px;
+}
+
+.learn__more__link:hover {
+    
+}
+
+.learn__more__img {
+    object-fit: cover;
+    padding: 2px 5px;
+}

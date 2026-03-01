@@ -13,12 +13,12 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Cagliostro&family=Lexend+Deca:wght@100..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet">
 
-    <!-- Style -->
-    <link rel="stylesheet" href="CSS/index.css">
-
     <!-- Slick -->
-    <link rel="stylesheet" type="text/css" href="./lib/slick/slick.css" />
-    <link rel="stylesheet" type="text/css" href="./lib/slick/slick-theme.css" />
+    <link rel="stylesheet" type="text/css" href="./libs/slick/slick.css" />
+    <link rel="stylesheet" type="text/css" href="./libs/slick/slick-theme.css" />
+
+    <!-- Style -->
+    <link rel="stylesheet" href="assets/css/main.css">
 
     <!-- Lottie Animation -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
@@ -34,14 +34,14 @@
                 <a href="HTML/shop.html" class="nav__component">Shop</a>
                 <a href="HTML/forum.html" class="nav__component">Forum</a>
             </div>
-            <a href="" class="user__avatar"><img class="user__avatar" src="Images/Index/user-icons-64px.webp"></a>
+            <a href="#" class="user__avatar"><img class="user__avatar" src="assets/images/blocks/nav/user-icons-64px.webp"></a>
         </div>
     </nav>
     
     <header class="header__div" id="home">
         <div class="header__container">
             <div class="header__content">
-                <div class="header__text fade-in fade-delay-text">
+                <div class="header__text">
                     <h1 class="header__title">Smart Greenhouse Solutions</h1>
                     <h3 class="header__subtitle">GrowCore is an intelligent greenhouse management system that monitors, controls and optimizes plant growth using modern technologies</h3>
                 </div>
@@ -51,7 +51,7 @@
                 </div>
                 <p class="header__secret__text fade-in fade-delay-secret-text">Automated climate control, smart monitoring, and sustainable growth — all in one system</p>
             </div>
-            <img src="Images/Index/Black-Shadow.avif" class="black-shadow__image">
+            <img class="black-shadow__image" src="assets/images/blocks/header/Black-Shadow.avif">
         </div>
     </header>
 
@@ -73,7 +73,7 @@
             </div>
 
             <div class="services__container">
-                <dotlottie-wc src="https://lottie.host/1324f224-8388-465d-87c5-e674d85007c5/z5tODF8wid.lottie" speed="0.5" style="width: 500px;height: 500px;" class="earth-lottie" autoplay loop></dotlottie-wc>
+                <dotlottie-wc class="earth-lottie" src="https://lottie.host/1324f224-8388-465d-87c5-e674d85007c5/z5tODF8wid.lottie" speed="0.5" style="width: 500px;height: 500px;" autoplay loop></dotlottie-wc>
 
                 <div class="services__content__container">
                     <h2 class="services__title title">Our Services</h2>
@@ -91,36 +91,110 @@
             <section class="slider__section">
                 <div class="slider__wrapper">
                     <div class="slider">
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
-                        <div class="slider__item">
-                            <img src="Images/Index/bg-garden.webp" alt="">
-                        </div>
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__item__content">
+                                <span class="slider__item__badge">New Technology</span>
+                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="learn__more__button">
+                                    <a href="#" class="learn__more__link">Learn more</a>
+                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
                     </div>
                 </div>
             </section>
@@ -170,14 +244,14 @@
                     <div class="footer__section social-links">
                         <h4>Follow Me</h4>
                         <div class="social-icons">
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/GitHub-Icon-32px.png" alt="GitHub"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/LinkedIn-Icon-32px.png" alt="LinkedIn"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/YouTube-Icon-32px.png" alt="YouTube"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/TikTok-Icon-32px.png"  alt="TikTok"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Instagram-Icon-32px.png" alt="Instagram"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Facebook-Icon-32px.png" alt="Facebook"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Telegram-Icon-32px.png" alt="Telegram"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="Images/Contact-Icons/Whatsapp-Icon-32px.png" alt="WhatsApp"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/GitHub-Icon-32px.png" alt="GitHub"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/LinkedIn-Icon-32px.png" alt="LinkedIn"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/YouTube-Icon-32px.png" alt="YouTube"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/TikTok-Icon-32px.png"  alt="TikTok"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Instagram-Icon-32px.png" alt="Instagram"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Facebook-Icon-32px.png" alt="Facebook"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Telegram-Icon-32px.png" alt="Telegram"></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Whatsapp-Icon-32px.png" alt="WhatsApp"></a>
                         </div>
                     </div>
 
@@ -200,8 +274,8 @@
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-    <script type="text/javascript" src="./lib/slick/slick.min.js"></script>
+    <script type="text/javascript" src="./libs/slick/slick.min.js"></script>
 
-    <script type="module" src="JS/index.js"></script>
+    <script type="module" src="./assets/js/main.js"></script>
 </body>
 </html>
