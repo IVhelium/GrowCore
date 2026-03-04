@@ -164,7 +164,7 @@
 
 /* Main */
 
-.main__div {
+.main {
     position: relative;
     display: flex;
     flex-direction: column;
