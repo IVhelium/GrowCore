@@ -28,28 +28,28 @@
     <nav class="nav">
         <div class="nav__logo">GrowCore</div>
         <div class="nav__content">
-            <div class="nav__components">
-                <a href="#home" class="nav__component">Home</a>
-                <a href="#about" class="nav__component">About Us</a>
-                <a href="HTML/shop.html" class="nav__component">Shop</a>
-                <a href="HTML/forum.html" class="nav__component">Forum</a>
+            <div class="nav__menu">
+                <a href="#home" class="nav__link nav__link--active">Home</a>
+                <a href="#about" class="nav__link">About Us</a>
+                <a href="pages/shop.html" class="nav__link">Shop</a>
+                <a href="pages/forum.html" class="nav__link">Forum</a>
             </div>
             <a href="#" class="user__avatar"><img class="user__avatar" src="assets/images/blocks/nav/user-icons-64px.webp"></a>
         </div>
     </nav>
     
-    <header class="header__div" id="home">
+    <header class="header" id="home">
         <div class="header__container">
             <div class="header__content">
                 <div class="header__text">
                     <h1 class="header__title">Smart Greenhouse Solutions</h1>
                     <h3 class="header__subtitle">GrowCore is an intelligent greenhouse management system that monitors, controls and optimizes plant growth using modern technologies</h3>
                 </div>
-                <div class="header__buttons fade-in fade-delay-buttons">
-                    <a class="header__button button__learn__more" href="HTML/shop.html">Learn More</a>
-                    <a class="header__button button__contact__me" href="#contact">Contact Us</a>
+                <div class="header__buttons">
+                    <a class="header__button header__button--learn__more" href="pages/shop.html">Learn More</a>
+                    <a class="header__button header__button--contact__us" href="#contact">Contact Us</a>
                 </div>
-                <p class="header__secret__text fade-in fade-delay-secret-text">Automated climate control, smart monitoring, and sustainable growth — all in one system</p>
+                <p class="header__note">Automated climate control, smart monitoring, and sustainable growth — all in one system</p>
             </div>
             <img class="black-shadow__image" src="assets/images/blocks/header/Black-Shadow.avif">
         </div>
@@ -61,7 +61,7 @@
         </div>
 
         <section class="main__section__info">
-            <div class="about__us__container">
+            <section class="about__us__container">
                 <h2 class="about__us__title title">About Us</h2>
                 <div class="about__us__text__container">
                     <p class="about__us__text text">We are GrowCore &mdash; a startup founded in 2025 with a mission to make smart greenhouse technology accessible to everyone.</p>
@@ -70,9 +70,9 @@
                     <p class="about__us__text text">As a young and innovative startup, we focus on sustainability, simplicity, and reliability. We believe that the future of home gardening lies in smart automation and conscious resource use.</p>
                     <p class="about__us__text text">GrowCore is more than just a product &mdash; it's a step toward smarter, greener living.</p>
                 </div>
-            </div>
+            </section>
 
-            <div class="services__container">
+            <section class="services__container">
                 <dotlottie-wc class="earth-lottie" src="https://lottie.host/1324f224-8388-465d-87c5-e674d85007c5/z5tODF8wid.lottie" speed="0.5" style="width: 500px;height: 500px;" autoplay loop></dotlottie-wc>
 
                 <div class="services__content__container">
@@ -82,7 +82,7 @@
                         <p class="services__text text">Our solutions, services, and products are designed to be accessible worldwide, enabling smart and sustainable plant growth wherever you are.</p>
                     </div>
                 </div>
-            </div>
+            </section>
         </section>
 
         <section class="main__section__products">

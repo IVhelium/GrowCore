@@ -2,9 +2,10 @@
 @import url(../base/variables.css);
 @import url(../animations/home.css);
 
+
 /* Header */
 
-.header__div {
+.header {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -18,7 +19,7 @@
     z-index: 1;
 }
 
-.header__div::before {
+.header::before {
     content: "";
     position: absolute;
     pointer-events: none;
@@ -85,7 +86,7 @@
     font-weight: 600;
 }
 
-.button__learn__more {
+.header__button--learn__more {
     display: inline-block;
     border: white 3px solid;
     background-color: white;
@@ -96,7 +97,7 @@
     z-index: 1;
 }
 
-.button__learn__more::before {
+.header__button--learn__more::before {
     content: "";
     position: absolute;
     top: 0;
@@ -108,11 +109,7 @@
     transition: width 0.3s ease-out;
 }
 
-.button__learn__more:hover::before {
-    width: 100%;
-}
-
-.button__contact__me {
+.header__button--contact__us {
     display: inline-block;
     border: white 3px solid;
     background-color: transparent;
@@ -124,11 +121,11 @@
     transition: color 0.3s ease-out;
 }
 
-.button__contact__me:hover {
+.header__button--contact__us:hover {
     color: black;
 }
 
-.button__contact__me::before {
+.header__button--contact__us::before {
     content: "";
     position: absolute;
     top: 0;
@@ -140,11 +137,12 @@
     transition: width 0.3s ease-out;
 }
 
-.button__contact__me:hover::before {
+.header__button--learn__more:hover::before,
+.header__button--contact__us:hover::before {
     width: 100%;
 }
 
-.header__secret__text {
+.header__note {
     font-size: 18px;
     padding-top: 55px;
     letter-spacing: 1.2;
@@ -176,7 +174,7 @@
     background-color: black;
 }
 
-.main__div::before {
+.main::before {
     content: "";
     position: absolute;
     inset: 0;
