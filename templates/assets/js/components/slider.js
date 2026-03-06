@@ -6,7 +6,7 @@ $(document).ready(function() {
         variableWidth: true,
         centerMode: true, 
         easing: 'ease',
-        autoplay: true,
+        autoplay: false,
         autoplaySpeed: 6000,
         pauseOnHover: true,
         pauseOnDotsHover: true,

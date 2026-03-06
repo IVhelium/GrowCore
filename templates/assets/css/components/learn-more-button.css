@@ -1,4 +1,4 @@
-.learn__more__button {
+.slider__button {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -10,7 +10,7 @@
     height: 34px;
 }
 
-.learn__more__link {
+.slider__button--link {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,11 +18,11 @@
     border-right: solid white 1px;
 }
 
-.learn__more__link:hover {
+.slider__button--link:hover {
     
 }
 
-.learn__more__img {
+.slider__button--image {
     object-fit: cover;
     padding: 2px 5px;
 }

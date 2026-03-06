@@ -184,7 +184,7 @@
 
 /* Fog container*/
 
-.fog-container {
+.fog {
     position: absolute;
     top: 50px;
     left: 0;
@@ -207,7 +207,9 @@
 }
 
 
-.main__section__info {
+/* Main Info Section */
+
+.main__info {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -223,12 +225,12 @@
 
 /* About Us Section */
 
-.about__us__title {
+.about {
     position: relative;
     display: inline-block;
 }
 
-.about__us__title::before {
+.about__title::before {
     content: "";
     position: absolute;
     top: 0;
@@ -243,7 +245,7 @@
     opacity: 0.9;
 }
 
-.about__us__text__container {
+.about__text-container {
     display: flex;
     flex-direction: column;
     position: relative;
@@ -253,7 +255,7 @@
     gap: 15px;
 }
 
-.about__us__text__container::before {
+.about__text-container::before {
     content: "";
     position: absolute;
     left: -2px;
@@ -264,14 +266,14 @@
     background-color: white;
 }
 
-.about__us__text {
+.about__text {
     inline-size: var(--default-inline-size);
 }
 
 
 /* Services Section */
 
-.services__container {
+.services {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -279,7 +281,7 @@
     gap: 200px;
 }
 
-.services__content__container {
+.services__content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -306,7 +308,7 @@
     opacity: 0.9;
 }
 
-.services__text__container {
+.services__text-container {
     display: flex;
     flex-direction: column;
     position: relative;
@@ -317,7 +319,7 @@
     gap: 15px;
 }
 
-.services__text__container::before {
+.services__text-container::before {
     content: "";
     position: absolute;
     left: -2px;
@@ -335,7 +337,7 @@
 
 /* Main Section Product */
 
-.main__section__products {
+.main__products {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -344,7 +346,7 @@
     background-color: white;
 }
 
-.grow__title {
+.brand-title {
     color: black;
     font-size: 50px;
     margin: 10rem 0;

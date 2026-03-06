@@ -56,28 +56,28 @@
     </header>
 
     <main class="main" id="about">
-        <div class="fog-container">
-            <div class="fog-layer fog-layer-1"></div>
+        <div class="fog">
+            <div class="fog__layer fog__layer--1"></div>
         </div>
 
-        <section class="main__section__info">
-            <section class="about__us__container">
-                <h2 class="about__us__title title">About Us</h2>
-                <div class="about__us__text__container">
-                    <p class="about__us__text text">We are GrowCore &mdash; a startup founded in 2025 with a mission to make smart greenhouse technology accessible to everyone.</p>
-                    <p class="about__us__text text">We design and develop automated home greenhouse systems that combine climate control, smart monitoring, and efficient resource management in one integrated solution</p>
-                    <p class="about__us__text text">Our goal is to help people grow healthier plants with less effort by using modern electronics, automation, and data-driven control. GrowCore systems monitor temperature, humidity, soil conditions, and lighting, allowing users to create the ideal environment for plant growth.</p>
-                    <p class="about__us__text text">As a young and innovative startup, we focus on sustainability, simplicity, and reliability. We believe that the future of home gardening lies in smart automation and conscious resource use.</p>
-                    <p class="about__us__text text">GrowCore is more than just a product &mdash; it's a step toward smarter, greener living.</p>
+        <section class="main__info">
+            <section class="about">
+                <h2 class="about__title title">About Us</h2>
+                <div class="about__text-container">
+                    <p class="about__text text">We are GrowCore &mdash; a startup founded in 2025 with a mission to make smart greenhouse technology accessible to everyone.</p>
+                    <p class="about__text text">We design and develop automated home greenhouse systems that combine climate control, smart monitoring, and efficient resource management in one integrated solution</p>
+                    <p class="about__text text">Our goal is to help people grow healthier plants with less effort by using modern electronics, automation, and data-driven control. GrowCore systems monitor temperature, humidity, soil conditions, and lighting, allowing users to create the ideal environment for plant growth.</p>
+                    <p class="about__text text">As a young and innovative startup, we focus on sustainability, simplicity, and reliability. We believe that the future of home gardening lies in smart automation and conscious resource use.</p>
+                    <p class="about__text text">GrowCore is more than just a product &mdash; it's a step toward smarter, greener living.</p>
                 </div>
             </section>
 
-            <section class="services__container">
+            <section class="services">
                 <dotlottie-wc class="earth-lottie" src="https://lottie.host/1324f224-8388-465d-87c5-e674d85007c5/z5tODF8wid.lottie" speed="0.5" style="width: 500px;height: 500px;" autoplay loop></dotlottie-wc>
 
-                <div class="services__content__container">
+                <div class="services__content">
                     <h2 class="services__title title">Our Services</h2>
-                    <div class="services__text__container">
+                    <div class="services__text-container">
                         <p class="services__text text">GrowCore operates without borders.</p>
                         <p class="services__text text">Our solutions, services, and products are designed to be accessible worldwide, enabling smart and sustainable plant growth wherever you are.</p>
                     </div>
@@ -85,16 +85,46 @@
             </section>
         </section>
 
-        <section class="main__section__products">
-            <h1 class="grow__title title">GrowCore</h1>
+        <section class="main__products">
+            <h1 class="brand-title title">GrowCore</h1>
             
             <section class="slider__section">
                 <div class="slider__wrapper">
                     <div class="slider">
                         <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="slider__button">
+                                    <a href="#" class="slider__button--link">Learn more</a>
+                                    <img class="slider__button--image" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
+                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+
+                                <div class="slider__button">
+                                    <a href="#" class="slider__button--link">Learn more</a>
+                                    <img class="slider__button--image" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                </div>
+                            </div>
+
+                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                        </article>
+
+                        <article class="slider__item">
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
                                 <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="learn__more__button">
@@ -107,9 +137,9 @@
                         </article>
 
                         <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
                                 <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="learn__more__button">
@@ -122,9 +152,9 @@
                         </article>
 
                         <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
                                 <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="learn__more__button">
@@ -137,9 +167,9 @@
                         </article>
 
                         <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
                                 <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="learn__more__button">
@@ -152,39 +182,9 @@
                         </article>
 
                         <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
-
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
-                                </div>
-                            </div>
-
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
-                        </article>
-
-                        <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
-
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
-                                </div>
-                            </div>
-
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
-                        </article>
-
-                        <article class="slider__item">
-                            <div class="slider__item__content">
-                                <span class="slider__item__badge">New Technology</span>
-                                <h2 class="slider__item__title">Smart GreenHouse</h2>
+                            <div class="slider__content">
+                                <span class="slider__badge">New Technology</span>
+                                <h2 class="slider__title">Smart GreenHouse</h2>
                                 <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="learn__more__button">
