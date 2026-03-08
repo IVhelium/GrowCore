@@ -12,7 +12,7 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    background-image: url(../../images/blocks/header/bg-moh-zheleni-4k.webp);
+    background-image: url(../../assets/images/blocks/header/bg-moh-zheleni-4k.webp);
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -29,7 +29,7 @@
     background-color: rgba(0, 0, 0, 0.356);
 }
 
-.header__conteiner {
+.header__container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -354,7 +354,7 @@
 
 /* Why GrowCore Section */
 
-.why__GrowCore__container {
+.why {
     position: relative;
     display: flex;
     flex-direction: column;
@@ -363,13 +363,13 @@
     width: 100%;
     height: 55rem;
     min-height: 55rem;
-    background-image: url(../../images/pages/home/bg-garden.webp);
+    background-image: url(../../assets/images/pages/home/bg-garden.webp);
     background-size: cover;
     background-attachment: fixed;
     z-index: 1;
 }
 
-.why__GrowCore__container::before {
+.why::before {
     content: "";
     position: absolute;
     pointer-events: none;
@@ -379,13 +379,13 @@
     background-color: rgba(0, 0, 0, 0.185);
 }
 
-.why__GrowCore__max__container {
+.why__container {
     display: flex;
     width: 100%;
     max-width: var(--default-max-width);
 }
 
-.why__GrowCore__content__container {
+.why__content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -396,7 +396,7 @@
     border-radius: 25px;
 }
 
-.why__GrowCore__text__container {
+.why__text-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -410,6 +410,6 @@
     border-left: gray 3px solid;
 }
 
-.why__GrowCore__text {
+.why__text {
     inline-size: var(--default-inline-size);
 }

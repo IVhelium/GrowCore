@@ -56,7 +56,11 @@
     cursor: pointer;
 }
 
-.nav__link::after {
+.nav__link:hover, .nav__link--active {
+    color: #fce38a;
+}
+
+.nav__link::after  {
     content: "";
     display: block;
     opacity: 0;
@@ -71,12 +75,8 @@
     transition: opacity 0.2s linear;
 }
 
-.nav__link:hover::after {
+.nav__link:hover::after, .nav__link--active::after {
     opacity: 1;
-}
-
-.nav__link:hover {
-    color: #fce38a;
 }
 
 .user__avatar {

@@ -1,7 +1,7 @@
 @import url(../base/variables.css);
 
 
-.footer__div {
+.footer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,24 +30,17 @@
     flex-direction: column;
     gap: 10px;
     width: 100%;
+    height: 100%;
     max-width: 400px;
 }
 
 .footer__title {
+    padding-bottom: 5px;
     color: white;
     font-family: "Lexend Deca", "sans-serif";
 }
 
-h4 {
-    font-size: 19px;
-    font-family: "Lexend Deca", "sans-serif";
-}
-
-a {
-    color: white;
-}
-
-.footer__content__section {
+.footer__section {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -56,7 +49,7 @@ a {
     height: 100%;
 }
 
-.footer__content__columns {
+.footer__columns {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
@@ -64,7 +57,7 @@ a {
     width: 100%;
 }
 
-.footer__section {
+.footer__column {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -73,11 +66,11 @@ a {
     color: white;
 }
 
-.footer__section.contact-info {
+.footer__column--contact {
     min-width: 250px;
 }
 
-.social-icons {
+.footer__social {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
@@ -131,24 +124,24 @@ a {
     border: white 2px solid;
 }
 
-.footer__form__inputs {
+.footer__inputs {
     display: flex;
     flex-direction: row;
     gap: 10px;
     width: 100%;
 }
 
-.footer__form__inputs input[type="text"] {
+.footer__inputs input[type="text"] {
     width: 100%;
     max-width: 40%;
 }
 
-.footer__form__inputs input[type="email"] {
+.footer__inputs input[type="email"] {
     width: 100%;
     max-width: 60%;
 }
 
-.footer__button__submit {
+.footer__submit {
     position: relative;
     display: inline-block;
     height: 50px;
@@ -163,7 +156,7 @@ a {
     transition: color 0.5s ease-out;
 }
 
-.footer__button__submit::before {
+.footer__submit::before {
     content: "";
     position: absolute;
     top: 0;
@@ -175,10 +168,10 @@ a {
     transition: width 0.4s ease-out;
 }
 
-.footer__button__submit:hover {
+.footer__submit:hover {
     color: black;
 }
 
-.footer__button__submit:hover::before {
+.footer__submit:hover::before {
     width: 100%;
 }

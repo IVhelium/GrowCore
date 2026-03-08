@@ -9,33 +9,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
-    <link href="https://fonts.googleapis.com/css2?family=Cagliostro&family=Lexend+Deca:wght@100..900&family=Montserrat:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cagliostro&family=Kaushan+Script&family=Lexend+Deca:wght@100..900&family=Montserrat:wght@100..900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <!-- Slick -->
-    <link rel="stylesheet" type="text/css" href="./libs/slick/slick.css" />
-    <link rel="stylesheet" type="text/css" href="./libs/slick/slick-theme.css" />
+    <link rel="stylesheet" type="text/css" href="libs/slick/slick.css" />
+    <link rel="stylesheet" type="text/css" href="libs/slick/slick-theme.css" />
 
     <!-- Style -->
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="css/main.css">
 
     <!-- Lottie Animation -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.11/dist/dotlottie-wc.js" type="module"></script>
 </head>
 
 <body>
-    <nav class="nav">
-        <div class="nav__logo">GrowCore</div>
-        <div class="nav__content">
-            <div class="nav__menu">
-                <a href="#home" class="nav__link nav__link--active">Home</a>
-                <a href="#about" class="nav__link">About Us</a>
-                <a href="pages/shop.html" class="nav__link">Shop</a>
-                <a href="pages/forum.html" class="nav__link">Forum</a>
-            </div>
-            <a href="#" class="user__avatar"><img class="user__avatar" src="assets/images/blocks/nav/user-icons-64px.webp"></a>
-        </div>
+    <nav class="nav" id="nav">
+        <script type="module">import { loadNav } from './js/components/nav.js'; loadNav();</script>
     </nav>
     
     <header class="header" id="home">
@@ -98,8 +87,7 @@
                                 <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="slider__button">
-                                    <a href="#" class="slider__button--link">Learn more</a>
-                                    <img class="slider__button--image" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
@@ -110,104 +98,98 @@
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
                                 <div class="slider__button">
-                                    <a href="#" class="slider__button--link">Learn more</a>
-                                    <img class="slider__button--image" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
 
                         <article class="slider__item">
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                <div class="slider__button">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
 
                         <article class="slider__item">
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                <div class="slider__button">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
 
                         <article class="slider__item">
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                <div class="slider__button">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
 
                         <article class="slider__item">
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                <div class="slider__button">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
 
                         <article class="slider__item">
                             <div class="slider__content">
                                 <span class="slider__badge">New Technology</span>
                                 <h2 class="slider__title">Smart GreenHouse</h2>
-                                <p class="slider__item__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
+                                <p class="slider__description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugiat, exercitationem.</p>
 
-                                <div class="learn__more__button">
-                                    <a href="#" class="learn__more__link">Learn more</a>
-                                    <img class="learn__more__img" src="assets/images/blocks/slider/arrows/learn-more-button-arrow-32px.webp" alt="">
+                                <div class="slider__button">
+                                    <script type="module">import { loadSliderBtn } from './js/components/slider.js'; loadSliderBtn();</script>
                                 </div>
                             </div>
 
-                            <img class="slider__item__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
+                            <img class="slider__img" src="assets/images/blocks/slider/products/GreenHouse.webp" alt="">
                         </article>
                     </div>
                 </div>
             </section>
 
-            <section class="why__GrowCore__container">
-                <div class="why__GrowCore__max__container">
-                    <div class="why__GrowCore__content__container">
-                        <h2 class="why__GrowCore__title title">Why GrowCore</h2>
-                        <div class="why__GrowCore__text__container">
-                            <p class="why__GrowCore__text text">GrowCore simplifies home growing through smart automation and thoughtful design.</p>
-                            <p class="why__GrowCore__text text">Our systems monitor and adjust temperature, humidity, and lighting in real-time, ensuring optimal conditions for your plants</p>
-                            <p class="why__GrowCore__text text">We combine reliability with sustainability to reduce manual effort and resource waste.</p>
-                            <p class="why__GrowCore__text text">GrowCore is a smart ecosystem that adapts to your lifestyle.</p>
+            <section class="why">
+                <div class="why__container">
+                    <div class="why__content">
+                        <h2 class="why__title title">Why GrowCore</h2>
+                        <div class="why__text-container">
+                            <p class="why__text text">GrowCore simplifies home growing through smart automation and thoughtful design.</p>
+                            <p class="why__text text">Our systems monitor and adjust temperature, humidity, and lighting in real-time, ensuring optimal conditions for your plants</p>
+                            <p class="why__text text">We combine reliability with sustainability to reduce manual effort and resource waste.</p>
+                            <p class="why__text text">GrowCore is a smart ecosystem that adapts to your lifestyle.</p>
                         </div>
                     </div>
                 </div>
@@ -219,63 +201,14 @@
         </section>
     </main>
 
-    <footer class="footer__div" id="contact">
-        <div class="footer__content">
-            <form action="" method="post" class="footer__form">
-                <h2 class="footer__title">Contact Us</h2>
-                <div class="footer__form__inputs">
-                    <input type="text" name="Name" class="footer__input" id="Name" placeholder="Your Name">
-                    <input type="email" name="Email" class="footer__input" id="Email" placeholder="Your Email">
-                </div>
-                <textarea name="Message" class="footer__textarea" id="Message" cols="30" rows="10" placeholder="Your Message"></textarea>
-                <button type="submit" name="Send" class="footer__input footer__button__submit" id="Send">Send Message</button>
-            </form>
-
-            <div class="footer__content__section">
-                <div class="footer__content__columns">
-                    <div class="footer__section navigation">
-                        <h4>Navigation</h4>
-                        <a href="#home">Home</a>
-                        <a href="#about">About Us</a>
-                        <a href="HTML/shop.html">Shop</a>
-                        <a href="HTML/forum.html">Forum</a>
-                    </div>
-
-                    <div class="footer__section social-links">
-                        <h4>Follow Me</h4>
-                        <div class="social-icons">
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/GitHub-Icon-32px.png" alt="GitHub"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/LinkedIn-Icon-32px.png" alt="LinkedIn"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/YouTube-Icon-32px.png" alt="YouTube"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/TikTok-Icon-32px.png"  alt="TikTok"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Instagram-Icon-32px.png" alt="Instagram"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Facebook-Icon-32px.png" alt="Facebook"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Telegram-Icon-32px.png" alt="Telegram"></a>
-                            <a href="#" target="_blank" rel="noopener noreferrer"><img src="assets/images/icons/contact/Whatsapp-Icon-32px.png" alt="WhatsApp"></a>
-                        </div>
-                    </div>
-
-                    <div class="footer__section contact-info">
-                        <h4>Get In Touch</h4>
-                        <p>Email: <a href="mailto:ivanevcp@gmail.com">ivanevcp@gmail.com</a></p>
-                        <p>Phone: <a href="tel:+1234567890">+1 (234) 567-890</a></p>
-                    </div>
-                </div>
-
-                <div class="footer__copy">
-                    <p>&copy;2025 GrowCore - Always growing</p>
-                </div>
-            </div>
-        </div>
-        <div class="footer__privacy">
-            
-        </div>
+    <footer class="footer" id="footer">
+        <script type="module">import { loadFooter } from './js/components/footer.js'; loadFooter();</script>
     </footer>
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-    <script type="text/javascript" src="./libs/slick/slick.min.js"></script>
+    <script type="text/javascript" src="libs/slick/slick.min.js"></script>
 
-    <script type="module" src="./assets/js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

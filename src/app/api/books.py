@@ -4,8 +4,8 @@ from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import Engine, select
 
-from src.dependencies import SessionDependency
-from src.database import Base
+from app.dependencies import SessionDependency
+from app.database import Base
 from src.models.books import BookModel
 from src.schemas.books import NewBookSchema
 
