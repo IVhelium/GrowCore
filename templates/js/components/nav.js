@@ -23,6 +23,18 @@ export function loadNav() {
             </div>
             <a href="#" class="nav__link user__avatar"><img class="user__avatar" src="assets/images/blocks/nav/user-icons-64px.webp"></a>
         </div>
+        <div class="nav__profile">
+            <div class="profile__title">Profile</div>
+            <div class="profile__content">
+                <div class="profile__header">
+                    <div class="profile__background"></div>
+                    <div class="profile__avatar"></div>
+                </div>
+                <div class="profile__name">
+                    
+                </div>
+            </div>
+        </div>
     `;
 
 

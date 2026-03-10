@@ -11,11 +11,10 @@
 @import url(components/nav.css);
 @import url(components/footer.css);
 @import url(components/slider.css);
-@import url(components/learn-more-button.css);
 
 
 /* pages */
-@import url(pages/home.css);
+@import url(pages/home/home.css);
 
 
 /* ========= Index ========= */

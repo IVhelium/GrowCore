@@ -1,0 +1,14 @@
+/* Import */
+@import url(../../base/variables.css);
+@import url(../../animations/home.css);
+
+/* Components */
+@import url(_section_header.css);
+@import url(_section_main.css);
+@import url(_section_about.css);
+@import url(_section_services.css);
+@import url(_section_product.css);
+@import url(_section_why.css);
+
+
+/* Sponsors Section */

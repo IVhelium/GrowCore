@@ -1,0 +1,62 @@
+/* Main */
+
+.main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 300vh auto;
+    overflow: hidden;
+    margin: 0 auto;
+    background-color: black;
+}
+
+.main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: black;
+}
+
+/* Fog container*/
+
+.fog {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 50px);
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.7;
+    mask-image: linear-gradient(to bottom, transparent, black 15%);
+}
+
+.fog-layer {
+    position: absolute;
+    width: 200%;
+    height: 150%;
+    top: -25%;
+    left: -50%;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 30%, transparent 40%);
+}
+
+
+/* Main Info Section */
+
+.main__info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 300px;
+    width: 100%;
+    max-width: var(--default-max-width);
+    margin: 0 auto;
+    margin-top: 150px;
+    margin-bottom: 100px;
+    z-index: 10;
+}
