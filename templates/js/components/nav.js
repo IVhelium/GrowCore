@@ -9,7 +9,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-
 // Export function
 export function loadNav() {
     document.getElementById("nav").innerHTML = `
