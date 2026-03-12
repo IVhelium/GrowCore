@@ -38,7 +38,7 @@ export function loadFooter() {
 
                     <div class="footer__column footer__column--contact">
                         <h4 class="footer__heading">Get In Touch</h4>
-                        <p>Email: <a href="mailto:ivanevcp@gmail.com">ivanevcp@gmail.com</a></p>
+                        <p>Email: <a href="mailto:ivanus069&#64;gmail&#46;com">ivanus069@gmail.com</a></p>
                         <p>Phone: <a href="tel:+1234567890">+1 (234) 567-890</a></p>
                     </div>
                 </div>
