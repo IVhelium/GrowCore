@@ -193,6 +193,7 @@
     z-index: 0;
     pointer-events: none;
     opacity: 0.7;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%);
     mask-image: linear-gradient(to bottom, transparent, black 15%);
 }
 
@@ -239,6 +240,7 @@
     height: 40px;
     border-bottom: 2px solid white;
     background: linear-gradient(to right, #5e6140 94%, #108076c5);
+    -webkit-clip-path: polygon(0 0, 99.5% 0, 100% 100%, 0% 100%);
     clip-path: polygon(0 0, 99.5% 0, 100% 100%, 0% 100%);
     transform-origin: left;
     z-index: -1;
@@ -302,6 +304,7 @@
     height: 40px;
     border-bottom: 2px solid white;
     background: linear-gradient(to left, #5e6140 88%, #108076c5);
+    -webkit-clip-path: polygon(0.5% 0, 100% 0%, 100% 100%, 0% 100%);
     clip-path: polygon(0.5% 0, 100% 0%, 100% 100%, 0% 100%);
     transform-origin: right;
     z-index: -1;

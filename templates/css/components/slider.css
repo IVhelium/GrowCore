@@ -105,11 +105,11 @@
     font-size: 0;
     border: none;
     outline: none;
-    
+
     /* Задаем цвет стрелок здесь */
     background-color: black;
-    transition: background-color 0.3s ease; 
-    
+    transition: background-color 0.3s ease;
+
     /* Общие настройки маски */
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
@@ -216,6 +216,7 @@
 }
 
 .slider__button--image {
+    -o-object-fit: cover;
     object-fit: cover;
     padding: 2px 5px;
 }
