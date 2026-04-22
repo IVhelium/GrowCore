@@ -86,3 +86,8 @@
     border-radius: 50%;
     cursor: pointer;
 }
+
+/* Mini  Profile */
+.nav__mini__profile {
+    display: none;
+}
