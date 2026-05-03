@@ -4,8 +4,8 @@ from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import Engine, select
 
-from dependencies import SessionDependency
-from database import Base
+from src.dependencies import SessionDependency
+from src.database import Base, engine
 from src.models.books import BookModel
 from src.schemas.books import NewBookSchema
 
@@ -13,18 +13,11 @@ from src.schemas.books import NewBookSchema
 router = APIRouter()
 
 
-# Create database connection and session management
-engine = create_async_engine('sqlite+aiosqlite:///../database/books.db')  # Create an async engine for connecting to a SQLite database
-
-new_session = async_sessionmaker(engine, expire_on_commit=False)  # Create an async sessionmaker for managing database
-
-
 @router.post("/setup_database")
 async def setup_database():
-    async with engine.connect() as connection:
+    async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.drop_all)
         await connection.run_sync(Base.metadata.create_all)
-        await connection.commit()
         
     return {"success": True, "message": "Database setup completed successfully"}
     

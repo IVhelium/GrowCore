@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
+from src.custom_types import intPk, createdAt
 from src.database import Base
 
 
@@ -14,7 +15,7 @@ class SellerRequestStatus(enum.Enum):
 class SellerRequest(Base):
     __tablename__ = "seller_requests"
     
-    id: Mapped[int] = mapped_column(primary_key=True,)
+    id: Mapped[intPk]
     passport_id: Mapped[str] = mapped_column(String, unique=True)
     full_name: Mapped[str]
     phone_number: Mapped[str] = mapped_column(String, unique=True)
@@ -23,6 +24,6 @@ class SellerRequest(Base):
     message: Mapped[str]
     status: Mapped[SellerRequestStatus] = mapped_column(default=SellerRequestStatus.pending)
     
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[createdAt]
     
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))

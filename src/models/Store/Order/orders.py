@@ -1,8 +1,8 @@
 import uuid
 import enum
-from datetime import datetime, timezone
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+from src.custom_types import intPk, createdAt
 from src.database import Base
 
 
@@ -15,12 +15,12 @@ class OrderStatus(enum.Enum):
 class Order(Base):
     __tablename__ = "orders"
     
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[intPk]
     status: Mapped[OrderStatus]
     total_price: Mapped[float]
     
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[createdAt]
     
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     
     
