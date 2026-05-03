@@ -1,0 +1,35 @@
+*::placeholder {
+    font-family: "Montserrat", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+h4 {
+    font-size: 19px;
+    font-family: "Lexend Deca", "sans-serif";
+}
+
+a {
+    color: white;
+}
+
+textarea {
+    resize: none;
+}
+
+.title {
+    color: white;
+    font-size: 30px;
+    z-index: 1;
+}
+
+.text {
+    color: white;
+    line-height: 1.5;
+}

@@ -1,0 +1,93 @@
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    width: 100%;
+    padding: 20px 50px;
+    background-color: rgba(0, 0, 0, 0.678);
+    z-index: 100;
+    transition: all 0.3s ease-in-out;
+}
+
+.nav.nav--scrolled {
+    padding: 10px 50px;
+    background-color: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+.nav__logo {
+    font-size: 30px;
+    font-weight: 700;
+    color: white;
+}
+
+.nav__content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav__menu {
+    text-transform: uppercase;
+    font-size: 15px;
+}
+
+.nav__menu::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 50%;
+    background-color: white;
+}
+
+.nav__link {
+    display: inline-block;
+    vertical-align: top;
+    text-decoration: none;
+    margin: 0 20px;
+    position: relative;
+    color: white;
+    transition: color 0.1s linear;
+    cursor: pointer;
+}
+
+.nav__link:hover,
+.nav__link--active {
+    color: #fce38a;
+}
+
+.nav__link::after {
+    content: "";
+    display: block;
+    opacity: 0;
+    width: 100%;
+    height: 3px;
+    margin-top: 4px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1;
+    background-color: #fce38a;
+    transition: opacity 0.2s linear;
+}
+
+.nav__link:hover::after,
+.nav__link--active::after {
+    opacity: 1;
+}
+
+.user__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Mini  Profile */
+.nav__mini__profile {
+    display: none;
+}

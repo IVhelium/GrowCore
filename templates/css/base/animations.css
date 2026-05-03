@@ -1,0 +1,35 @@
+/* Animations */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+        will-change: transform, opacity;
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+        will-change: transform, opacity;
+    }
+}
+
+
+@keyframes fogMoveX {
+    from {
+        transform: translateX(-20%);
+    }
+    to {
+        transform: translateX(20%);
+    }
+}
+
+@keyframes fogMoveY {
+    from {
+        transform: translateY(-15%);
+    }
+    to {
+        transform: translateY(15%);
+    }
+}
+
+

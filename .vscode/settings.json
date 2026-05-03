@@ -1,0 +1,31 @@
+{
+  "liveServer.settings.port": 5501,
+
+  "files.associations": {                           // Задает строгий тип файлов для форматирования
+    "*.html": "html",
+    "*.js": "javascript",
+    "*.css": "css"
+  },
+
+  "files.exclude": {                                // Скрывает все записанные файлы
+    "**/__pycache__": true,
+    "**/.venv": true,
+    "**/venv": true,
+  },
+
+  "explorer.compactFolders": false,                 // Убирает компактность папок
+
+  // Настройки файлового древа
+  "workbench.tree.indent": 12,                      // Увеличивает отступ файлов в древе файлов
+  "workbench.tree.renderIndentGuides": "always",    // Показывает линии вложенности файлов 
+
+  // Editor
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+
+  // Autoprefixer
+  "autoprefixer.formatOnSave": true,
+  "autoprefixer.options": {
+    "cascade": false
+  }
+}

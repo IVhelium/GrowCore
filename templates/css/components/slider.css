@@ -1,0 +1,222 @@
+@import url(../base/variables.css);
+
+
+/* Слайдер */
+.slick-slider {}
+
+/* Слайдер запущений */
+.slick-slider.slick-initialized {}
+
+/* Слайдер з крапками */
+.slick-slider.slick-dotted {}
+
+/* Обмежувальна оболонка */
+.slick-list {
+    overflow: hidden;
+}
+
+/* Стрічка слайдів */
+.slick-track {
+    display: flex;
+    gap: 80px;
+}
+
+/* Слайд */
+.slick-slide {}
+
+/* Слайд активний (показується) */
+.slick-slide.slick-active {}
+
+/* Слайд основний */
+.slick-slide.slick-current {}
+
+/* Слайд по центру */
+.slick-slide.slick-center {}
+
+/* Клонований слайд */
+.slick-slide.slick-cloned {}
+
+/* Стрілка */
+.slick-arrow {}
+
+/* Стрілка вліво */
+.slick-arrow.slick-prev {}
+
+/* Стрілка вправо */
+.slick-arrow.slick-next {}
+
+.slick-prev:before,
+.slick-next:before {
+    content: none;
+}
+
+/* Стрілка не активна */
+.slick-arrow.slick-disabled {}
+
+/* Точки (буліти) */
+.slider .slick-dots {
+    position: relative !important;
+    bottom: auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.slick-dots li {}
+
+/* Активна точка */
+.slick-dots li.slick-active {}
+
+/* Елемент точки */
+.slick-dots li button {}
+
+.slider__section {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+    margin-bottom: 100px;
+}
+
+.slider__wrapper {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.slider {
+    position: relative;
+    box-sizing: border-box;
+    padding: 0 90px;
+    z-index: 1;
+}
+
+.slider .slick-track {
+    padding: 30px 0;
+}
+
+.slider .slick-arrow {
+    position: absolute;
+    top: 50%;
+    width: 25px;
+    height: 60px;
+    z-index: 1000;
+    font-size: 0;
+    border: none;
+    outline: none;
+
+    /* Задаем цвет стрелок здесь */
+    background-color: black;
+    transition: background-color 0.3s ease;
+
+    /* Общие настройки маски */
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100%;
+    mask-size: 100%;
+}
+
+.slider .slick-arrow:hover {
+    background-color: #fce38a;
+}
+
+.slider .slick-arrow.slick-next {
+    right: 25px;
+    -webkit-mask-image: url(../../assets/images/blocks/slider/arrows/sl-arrow_r.svg);
+    mask-image: url(../../assets/images/blocks/slider/arrows/sl-arrow_r.svg);
+}
+
+.slider .slick-arrow.slick-prev {
+    left: 25px;
+    -webkit-mask-image: url(../../assets/images/blocks/slider/arrows/sl-arrow_l.svg);
+    mask-image: url(../../assets/images/blocks/slider/arrows/sl-arrow_l.svg);
+}
+
+.slider .slick-dots {
+    margin-top: 20px;
+}
+
+/* Slider Item */
+
+.slider__item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    position: relative;
+    width: 800px;
+    height: 500px;
+    border: solid white 2px;
+    border-radius: 30px;
+    box-shadow: 0px 0px 10px 2px #fce38a;
+    opacity: 0.7;
+    text-align: center;
+    background-color: black;
+    color: white;
+    outline: none;
+    overflow: hidden;
+    transition: opacity 0.3s ease, box-shadow 0.6s ease;
+}
+
+.slider__item.slick-center {
+    opacity: 1;
+    box-shadow: 0px 0px 15px 2px black;
+}
+
+.slider__content {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 55%;
+    height: 100%;
+    gap: 50px;
+    margin: 40px 25px;
+    z-index: 2;
+}
+
+.slider__description {
+    text-align: left;
+}
+
+.slider__img {
+    position: absolute;
+    bottom: -35px;
+    right: -35px;
+    z-index: 1;
+    width: 500px;
+}
+
+/* Slider Button */
+
+.slider__button {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    border: solid white 1px;
+    border-radius: 10px;
+    min-width: 159px;
+    max-width: 160px;
+    height: 34px;
+}
+
+.slider__button--link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 85%;
+    border-right: solid white 1px;
+    transition: all 0.2s ease;
+}
+
+.slider__button--link:hover {
+    background-color: rgba(158, 158, 158, 0.712);
+    border-radius: 10px 0 0 10px;
+}
+
+.slider__button--image {
+    -o-object-fit: cover;
+    object-fit: cover;
+    padding: 2px 5px;
+}
