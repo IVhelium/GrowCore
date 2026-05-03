@@ -1,15 +1,16 @@
 import uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
+from src.custom_types import uuidPk, createdAt
 from src.database import Base
 
 class Store(Base):
     __tablename__ = "stores"
     
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuidPk]
     name: Mapped[str]
     description: Mapped[str | None]
        
-    created_at: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    created_at: Mapped[createdAt]
     
     products = relationship("Product", back_populates="store")
