@@ -1,5 +1,6 @@
 import enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.custom_types import intPk
 from src.database import Base
 
 
@@ -11,7 +12,7 @@ class RoleStatus(enum.Enum):
 class Role(Base):
     __tablename__ = "roles"
     
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    id: Mapped[intPk]
     role: Mapped[RoleStatus]
     
     users = relationship("UserRole", back_populates="role")
