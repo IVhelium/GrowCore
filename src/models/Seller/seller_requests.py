@@ -1,6 +1,5 @@
 import enum
 import uuid
-from datetime import datetime, timezone
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from src.custom_types import intPk, createdAt
