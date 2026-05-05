@@ -34,7 +34,7 @@
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",
-      "args": ["-NoExit", "-Command", ". .\\setup_tools.ps1"]
+      "args": ["-NoExit", "-Command", ". .\\setup_tools.ps1; pip-sync"]
     }
   },
   "terminal.integrated.defaultProfile.windows": "PowerShell"
