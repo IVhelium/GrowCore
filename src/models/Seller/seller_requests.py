@@ -11,7 +11,7 @@ class SellerRequestStatus(enum.Enum):
     approved = "Approved"
     rejected = "Rejected"
 
-class SellerRequest(Base):
+class SellerRequestModel(Base):
     __tablename__ = "seller_requests"
     
     id: Mapped[intPk]

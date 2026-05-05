@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src.custom_types import intPk
 from src.database import Base
 
-class OrderItem(Base):
+class OrderItemModel(Base):
     __tablename__ = "order_items"
     
     id: Mapped[intPk]
