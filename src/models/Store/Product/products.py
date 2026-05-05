@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.custom_types import intPk, createdAt
 from src.database import Base
 
-class Product(Base):
+class ProductModel(Base):
     __tablename__ = "products"
     
     id: Mapped[intPk]
@@ -23,7 +23,7 @@ class Product(Base):
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     
-    images = relationship("ProductImage", back_populates="product")
-    store = relationship("Store", back_populates="products")
-    category = relationship("Category", back_populates="products")
+    images = relationship("ProductImageModel", back_populates="product")
+    store = relationship("StoreModel", back_populates="products")
+    category = relationship("CategoryModel", back_populates="products")
     

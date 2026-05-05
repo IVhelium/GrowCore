@@ -1,8 +1,10 @@
+import uuid
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.custom_types import uuidPk, createdAt
 from src.database import Base
 
-class Store(Base):
+class StoreModel(Base):
     __tablename__ = "stores"
     
     id: Mapped[uuidPk]
@@ -11,4 +13,6 @@ class Store(Base):
        
     created_at: Mapped[createdAt]
     
-    products = relationship("Product", back_populates="store")
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    
+    products = relationship("ProductModel", back_populates="store")

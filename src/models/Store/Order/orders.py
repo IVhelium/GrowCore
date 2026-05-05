@@ -12,7 +12,7 @@ class OrderStatus(enum.Enum):
     delayed = "Delayed"
     
     
-class Order(Base):
+class OrderModel(Base):
     __tablename__ = "orders"
     
     id: Mapped[intPk]

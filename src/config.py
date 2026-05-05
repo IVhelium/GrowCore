@@ -1,7 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-# Создание ссылки для конфигурации бд
+# Database URL create
 class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str

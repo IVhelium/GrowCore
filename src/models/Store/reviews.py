@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src.custom_types import intPk, createdAt
 from src.database import Base
 
-class Review(Base):
+class ReviewModel(Base):
     __tablename__ = "reviews"
     
     id: Mapped[intPk]

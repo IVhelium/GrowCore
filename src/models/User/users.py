@@ -7,7 +7,7 @@ from src.database import Base
 def generate_public_id():
     return "#" + uuid.uuid4().hex[:8]    # Ограничивает айди до 8 символов
 
-class User(Base):
+class UserModel(Base):
     __tablename__ = "users"
     
     id: Mapped[uuidPk]
@@ -24,4 +24,4 @@ class User(Base):
     followers_count: Mapped[int] = mapped_column(default=0)
     following_count: Mapped[int] = mapped_column(default=0)
     
-    roles = relationship("UserRole", back_populates="user")
+    roles = relationship("UserRoleModel", back_populates="user")

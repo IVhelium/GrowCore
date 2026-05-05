@@ -9,10 +9,10 @@ class RoleStatus(enum.Enum):
     seller = "Seller"
     admin = "Admin"
 
-class Role(Base):
+class RoleModel(Base):
     __tablename__ = "roles"
     
     id: Mapped[intPk]
     role: Mapped[RoleStatus]
     
-    users = relationship("UserRole", back_populates="role")
+    users = relationship("UserRoleModel", back_populates="role")
