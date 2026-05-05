@@ -180,10 +180,10 @@ async def add_test_data(db: SessionDependency):
 
         await db.commit()
         return {
-        "status": "success", 
-        "total": total_count, 
-        "time_seconds": round(duration, 2),
-        "speed_per_second": round(total_count / duration, 0)
+            "status": "success", 
+            "total": total_count, 
+            "time_seconds": round(duration, 2),
+            "speed_per_second": round(total_count / duration, 0)
         }
 
     except Exception as e:
