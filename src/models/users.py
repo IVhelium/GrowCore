@@ -11,13 +11,13 @@ class UserModel(Base):
     __tablename__ = "users"
     
     id: Mapped[uuidPk]
-    public_id: Mapped[str] = mapped_column(String(16), default=generate_public_id, index=True, unique=True)
-    username: Mapped[str] = mapped_column(String, unique=True)
-    email: Mapped[str] = mapped_column(String, unique=True)
+    public_id: Mapped[str] = mapped_column(String(8), default=generate_public_id, index=True, unique=True)
+    username: Mapped[str] = mapped_column(String(25), unique=True)
+    email: Mapped[str] = mapped_column(String(256), unique=True)
     password_hash: Mapped[str]
     
     avatar_url: Mapped[str | None]
-    description: Mapped[str | None]
+    description: Mapped[str | None] = mapped_column(String(300))
     
     created_at: Mapped[createdAt]
     
