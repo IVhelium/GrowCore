@@ -8,6 +8,7 @@ class CreateProductDTO(BaseModel):
     description: str
     price: Decimal = Decimal(10, 2)
     quantity: int
+    category_id: int
 
     model_config = ConfigDict(extra="forbid")
     
