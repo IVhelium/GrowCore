@@ -50,7 +50,7 @@ function pip-sync {
 
     if ($to_install.Count -gt 0) {
         Write-Host "New libraries found: $($to_install.Count)" -ForegroundColor Yellow
-        python -m pip install $to_install
+        pip install $to_install
         Write-Host "All libraries have been installed successfully" -ForegroundColor Green
     } else {
         Write-Host "All libraries have already been installed" -ForegroundColor Green
