@@ -24,4 +24,4 @@ class UserModel(Base):
     followers_count: Mapped[int] = mapped_column(default=0)
     following_count: Mapped[int] = mapped_column(default=0)
     
-    roles = relationship("UserRoleModel", back_populates="user")
+    roles: Mapped[list["UserRoleModel"]] = relationship(back_populates="user")

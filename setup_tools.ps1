@@ -1,29 +1,24 @@
-function pip-add {
-    param (
-        [Parameter(ValueFromRemainingArguments = $true)]
-        [string[]]$packages
-    )
+# Проверяем есть ли виртуальное окружение и активируем его
+$venvNames = ".venv", "venv", "env", "virtualenv"   # Допустимые названия виртуального окружения
+$activated = $false                                 # Переменная которая отвечает за состояние активности окружения
 
-    if ($packages) {
-        pip install $packages
-        pip freeze > requirements.txt
-        Write-Host "The library [$($packages -join ', ')] has been successfully installed, requirements.txt was updated." -ForegroundColor Green
+foreach ($name in $venvNames) {
+    $psPath = ".\$name\Scripts\Activate.ps1"
+
+    if (Test-Path $psPath) {
+        . $psPath
+        Write-Host "Activated virtual environment: $name" -ForegroundColor Gray
+        $activated = $true
+        break
     }
 }
 
-function pip-remove {
-    param (
-        [Parameter(ValueFromRemainingArguments = $true)]
-        [string[]]$packages
-    )
-
-    if ($packages) {
-        pip uninstall $packages -y
-        pip freeze > requirements.txt
-        Write-Host "The library [$($packages -join ', ')] has been successfully removed, requirements.txt was updated." -ForegroundColor Cyan
-    }  
+if (-not $activated) {
+    Write-Host "Virtual environment not found" -ForegroundColor Yellow
 }
 
+
+# FUNCTIONS
 function pip-sync {
     if (!(Test-Path ".\requirements.txt")) {
         Write-Host "File requirements.txt not found" -ForegroundColor Red
@@ -51,11 +46,40 @@ function pip-sync {
     if ($to_install.Count -gt 0) {
         Write-Host "New libraries found: $($to_install.Count)" -ForegroundColor Yellow
         pip install $to_install
+        pip freeze > .\requirements.txt
         Write-Host "All libraries have been installed successfully" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "All libraries have already been installed" -ForegroundColor Green
     }
 }
+
+function pip-add {
+    param (
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$packages
+    )
+
+    if ($packages) {
+        pip install $packages
+        pip freeze > requirements.txt
+        Write-Host "The library [$($packages -join ', ')] has been successfully installed, requirements.txt was updated." -ForegroundColor Green
+    }
+}
+
+function pip-remove {
+    param (
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$packages
+    )
+
+    if ($packages) {
+        pip uninstall $packages -y
+        pip freeze > requirements.txt
+        Write-Host "The library [$($packages -join ', ')] has been successfully removed, requirements.txt was updated." -ForegroundColor Cyan
+    }  
+}
+
 
 # uvicorn initialization function
 function app {
@@ -66,5 +90,6 @@ function app {
 
     uvicorn "$($appname):app" --reload
 }
+
 
 Write-Host "The tools has been successfully installed" -ForegroundColor DarkCyan

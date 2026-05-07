@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
-from models.seller_requests import SellerRequestStatus
+from models.Seller.seller_requests import SellerRequestStatus
 
 class CreateSellerRequestDTO(BaseModel):
-    passport_id: str
+    passport_id: str = Field(max_length=10, min_length=8)
     full_name: str
     phone_number: str
     country: str

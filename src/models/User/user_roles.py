@@ -12,6 +12,6 @@ class UserRoleModel(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"))
     
-    user = relationship("UserModel", back_populates="roles")
-    role = relationship("RoleModel", back_populates="users")
+    user: Mapped["UserModel"] = relationship(back_populates="roles")
+    role: Mapped["RoleModel"] = relationship(back_populates="users")
     

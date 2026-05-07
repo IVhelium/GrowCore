@@ -15,4 +15,4 @@ class RoleModel(Base):
     id: Mapped[intPk]
     role: Mapped[RoleStatus]
     
-    users = relationship("UserRoleModel", back_populates="role")
+    users: Mapped[list["UserRoleModel"]] = relationship(back_populates="role")

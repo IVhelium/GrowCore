@@ -21,4 +21,6 @@ class UserDTO(BaseModel):
     description: str | None = Field(max_length=300)
     created_at: datetime
     
+    roles: list[UserRoleDTO] = []
+    
     model_config = ConfigDict(extra="forbid", from_attributes=True)

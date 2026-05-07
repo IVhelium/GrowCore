@@ -24,3 +24,12 @@ class OrderModel(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     
     
+class OrderItemModel(Base):
+    __tablename__ = "order_items"
+    
+    id: Mapped[intPk]
+    price: Mapped[float]
+    quantity: Mapped[int] = mapped_column(default=1)
+    
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))

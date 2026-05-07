@@ -23,7 +23,19 @@ class ProductModel(Base):
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     
-    images = relationship("ProductImageModel", back_populates="product")
-    store = relationship("StoreModel", back_populates="products")
-    category = relationship("CategoryModel", back_populates="products")
+    images: Mapped[list["ProductImageModel"]] = relationship(back_populates="product")
+    store: Mapped["StoreModel"] = relationship(back_populates="products")
+    category: Mapped["CategoryModel"] = relationship(back_populates="products")
+    
+    
+
+class ProductImageModel(Base):
+    __tablename__ = "product_images"
+    
+    id: Mapped[intPk]
+    image: Mapped[str]
+    
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
+    
+    product: Mapped["ProductModel"] = relationship(back_populates="images")
     
