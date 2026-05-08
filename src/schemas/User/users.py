@@ -3,6 +3,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from uuid import UUID
 
+from schemas.User.user_roles import UserRoleDTO
+
 
 class CreateUserDTO(BaseModel):
     username: str = Field(max_length=25)

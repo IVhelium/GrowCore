@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from schemas.products import ProductDTO
+from schemas.Store.products import ProductDTO
 
 class CreateStoreDTO(BaseModel):
     name: str = Field(max_length=100)
