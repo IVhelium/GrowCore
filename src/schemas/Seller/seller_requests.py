@@ -22,4 +22,4 @@ class SellerRequestDTO(BaseModel):
     status: SellerRequestStatus
     created_at: datetime
     
-    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)

@@ -1,9 +1,33 @@
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field
 
-from schemas.Store.products import ProductDTO
+from schemas.Store.products import ReadProductDTO
 
-class CartDTO(BaseModel):
+ 
+    
+# Cart Item Schemas
+class BaseCartItemDTO(BaseModel):
+    quantity: int = Field(ge=0)
+    product_id: int
+    
+    
+class CreateCartItemDTO(BaseCartItemDTO):
+    pass
+
+
+class ReadCartItemDTO(BaseModel):
     id: int
-    items: list[ProductDTO] = []
+    quantity: int
+    product_id: ReadProductDTO
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    
+
+# Cart Schemas
+class ReadCartDTO(BaseModel):
+    id: int
+    user_id: UUID
+    items: list[ReadCartItemDTO] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

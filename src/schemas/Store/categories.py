@@ -1,7 +1,13 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-class CategoryDTO(BaseModel):
-    id: int
+
+class CreateCategoryDTO(BaseModel):
     name: str
     
-    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    model_config = ConfigDict(extra="forbid")
+
+
+class ReadCategoryDTO(CreateCategoryDTO):
+    id: int
+    
+    model_config = ConfigDict(from_attributes=True)

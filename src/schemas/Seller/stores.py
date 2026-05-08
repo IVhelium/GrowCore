@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from schemas.Store.products import ProductDTO
+from schemas.Store.products import ReadProductDTO
 
 class CreateStoreDTO(BaseModel):
     name: str = Field(max_length=100)
@@ -12,12 +12,12 @@ class CreateStoreDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
     
     
-class StoreDTO(BaseModel):
+class ReadStoreDTO(BaseModel):
     id: UUID
     name: str = Field(max_length=100)
     description: str | None = Field(max_length=300)
     created_at: datetime
     
-    products: list[ProductDTO] = []
+    products: list[ReadProductDTO] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

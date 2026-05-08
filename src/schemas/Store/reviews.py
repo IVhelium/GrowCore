@@ -1,17 +1,24 @@
 from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-class CreateRiviewDTO(BaseModel):
-    rating: Decimal = Field(default=0), Decimal(3, 1)
+from schemas.User.users import ReadUserDTO
+
+class BaseReviewDTO(BaseModel):
+    rating: Decimal = Field(ge=1, le=5), Decimal(3, 1)
     comment: str | None = None
 
+class CreateReviewDTO(BaseReviewDTO):
+    product_id: int
+    
+    model_config = ConfigDict(extra="forbid")
 
-class ReviewDTO(BaseModel):
+class ReadReviewDTO(BaseReviewDTO):
     id: int
-    rating: Decimal = Decimal(3, 1)
-    comment: str | None
     created_at: datetime
+    user_id: ReadUserDTO
+    product_id: int
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
