@@ -20,8 +20,6 @@ async def get_users(session: SessionDependency):
     result = await session.execute(query)
     
     return result.scalars().all()
-    
-    return 
 
 
 # Get all books
