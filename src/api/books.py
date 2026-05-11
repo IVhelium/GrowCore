@@ -6,10 +6,22 @@ from sqlalchemy import Engine, select
 from src.dependencies import SessionDependency
 from src.database import Base, engine
 from src.models.books import BookModel
+from src.models.User.users import UserModel
 from src.schemas.books import NewBookSchema
 
 
 router = APIRouter()
+
+# Get all users
+@router.get("/users", tags=["Users"], summary="Get all users")
+async def get_users(session: SessionDependency):
+    query = select(UserModel)
+    
+    result = await session.execute(query)
+    
+    return result.scalars().all()
+    
+    return 
 
 
 # Get all books

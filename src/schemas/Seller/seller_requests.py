@@ -1,6 +1,4 @@
 from datetime import datetime
-from uuid import UUID
-
 from pydantic import BaseModel, ConfigDict, Field
 from models.Seller.seller_requests import SellerRequestStatus
 from schemas.User.users import ReadUserDTO

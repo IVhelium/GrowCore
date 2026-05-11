@@ -44,7 +44,7 @@ class UserModel(Base):
         uselist=False
     )
     
-    oredrs: Mapped["OrderModel"] = relationship(
+    orders: Mapped["OrderModel"] = relationship(
         back_populates="user",
     )
     
