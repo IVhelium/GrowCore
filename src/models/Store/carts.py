@@ -9,9 +9,17 @@ class CartModel(Base):
     
     id: Mapped[uuidPk]
     
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     
-    items: Mapped[list["CartItemModel"]] = relationship(back_populates="cart")
+    # Relationships
+    user: Mapped["UserModel"] = relationship(
+        back_populates="cart",
+        uselist=False
+    )
+    
+    items: Mapped[list["CartItemModel"]] = relationship(
+        back_populates="cart"
+    )
     
     
 class CartItemModel(Base):
@@ -23,4 +31,11 @@ class CartItemModel(Base):
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
     cart_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("carts.id", ondelete="CASCADE"))
     
-    cart: Mapped["CartModel"] = relationship(back_populates="items")
+    # Relationships
+    product: Mapped["ProductModel"] = relationship(
+        back_populates="cart_items"
+    )
+    
+    cart: Mapped["CartModel"] = relationship(
+        back_populates="items"
+    )

@@ -23,9 +23,30 @@ class ProductModel(Base):
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     
-    images: Mapped[list["ProductImageModel"]] = relationship(back_populates="product")
-    store: Mapped["StoreModel"] = relationship(back_populates="products")
-    category: Mapped["CategoryModel"] = relationship(back_populates="products")
+    # Relationships
+    images: Mapped[list["ProductImageModel"]] = relationship(
+        back_populates="product"
+    )
+    
+    store: Mapped["StoreModel"] = relationship(
+        back_populates="products"
+    )
+    
+    category: Mapped["CategoryModel"] = relationship(
+        back_populates="products"
+    )
+    
+    reviews: Mapped[list["ReviewModel"]] = relationship(
+        back_populates="product"
+    )
+    
+    cart_items: Mapped[list["CartItemModel"]] = relationship(
+        back_populates="product"
+    )
+    
+    order_items: Mapped[list["OrderItemModel"]] = relationship(
+        back_populates="product"
+    )
     
     
 
@@ -37,5 +58,8 @@ class ProductImageModel(Base):
     
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
     
-    product: Mapped["ProductModel"] = relationship(back_populates="images")
+    # Relationships
+    product: Mapped["ProductModel"] = relationship(
+        back_populates="images"
+    )
     

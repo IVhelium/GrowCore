@@ -8,4 +8,7 @@ class CategoryModel(Base):
     id: Mapped[intPk]
     name: Mapped[str]
     
-    products: Mapped[list["ProductModel"]] = relationship(back_populates="category")
+    # Relationships
+    products: Mapped[list["ProductModel"]] = relationship(
+        back_populates="category"
+    )

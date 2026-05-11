@@ -1,7 +1,7 @@
 import enum
 import uuid
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.custom_types import intPk, createdAt
 from src.database import Base
 
@@ -26,3 +26,8 @@ class SellerRequestModel(Base):
     created_at: Mapped[createdAt]
     
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    
+    user: Mapped["UserModel"] = relationship(
+        back_populates="seller_request",
+        uselist=False
+    )

@@ -15,4 +15,12 @@ class StoreModel(Base):
     
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     
-    products: Mapped[list["ProductModel"]] = relationship(back_populates="store")
+    # Relationships
+    user: Mapped["UserModel"] = relationship(
+        back_populates="store",
+        uselist=False
+    )
+    
+    products: Mapped[list["ProductModel"]] = relationship(
+        back_populates="store"
+    )
