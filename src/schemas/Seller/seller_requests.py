@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 from models.Seller.seller_requests import SellerRequestStatus
@@ -21,5 +22,6 @@ class SellerRequestDTO(BaseModel):
     message: str
     status: SellerRequestStatus
     created_at: datetime
+    user_id: UUID
     
     model_config = ConfigDict(from_attributes=True)

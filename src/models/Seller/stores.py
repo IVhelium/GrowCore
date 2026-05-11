@@ -13,6 +13,6 @@ class StoreModel(Base):
        
     created_at: Mapped[createdAt]
     
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     
     products: Mapped[list["ProductModel"]] = relationship(back_populates="store")

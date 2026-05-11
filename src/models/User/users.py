@@ -11,7 +11,7 @@ class UserModel(Base):
     __tablename__ = "users"
     
     id: Mapped[uuidPk]
-    public_id: Mapped[str] = mapped_column(String(8), default=generate_public_id, index=True, unique=True)
+    public_id: Mapped[str] = mapped_column(String(16), default=generate_public_id, index=True, unique=True)
     username: Mapped[str] = mapped_column(String(25), unique=True)
     email: Mapped[str] = mapped_column(String(256), unique=True)
     password_hash: Mapped[str]
@@ -24,4 +24,30 @@ class UserModel(Base):
     followers_count: Mapped[int] = mapped_column(default=0)
     following_count: Mapped[int] = mapped_column(default=0)
     
-    roles: Mapped[list["UserRoleModel"]] = relationship(back_populates="user")
+    # Relationships
+    roles: Mapped[list["UserRoleModel"]] = relationship(
+        back_populates="user",
+    )
+    
+    seller_request: Mapped["SellerRequestModel"] = relationship(
+        back_populates="user",
+        uselist=False
+    )
+    
+    store: Mapped["StoreModel"] = relationship(
+        back_populates="user",
+        uselist=False
+    )
+    
+    cart: Mapped["CartModel"] = relationship(
+        back_populates="user",
+        uselist=False
+    )
+    
+    oredrs: Mapped["OrderModel"] = relationship(
+        back_populates="user",
+    )
+    
+    reviews: Mapped["ReviewModel"] = relationship(
+        back_populates="user"
+    )

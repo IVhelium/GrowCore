@@ -25,4 +25,4 @@ class SellerRequestModel(Base):
     
     created_at: Mapped[createdAt]
     
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
