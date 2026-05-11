@@ -13,7 +13,7 @@ class BaseCartItemDTO(BaseModel):
     
     
 class CreateCartItemDTO(BaseCartItemDTO):
-    pass
+    model_config = ConfigDict(extra="forbid")
 
 
 class ReadCartItemDTO(BaseModel):

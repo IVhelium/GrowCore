@@ -9,15 +9,16 @@ from schemas.Store.categories import ReadCategoryDTO
 
 
 # Product Image Schemas
-class CreateProductImageDTO(BaseModel):
+class BaseProductImageDTO(BaseModel):
     image: str
+
+class CreateProductImageDTO(BaseProductImageDTO):
     product_id: int
     
     model_config = ConfigDict(extra="forbid")
 
-class ReadProductImageDTO(BaseModel):
+class ReadProductImageDTO(BaseProductImageDTO):
     id: int
-    image: str
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
   
