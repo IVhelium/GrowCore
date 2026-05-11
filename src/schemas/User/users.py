@@ -23,8 +23,6 @@ class CreateUserDTO(BaseUserDTO):
 class ReadUserDTO(BaseUserDTO):
     id: UUID
     public_id: UUID = Field(max_length=8)
-    username: str = Field(max_length=25)
-    email: EmailStr = Field(max_length=256)
     avatar_url: str | None = None
     description: str | None = Field(max_length=300), None
     followers_count: int = Field(default=0)
