@@ -2,8 +2,8 @@ import uuid
 from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.custom_types import intPk, createdAt
-from src.database import Base
+from src.core.custom_types import intPk, createdAt
+from src.core.database import Base
 
 class ReviewModel(Base):
     __tablename__ = "reviews"

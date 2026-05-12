@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.custom_types import uuidPk, createdAt
-from src.database import Base
+from src.core.custom_types import uuidPk, createdAt
+from src.core.database import Base
 
 class StoreModel(Base):
     __tablename__ = "stores"

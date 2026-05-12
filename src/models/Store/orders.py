@@ -2,8 +2,8 @@ import uuid
 import enum
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.custom_types import intPk, createdAt
-from src.database import Base
+from src.core.custom_types import intPk, createdAt
+from src.core.database import Base
 
 
 class OrderStatus(enum.Enum):

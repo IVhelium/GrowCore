@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
-from src.config import settings
+from src.core.config import settings
 
 
 # ======= Создание движка и сессий для работы с бд ======= #

@@ -1,4 +1,4 @@
-from src.database import Base
+from src.core.database import Base
 from src.models.Seller.seller_requests import SellerRequestModel
 from src.models.Seller.stores import StoreModel
 from src.models.Store.carts import CartModel, CartItemModel

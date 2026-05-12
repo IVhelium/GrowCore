@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.custom_types import uuidPk, intPk
-from src.database import Base
+from src.core.custom_types import uuidPk, intPk
+from src.core.database import Base
 
 class CartModel(Base):
     __tablename__ = "carts"

@@ -6,8 +6,8 @@ import uuid
 from faker import Faker
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import insert, select
-from src.dependencies import SessionDependency
-from src.database import engine
+from src.core.dependencies import SessionDependency
+from src.core.database import engine
 from src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
     StoreModel, ProductModel, ProductImageModel, CartModel, CartItemModel, OrderModel, OrderItemModel, ReviewModel, SellerRequestModel, RoleStatus, OrderStatus)
 
