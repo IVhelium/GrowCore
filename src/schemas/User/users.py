@@ -10,6 +10,8 @@ from schemas.User.user_roles import ReadUserRoleDTO
 class BaseUserDTO(BaseModel):
     username: str = Field(max_length=25)
     email: EmailStr = Field(max_length=256)
+    avatar_url: str | None = None
+    description: str | None = Field(max_length=300), None
 
 
 # Класс для создания юзера
@@ -23,8 +25,6 @@ class CreateUserDTO(BaseUserDTO):
 class ReadUserDTO(BaseUserDTO):
     id: UUID
     public_id: UUID = Field(max_length=8)
-    avatar_url: str | None = None
-    description: str | None = Field(max_length=300), None
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
     created_at: datetime
