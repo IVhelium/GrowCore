@@ -10,7 +10,7 @@ from schemas.Store.products import ReadProductDTO
 class BaseCartItemDTO(BaseModel):
     quantity: int = Field(ge=0)
     product_id: int
-    
+
     
 class CreateCartItemDTO(BaseCartItemDTO):
     model_config = ConfigDict(extra="forbid")
