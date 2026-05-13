@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
-from models.Seller.seller_requests import SellerRequestStatus
-from schemas.User.users import ReadUserDTO
+from src.models.Seller.seller_requests import SellerRequestStatus
 
 
 class BaseSellerRequestDTO(BaseModel):
@@ -22,6 +21,6 @@ class ReadSellerRequestDTO(BaseSellerRequestDTO):
     id: int
     status: SellerRequestStatus
     created_at: datetime
-    user_id: ReadUserDTO
+    user_id: "ReadUserDTO"
     
     model_config = ConfigDict(from_attributes=True)

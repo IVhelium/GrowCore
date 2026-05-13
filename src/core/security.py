@@ -1,19 +1,14 @@
-from datetime import datetime, timedelta, UTC
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+from authx import AuthXConfig, AuthX
 from src.core.config import settings
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
+# Configure AuthX
+auth_config = AuthXConfig(
+    JWT_SECRET_KEY=settings.JWT_SECRET,
+    JWT_ACCESS_COOKIE_NAME=settings.JWT_ACCESS_COOKIE_NAME,
+    JWT_TOKEN_LOCATION=["cookes"],
+    JWT_COOKIE_CSRF_PROTECT=False,
+    JWT_COOKIE_SECURE=False
 )
 
-
-# Password
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(
-        
-    )
+# Initialize AuthX
+auth = AuthX(config=auth_config)

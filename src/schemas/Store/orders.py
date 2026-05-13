@@ -3,8 +3,7 @@ from uuid import UUID
 
 from pydantic import ConfigDict, BaseModel, Field
 
-from models.Store.orders import OrderStatus
-from schemas.Store.products import ReadProductDTO
+from src.models.Store.orders import OrderStatus
     
     
 # Order Item Schemas
@@ -14,7 +13,7 @@ class ReadOrderItemDTO(BaseModel):
     quantity: int
     created_at: datetime
     user_id: UUID
-    product_id: ReadProductDTO
+    product_id: "ReadProductDTO"
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
 
@@ -26,6 +25,6 @@ class ReadOrderDTO(BaseModel):
     total_price: float
     created_id: datetime
     user_id: UUID
-    items: list[ReadOrderItemDTO] = []
+    items: list["ReadOrderItemDTO"] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

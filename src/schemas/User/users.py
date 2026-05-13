@@ -3,8 +3,6 @@ from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from uuid import UUID
 
-from schemas.User.user_roles import ReadUserRoleDTO
-
 
 # Базовый класс юзера для наследия
 class BaseUserDTO(BaseModel):
@@ -29,6 +27,6 @@ class ReadUserDTO(BaseUserDTO):
     following_count: int = Field(default=0)
     created_at: datetime
     
-    roles: list[ReadUserRoleDTO] = []
+    roles: list["ReadUserRoleDTO"] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

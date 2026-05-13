@@ -9,3 +9,18 @@ from src.schemas.Store.reviews import CreateReviewDTO, ReadReviewDTO
 from src.schemas.User.roles import ReadRoleDTO, RoleStatus
 from src.schemas.User.user_roles import ReadUserRoleDTO
 from src.schemas.User.users import CreateUserDTO, ReadUserDTO
+
+
+ReadSellerRequestDTO.model_rebuild()
+ReadStoreDTO.model_rebuild()
+ReadCartDTO.model_rebuild()
+ReadCartItemDTO.model_rebuild()
+ReadCategoryDTO.model_rebuild()
+ReadOrderDTO.model_rebuild()
+ReadOrderItemDTO.model_rebuild()
+ReadProductDTO.model_rebuild()
+ReadProductImageDTO.model_rebuild()
+ReadReviewDTO.model_rebuild()
+ReadRoleDTO.model_rebuild()
+ReadUserRoleDTO.model_rebuild()
+ReadUserDTO.model_rebuild()

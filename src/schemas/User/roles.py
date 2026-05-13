@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from models.User.roles import RoleStatus
+from src.models.User.roles import RoleStatus
 
 class ReadRoleDTO(BaseModel):
     id: int
