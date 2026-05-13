@@ -5,21 +5,20 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class BaseReviewDTO(BaseModel):
+# Review Create Schema
+class CreateReviewDTO(BaseModel):
     rating: Decimal = Field(ge=1, le=5)
-    comment: str | None = None
-
-
-class CreateReviewDTO(BaseReviewDTO):
-    product_id: int
+    comment: str
+    
     model_config = ConfigDict(extra="forbid")
 
 
+# Review Read Schema
 class ReadReviewDTO(BaseReviewDTO):
     id: int
+    rating: Decimal = Field(ge=1, le=5)
+    comment: str | None
     created_at: datetime
-    
     user_id: "ReadUserDTO"
-    product_id: "ReadProductDTO"
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

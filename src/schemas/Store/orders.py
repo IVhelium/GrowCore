@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import ConfigDict, BaseModel, Field
@@ -6,23 +7,21 @@ from pydantic import ConfigDict, BaseModel, Field
 from src.models.Store.orders import OrderStatus
     
     
-# Order Item Schemas
+# Order Item Read Schema
 class ReadOrderItemDTO(BaseModel):
     id: int
-    price: float
+    price: Decimal
     quantity: int
-    created_at: datetime
-    user_id: UUID
     product_id: "ReadProductDTO"
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
 
     
-# Order Schemas
+# Order Read Schemas
 class ReadOrderDTO(BaseModel):
     id: int
     status: OrderStatus
-    total_price: float
+    total_price: Decimal
     created_id: datetime
     user_id: UUID
     items: list["ReadOrderItemDTO"] = []

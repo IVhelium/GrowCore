@@ -4,16 +4,22 @@ from pydantic import BaseModel, ConfigDict, Field
 
  
     
-# Cart Item Schemas
-class BaseCartItemDTO(BaseModel):
+# Cart Item Create Schema
+class CreateCartItemDTO(BaseModel):
     quantity: int = Field(ge=0)
     product_id: int
-
     
-class CreateCartItemDTO(BaseCartItemDTO):
     model_config = ConfigDict(extra="forbid")
 
 
+# Cart Item Update Schema
+class UpdateCartItemDTO(BaseModel):
+    quantity: int
+    
+    model_config = ConfigDict(extra="forbid")
+    
+
+# Cart Item Read Schema
 class ReadCartItemDTO(BaseModel):
     id: int
     quantity: int
@@ -22,10 +28,9 @@ class ReadCartItemDTO(BaseModel):
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
 
-# Cart Schemas
+# Cart Read Schemas
 class ReadCartDTO(BaseModel):
     id: int
-    user_id: UUID
     items: list["ReadCartItemDTO"] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

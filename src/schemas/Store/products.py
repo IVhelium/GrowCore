@@ -5,33 +5,48 @@ from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 
 
-# Product Image Schemas
-class BaseProductImageDTO(BaseModel):
-    image: str
-
-class CreateProductImageDTO(BaseProductImageDTO):
-    product_id: int
-    
-    model_config = ConfigDict(extra="forbid")
-
-class ReadProductImageDTO(BaseProductImageDTO):
+# Product Image Read Schema
+class ReadProductImageDTO(BaseModel):
     id: int
+    image: str
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
   
     
-# Product Schemas
+# Product Create Schemas
 class CreateProductDTO(BaseModel):
     title: str = Field(max_length=100)
     description: str
     price: Decimal
     quantity: int
     category_id: int
-    store_id: UUID
 
     model_config = ConfigDict(extra="forbid")
     
 
+# Product Update Schema
+class UpdateProductDTO(BaseModel):
+    title: str | None
+    description: str | None
+    price: Decimal | None
+    quantity: int | None
+    enabled: bool | None
+    category_id: int | None
+    
+    model_config = ConfigDict(extra="forbid")
+    
+    
+# Product Short Schema
+class ShortProductDTO(BaseModel):
+    id: int
+    title: str
+    price: Decimal
+    rating_avg: Decimal
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    
+
+# Product Read Schema
 class ReadProductDTO(BaseModel):
     id: int
     title: str = Field(max_length=100)
@@ -42,9 +57,10 @@ class ReadProductDTO(BaseModel):
     rating_avg: Decimal
     rating_count: int
     created_at: datetime
-    images: list[ReadProductImageDTO] = []
     store: "ReadStoreDTO"
     category: "ReadCategoryDTO"
+    images: list["ReadProductImageDTO"]
+    reviews: list["ReadReviewSchema"]
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     

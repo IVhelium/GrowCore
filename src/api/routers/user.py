@@ -1,10 +1,14 @@
 from sqlalchemy import select
+from fastapi import APIRouter
 from src.core.dependencies import SessionDependency
 from src.models import UserModel
-from src.schemas import CreateUserDTO
+from src.schemas import CreateUserDTO, ReadUserDTO
 
 
-# GET
+router = APIRouter(prefix="/user", tags=["Users"])
+
+
+@router.get("/")
 async def get_user_by_email(db: SessionDependency, email: str):
     query = await db.execute(
         select(UserModel)
@@ -13,7 +17,8 @@ async def get_user_by_email(db: SessionDependency, email: str):
     
     return query.scalar_one_or_none()
 
-# POST
+
+@router.post("/")
 async def create_user(db: SessionDependency, user: CreateUserDTO):
     new_user = UserModel(
         username=user.username,
@@ -22,4 +27,8 @@ async def create_user(db: SessionDependency, user: CreateUserDTO):
     )
     
     db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    
+    return new_user
     

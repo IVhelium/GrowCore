@@ -1,6 +1,7 @@
+from decimal import Decimal
 import uuid
 import enum
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.custom_types import intPk, createdAt
 from src.core.database import Base
@@ -17,7 +18,7 @@ class OrderModel(Base):
     
     id: Mapped[intPk]
     status: Mapped[OrderStatus]
-    total_price: Mapped[float]
+    total_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     
     created_at: Mapped[createdAt]
     
@@ -37,7 +38,7 @@ class OrderItemModel(Base):
     __tablename__ = "order_items"
     
     id: Mapped[intPk]
-    price: Mapped[float]
+    price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     quantity: Mapped[int] = mapped_column(default=1)
     
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"))

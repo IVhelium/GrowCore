@@ -4,29 +4,51 @@ from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from uuid import UUID
 
 
-# Базовый класс юзера для наследия
-class BaseUserDTO(BaseModel):
-    username: str = Field(max_length=25)
-    email: EmailStr = Field(max_length=256)
-    avatar_url: str | None = None
-    description: str | None = Field(max_length=300), None
-
-
-# Класс для создания юзера
-class CreateUserDTO(BaseUserDTO):
+# User Create Schema
+class CreateUserDTO(BaseModel):
+    username: str = Field(max_length=32)
+    email: EmailStr
     password: str
 
     model_config = ConfigDict(extra="forbid")
+    
+
+# User Short Schema
+class ShortUserDTO(BaseModel):
+    public_id: str
+    username: str = Field(max_length=32)
+    avatar_url: str | None
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
 
 
-# Класс для чтения юзера
-class ReadUserDTO(BaseUserDTO):
+# User Login Schema
+class LoginUserDTO(BaseModel):
+    email: EmailStr
+    password: str
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    
+    
+# User Update Schema
+class UpdateUserDTO(BaseModel):
+    username: str | None = Field(max_length=32)
+    avatar_url: str | None
+    description: str | None    
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    
+
+# User Read Schema
+class ReadUserDTO(BaseModel):
     id: UUID
-    public_id: UUID = Field(max_length=8)
+    public_id: str
+    username: str = Field(max_length=32)
+    email: EmailStr
+    avatar_url: str | None
+    description: str | None
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
     created_at: datetime
-    
-    roles: list["ReadUserRoleDTO"] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
