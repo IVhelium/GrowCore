@@ -20,14 +20,6 @@ class ShortUserDTO(BaseModel):
     avatar_url: str | None
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
-
-
-# User Login Schema
-class LoginUserDTO(BaseModel):
-    email: EmailStr
-    password: str
-    
-    model_config = ConfigDict(extra="forbid", from_attributes=True)
     
     
 # User Update Schema

@@ -14,7 +14,7 @@ class CreateReviewDTO(BaseModel):
 
 
 # Review Read Schema
-class ReadReviewDTO(BaseReviewDTO):
+class ReadReviewDTO(BaseModel):
     id: int
     rating: Decimal = Field(ge=1, le=5)
     comment: str | None

@@ -60,7 +60,7 @@ class ReadProductDTO(BaseModel):
     store: "ReadStoreDTO"
     category: "ReadCategoryDTO"
     images: list["ReadProductImageDTO"]
-    reviews: list["ReadReviewSchema"]
+    reviews: list["ReadReviewDTO"]
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
