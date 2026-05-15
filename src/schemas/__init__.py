@@ -1,12 +1,12 @@
 from pydantic import BaseModel
-from src.schemas.Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO, SellerRequestStatus
+from src.schemas.Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
 from src.schemas.Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
 from src.schemas.Store.carts import ReadCartDTO, CreateCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO
 from src.schemas.Store.categories import CreateCategoryDTO, ReadCategoryDTO
-from src.schemas.Store.orders import ReadOrderDTO, ReadOrderItemDTO, OrderStatus
+from src.schemas.Store.orders import ReadOrderDTO, ReadOrderItemDTO
 from src.schemas.Store.products import CreateProductDTO, ReadProductDTO, ShortProductDTO, UpdateProductDTO, ReadProductImageDTO
 from src.schemas.Store.reviews import CreateReviewDTO, ReadReviewDTO
-from src.schemas.User.roles import ReadRoleDTO, RoleStatus
+from src.schemas.User.roles import ReadRoleDTO
 from src.schemas.User.user_roles import ReadUserRoleDTO
 from src.schemas.User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO
 from src.schemas.User.auth import RegisterDTO, LoginDTO, TokenResponseDTO

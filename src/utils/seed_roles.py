@@ -1,6 +1,7 @@
 from sqlalchemy import select 
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.models import RoleModel, RoleStatus
+from src.models import RoleModel
+from src.core.constants import RoleStatus
 
 
 async def seed_roles(db: AsyncSession):
@@ -22,9 +23,7 @@ async def seed_roles(db: AsyncSession):
         
         # Create role if not exists
         if not role_exist:
-            new_role = RoleModel(
-                role = role
-            )
+            new_role = RoleModel(role = role)
             
             db.add(new_role)
         

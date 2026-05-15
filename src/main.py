@@ -16,7 +16,6 @@ async def lifespan(app: FastAPI):
     yield
 
 
-
 app = FastAPI(lifespan=lifespan)  # Create a FastAPI application instance
 
 app.include_router(main_router)

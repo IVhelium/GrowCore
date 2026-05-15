@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import ConfigDict, BaseModel, Field
 
-from src.models.Store.orders import OrderStatus
+from src.core.constants import OrderStatus
     
     
 # Order Item Read Schema

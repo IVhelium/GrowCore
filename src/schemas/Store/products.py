@@ -2,7 +2,6 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
-from uuid import UUID
 
 
 # Product Image Read Schema

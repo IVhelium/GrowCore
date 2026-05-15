@@ -39,5 +39,8 @@ def hash_password(password: str) -> str:
 
 
 # Verify Password
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(
+    plain_password: str, 
+    hashed_password: str
+) -> bool:
     return pwb_context.verify(plain_password, hashed_password)

@@ -5,11 +5,17 @@ from src.models import UserModel
 from src.schemas import CreateUserDTO, ReadUserDTO
 
 
-router = APIRouter(prefix="/user", tags=["Users"])
+router = APIRouter(
+    prefix="/user", 
+    tags=["Users"]
+)
 
 
 @router.get("/")
-async def get_user_by_email(db: SessionDependency, email: str):
+async def get_user_by_email(
+    db: SessionDependency, 
+    email: str
+):
     query = await db.execute(
         select(UserModel)
         .where(UserModel.email == email)
@@ -19,7 +25,10 @@ async def get_user_by_email(db: SessionDependency, email: str):
 
 
 @router.post("/")
-async def create_user(db: SessionDependency, user: CreateUserDTO):
+async def create_user(
+    db: SessionDependency, 
+    user: CreateUserDTO
+):
     new_user = UserModel(
         username=user.username,
         email=user.email,

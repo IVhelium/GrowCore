@@ -2,14 +2,12 @@ import enum
 import uuid
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.core.constants import SellerRequestStatus
 from src.core.custom_types import intPk, createdAt
 from src.core.database import Base
 
 
-class SellerRequestStatus(enum.Enum):
-    pending = "Pending"
-    approved = "Approved"
-    rejected = "Rejected"
+
 
 class SellerRequestModel(Base):
     __tablename__ = "seller_requests"

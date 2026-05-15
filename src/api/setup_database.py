@@ -9,7 +9,8 @@ from sqlalchemy import insert, select
 from src.core.dependencies import SessionDependency
 from src.core.database import engine
 from src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
-    StoreModel, ProductModel, ProductImageModel, CartModel, CartItemModel, OrderModel, OrderItemModel, ReviewModel, SellerRequestModel, RoleStatus, OrderStatus)
+    StoreModel, ProductModel, ProductImageModel, CartModel, CartItemModel, OrderModel, OrderItemModel, ReviewModel, SellerRequestModel)
+from src.core.constants import RoleStatus, OrderStatus
 
 # Config endpoints
 router = APIRouter()

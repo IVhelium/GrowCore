@@ -1,16 +1,11 @@
 from decimal import Decimal
 import uuid
-import enum
 from sqlalchemy import ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.core.constants import OrderStatus
 from src.core.custom_types import intPk, createdAt
 from src.core.database import Base
 
-
-class OrderStatus(enum.Enum):
-    inTransit = "In Transit"
-    delivered = "Delivered"
-    delayed = "Delayed"
     
     
 class OrderModel(Base):
