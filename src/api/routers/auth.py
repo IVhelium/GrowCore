@@ -45,10 +45,10 @@ async def login(
 
 # Current User
 @router.get(
-    "/current",
+    "/me",
     response_model=ReadUserDTO
 )
-async def current(current_user=Depends(get_current_user)):
+async def me(current_user=Depends(get_current_user)):
     return current_user
 
 

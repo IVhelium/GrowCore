@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import UUID, select
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 

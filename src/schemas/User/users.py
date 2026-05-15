@@ -6,7 +6,7 @@ from uuid import UUID
 
 # User Create Schema
 class CreateUserDTO(BaseModel):
-    username: str = Field(max_length=32)
+    username: str = Field(min_length=3 ,max_length=32)
     email: EmailStr
     password: str
 
@@ -24,9 +24,8 @@ class ShortUserDTO(BaseModel):
     
 # User Update Schema
 class UpdateUserDTO(BaseModel):
-    username: str | None = Field(max_length=32)
-    avatar_url: str | None
-    description: str | None    
+    username: str | None = Field(default=None, min_length=3, max_length=32)
+    description: str | None = Field(default=None, max_length=300)
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
