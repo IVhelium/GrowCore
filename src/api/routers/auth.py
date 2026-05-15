@@ -59,4 +59,5 @@ async def current(current_user=Depends(get_current_user)):
 )
 async def logout(response: Response):
     auth.unset_access_cookies(response=response)
+    
     return {"message": "Success"}

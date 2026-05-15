@@ -5,7 +5,7 @@ from src.core.custom_types import uuidPk, createdAt
 from src.core.database import Base
 
 def generate_public_id():
-    return "#" + uuid.uuid4().hex[:8]    # Ограничивает айди до 8 символов
+    return "#" + uuid.uuid4().hex[:10].upper()    # Ограничивает айди до 10 символов
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -26,7 +26,6 @@ class UserModel(Base):
     
     # Relationships
     roles: Mapped[list["UserRoleModel"]] = relationship(
-        secondary="user_roles",
         back_populates="user",
     )
     

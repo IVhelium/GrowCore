@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import UUID, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -111,7 +111,7 @@ class AuthService:
     
     async def get_user_with_relations(
         self,
-        user_id: int
+        user_id: str
     ) -> UserModel:
         
         # Relationship
