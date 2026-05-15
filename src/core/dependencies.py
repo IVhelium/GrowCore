@@ -3,6 +3,7 @@ from typing import Annotated
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.models.User.user_roles import UserRoleModel
 from src.core.database import get_session
 from src.core.security import auth
 from src.models import UserModel
@@ -15,15 +16,15 @@ SessionDependency = Annotated[AsyncSession, Depends(get_session)]
 # Get Current User
 async def get_current_user(
     db: SessionDependency, 
-    uid=Depends(auth.access_token_required)
+    payload=Depends(auth.access_token_required)
 ):
     query = (
         select(UserModel)
         .options(
             selectinload(UserModel.roles)
-            .selectinload("roles")
+            .selectinload(UserRoleModel.role)
         )
-        .where(UserModel.id == uid)
+        .where(UserModel.id == payload.sub)
     )
     
     result = await db.execute(query)    

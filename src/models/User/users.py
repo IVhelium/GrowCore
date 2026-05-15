@@ -26,6 +26,7 @@ class UserModel(Base):
     
     # Relationships
     roles: Mapped[list["UserRoleModel"]] = relationship(
+        secondary="user_roles",
         back_populates="user",
     )
     

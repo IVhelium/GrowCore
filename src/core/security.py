@@ -1,5 +1,6 @@
 from authx import AuthXConfig, AuthX
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
 from src.core.config import settings
 
 
@@ -28,14 +29,10 @@ auth = AuthX(config=auth_config)
 
 # ================ Password Hash ================
 
-pwb_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
-
+pwd_context = PasswordHash(hashers=[BcryptHasher(rounds=12, prefix="2b")])
 # Hash Password
 def hash_password(password: str) -> str:
-    return pwb_context.hash(password)
+    return pwd_context.hash(password)
 
 
 # Verify Password
@@ -43,4 +40,4 @@ def verify_password(
     plain_password: str, 
     hashed_password: str
 ) -> bool:
-    return pwb_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)

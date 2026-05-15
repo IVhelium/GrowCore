@@ -20,4 +20,4 @@ class LoginDTO(BaseModel):
     
 # Token Response Schema
 class TokenResponseDTO(BaseModel):
-    massage: str
+    message: str
