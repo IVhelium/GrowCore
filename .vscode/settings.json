@@ -11,6 +11,7 @@
     "**/__pycache__": true,
     "**/.venv": true,
     "**/venv": true,
+    "**/node_modules": true
   },
 
   "explorer.compactFolders": false,                 // Убирает компактность папок
@@ -31,16 +32,16 @@
 
 
   // PowerShell
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "args": [
-        "-ExecutionPolicy", "Bypass",
-        "-NoExit", 
-        "-Command", 
-        ". .\\setup_tools.ps1"
-      ]
-    }
-  },
-  "terminal.integrated.defaultProfile.windows": "PowerShell"
+  // "terminal.integrated.profiles.windows": {
+  //   "PowerShell": {
+  //     "source": "PowerShell",
+  //     "args": [
+  //       "-ExecutionPolicy", "Bypass",
+  //       "-NoExit", 
+  //       "-Command", 
+  //       //". .\\setup_tools.ps1"
+  //     ]
+  //   }
+  // },
+  // "terminal.integrated.defaultProfile.windows": "PowerShell"
 }
