@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
 from uuid import UUID
 
 
@@ -26,6 +26,16 @@ class ShortUserDTO(BaseModel):
 class UpdateUserDTO(BaseModel):
     username: str | None = Field(default=None, min_length=3, max_length=32)
     description: str | None = Field(default=None, max_length=300)
+    
+    @field_validator("username", mode="before")
+    @classmethod
+    def chek_username(cls, value: any):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Username cannot be empty")
+            
+            return value
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     

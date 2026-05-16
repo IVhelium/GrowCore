@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, UploadFile, status
+from fastapi import Depends, File, HTTPException, UploadFile, status
 from typing import Annotated
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -63,12 +63,12 @@ SIGNATURES = {    # Словарь валидации типов
     "image/webp": lambda h: h.startswith(b"RIFF") and h[8:12] == b"WEBP"
 }
 
-async def validate_avatar_upload(file: UploadFile) -> UploadFile:
+async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
     """Зависимость для первичной валидации структуры заголовков и сигнатуры"""
     
-    normalized_content_type = AvatarService.n
+    normalized_content_type = AvatarService.normalize_content_type(file.content_type)
     
-    if file.content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
+    if normalized_content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"Unsupported media type. Allowed: {list(ALLOWED_AVATAR_CONTENT_TYPES.keys())}"
@@ -77,7 +77,7 @@ async def validate_avatar_upload(file: UploadFile) -> UploadFile:
     header = await file.read(12)   # Чтение первых 12 байт, чтоб проверить реальный тип файла
     await file.seek(0)             # Сброс указателя для последующего чтения в сервисе
     
-    if not SIGNATURES[file.content_type](header):
+    if not SIGNATURES[normalized_content_type](header):
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Invalid image file signature"

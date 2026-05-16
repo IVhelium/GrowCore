@@ -1,5 +1,6 @@
 import enum
 from pathlib import Path
+import re
 
 
 # region ===================== ENUMS =====================
@@ -46,3 +47,7 @@ ALLOWED_AVATAR_CONTENT_TYPES = {
 }
 
 # endregion
+
+
+# Регулярное выражение для публичного айди
+PUBLIC_ID_RE = re.compile(r"^#[0-9A-F]{10}$")   # Разрешает только правильные публичные айди ex: #A1B2C3D4E5

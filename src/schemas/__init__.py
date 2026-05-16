@@ -8,7 +8,7 @@ from src.schemas.Store.products import CreateProductDTO, ReadProductDTO, ShortPr
 from src.schemas.Store.reviews import CreateReviewDTO, ReadReviewDTO
 from src.schemas.User.roles import ReadRoleDTO
 from src.schemas.User.user_roles import ReadUserRoleDTO
-from src.schemas.User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO
+from src.schemas.User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
 from src.schemas.User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
 
 

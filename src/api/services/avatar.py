@@ -16,6 +16,13 @@ class AvatarService:
         self.upload_dir.mkdir(parents=True, exist_ok=True)  # Проверка существования папки
         
     
+    @staticmethod
+    def normalize_content_type(content_type: str | None) -> str:
+        if content_type == "image/jpg":
+            return "image/jpeg"
+        return content_type or ""
+    
+    
     # Save Avatar method
     async def save_avatar(
         self,
@@ -23,7 +30,9 @@ class AvatarService:
     ) -> str:
         """Сохраняет аватар на диск, генерируя уникальное имя. Возвращает только имя сохраненного файла"""
         
-        file_type = ALLOWED_AVATAR_CONTENT_TYPES[file.content_type]
+        normalized_content_type = self.normalize_content_type(file.content_type)
+        
+        file_type = ALLOWED_AVATAR_CONTENT_TYPES[normalized_content_type]
         unique_filename = f"{uuid.uuid4().hex}{file_type}"
         file_path = self.upload_dir / unique_filename
         
@@ -42,6 +51,12 @@ class AvatarService:
                         )
                     
                     await out_file.write(chunk)
+            
+            if total_size == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Avatar file is empty"
+                )
                     
         except HTTPException:
             file_path.unlink(missing_ok=True)   # Прерывем запись файла если больше лимита, и уудаляет недозаписанный кусок файла
@@ -57,7 +72,7 @@ class AvatarService:
         return unique_filename
     
     
-    def delete_old_avatar(
+    def delete_avatar(
         self,
         avatar_url: str | None
     ) -> None:
@@ -66,9 +81,14 @@ class AvatarService:
         if not avatar_url:
             return
         
-        filename = avatar_url.split("/")[-1]   # Возвращает последний элемент (имя файла)
-        file_path = (self.upload_dir / filename).resolve()
+        filename = avatar_url.split("/")[-1]                # Возвращает последний элемент (имя файла)
         
-        if file_path.is_file() and file_path.parent == self.upload_dir:
+        if not filename:
+            return
+        
+        file_path = (self.upload_dir / filename).resolve()  # Возвращает абсолютный путь
+        resolved_upload_file = self.upload_dir.resolve()    # Возвразает абсолютный путь переданного файла
+        
+        if file_path.is_file() and file_path.parent == resolved_upload_file:
             file_path.unlink(missing_ok=True)
         
