@@ -21,3 +21,5 @@ class LoginDTO(BaseModel):
 # Token Response Schema
 class TokenResponseDTO(BaseModel):
     message: str
+    
+    model_config = ConfigDict(extra="forbid")

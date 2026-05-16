@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     # JWT
     JWT_SECRET: str
     JWT_ACCESS_COOKIE_NAME: str
+    JWT_REFRESH_COOKIE_NAME: str
     
     
     @property

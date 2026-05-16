@@ -7,23 +7,23 @@ import re
 
 # Order Status Enum
 class OrderStatus(enum.Enum):
-    inTransit = "In Transit"
-    delivered = "Delivered"
-    delayed = "Delayed"
+    inTransit = "in Transit"
+    delivered = "delivered"
+    delayed = "delayed"
     
 
 # Role Status Enum
 class RoleStatus(enum.Enum):
-    user = "User"
-    seller = "Seller"
-    admin = "Admin"
+    user = "user"
+    seller = "seller"
+    admin = "admin"
     
 
 # Seller Request Status
 class SellerRequestStatus(enum.Enum):
-    pending = "Pending"
-    approved = "Approved"
-    rejected = "Rejected"
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
     
 # endregion
     

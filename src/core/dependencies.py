@@ -8,6 +8,7 @@ from src.core.database import get_session
 from src.core.security import auth
 from src.models import UserModel
 from src.api.services.auth import AuthService
+from src.api.services.user import UserService
 from src.api.services.avatar import AvatarService
 from src.core.constants import ALLOWED_AVATAR_CONTENT_TYPES
 
@@ -15,20 +16,15 @@ from src.core.constants import ALLOWED_AVATAR_CONTENT_TYPES
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
 
 
-# region Get Services
-
 # Get Auth Service
 async def get_auth_service(db: SessionDependency) -> AuthService:
     return AuthService(db)
 
+AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
+
 # Get Avatar Service
 async def get_avatar_service() -> AvatarService:
     return AvatarService()
-
-
-# endregion
-
-
 
 # Get Current User
 async def get_current_user(
@@ -54,6 +50,8 @@ async def get_current_user(
         )
     
     return user
+
+CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
 
 
 # Avatar Validation
@@ -84,3 +82,15 @@ async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
         )
         
     return file
+
+AvatarFileDependency = Annotated[UploadFile, Depends(validate_avatar_upload)]
+AvatarServiceDependency = Annotated[AvatarService, Depends(get_avatar_service)]
+
+# Get User Service
+async def get_user_service(
+    db: SessionDependency,
+    avatar_service: AvatarServiceDependency
+) -> UserService:
+    return UserService(db=db, avatar_service=avatar_service)
+
+UserServiceDependency = Annotated[UserService, Depends(get_user_service)]

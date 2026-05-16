@@ -1,11 +1,7 @@
-from fastapi import APIRouter, HTTPException, Response, status, Depends
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from src.core.dependencies import SessionDependency, get_current_user, get_auth_service
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from authx import TokenPayload
+from src.core.dependencies import AuthServiceDependency, CurrentUserDependency
 from src.core.security import auth
-from src.api.services.auth import AuthService
-from src.core.security import auth, hash_password, verify_password
-from src.models import UserModel, RoleModel, UserRoleModel
 from src.schemas import ReadUserDTO, RegisterDTO, LoginDTO, TokenResponseDTO
 
 
@@ -19,10 +15,10 @@ router = APIRouter(prefix="/auths", tags=["Auths"])
     status_code=status.HTTP_201_CREATED
 )
 async def register(
-    schema: RegisterDTO, 
-    auth_service: AuthService = Depends(get_auth_service)
+    dto: RegisterDTO, 
+    auth_service: AuthServiceDependency
 ):
-    return await auth_service.register_new_user(schema)
+    return await auth_service.register_new_user(dto)
 
 
 # Login User
@@ -31,16 +27,34 @@ async def register(
     response_model=TokenResponseDTO
 )
 async def login(
-    schema: LoginDTO,
+    dto: LoginDTO,
     response: Response,
-    auth_service: AuthService = Depends(get_auth_service)
+    auth_service: AuthServiceDependency
 ):
-    user = await auth_service.authenticate_user(schema)
+    user = await auth_service.authenticate_user(dto)
     
     access_token = auth.create_access_token(uid=str(user.id))
+    refresh_token = auth.create_refresh_token(uid=str(user.id))
+    
     auth.set_access_cookies(access_token, response=response)
+    auth.set_refresh_cookies(refresh_token, response=response)
     
     return {"message": "Success"}
+
+
+# Refresh JWT Token
+@router.post(
+    "/refresh",
+    response_model=TokenResponseDTO
+)
+async def refresh_token(
+    response: Response,
+    payload: TokenPayload = Depends(auth.refresh_token_required)
+):
+    new_access_token = auth.create_access_token(uid=str(payload.sub)) 
+    auth.set_access_cookies(new_access_token, response=response)
+    
+    return {"message": "Access token refreshed"}
 
 
 # Current User
@@ -48,7 +62,7 @@ async def login(
     "/me",
     response_model=ReadUserDTO
 )
-async def me(current_user=Depends(get_current_user)):
+async def me(current_user: CurrentUserDependency):
     return current_user
 
 

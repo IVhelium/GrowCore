@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from authx import AuthXConfig, AuthX
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
@@ -14,12 +16,16 @@ auth_config = AuthXConfig(
     # JWT_COOKIE
     JWT_TOKEN_LOCATION = ["cookies"],
     JWT_ACCESS_COOKIE_NAME = settings.JWT_ACCESS_COOKIE_NAME,
+    JWT_REFRESH_COOKIE_NAME= settings.JWT_REFRESH_COOKIE_NAME,
+    
+    # JWT_COOKIE CONFIG
     JWT_COOKIE_CSRF_PROTECT = False,
     JWT_COOKIE_SECURE = False,
     JWT_COOKIE_SAMESITE = "lax",
     
     # EXPIRE
-    JWT_ACCESS_TOKEN_EXPIRES = 60 * 60
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1),
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 )
 
 # Initialize AuthX
