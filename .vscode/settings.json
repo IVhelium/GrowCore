@@ -39,7 +39,7 @@
   //       "-ExecutionPolicy", "Bypass",
   //       "-NoExit", 
   //       "-Command", 
-  //       //". .\\setup_tools.ps1"
+  //       ". .\\setup_tools.ps1"
   //     ]
   //   }
   // },

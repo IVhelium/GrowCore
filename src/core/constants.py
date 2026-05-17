@@ -31,7 +31,7 @@ class SellerRequestStatus(enum.Enum):
 # region ===================== File Upload Constants =====================
 
 # Avatar Upload Size Settings
-AVATAR_MAX_SIZE_BYTES = 5 * 1024 * 1024   # 5 MB
+AVATAR_MAX_SIZE_BYTES = 3 * 1024 * 1024   # 3 MB
 AVATAR_CHUNK_SIZE = 1 * 1024 * 1024       # 1 MB
 
 # Avatar Path Config

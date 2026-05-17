@@ -5,8 +5,8 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy import text
 
 # Primary Keys
-intPk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]                                                 # Int Primary key type
-uuidPk = Annotated[UUID, mapped_column(primary_key=True, default=uuid4)]                                                    # UUID Primary key type
+intPk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]    # Int Primary key type
+uuidPk = Annotated[UUID, mapped_column(primary_key=True, default=uuid4)]       # UUID Primary key type
 
 
 # Datetime
