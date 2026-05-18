@@ -14,7 +14,7 @@ class ReadProductImageDTO(BaseModel):
     
 # Product Create Schemas
 class CreateProductDTO(BaseModel):
-    title: str = Field(max_length=100)
+    title: str = Field(max_length=200)
     description: str
     price: Decimal
     quantity: int

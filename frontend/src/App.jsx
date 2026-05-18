@@ -6,9 +6,9 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-w-screen min-h-screen bg-[#F7F8FF] text-[#111111]">
+      <div className="min-h-screen bg-[#F7F8FF] text-[#111111]">
         <Header />
-        <main className="layout mx-auto grid max-w-7xl gap-6 px-4 lg:grid-cols-[280px_1fr] bg-[#FFFFFF]"></main>
+        <main className="w-full h-dvh mx-auto grid max-w-7xl gap-6 px-4 lg:grid-cols-[280px_1fr] bg-[#da9494]"></main>
       </div>
     </BrowserRouter>
   );

@@ -11,12 +11,35 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+.catalog-popover-centered {
+  position: fixed !important;
+  top: 7rem !important;
+  left: max(0px, calc((100% - 80rem) / 2)) !important;
+  right: auto !important;
+  width: min(100%, 80rem) !important;
+  height: calc(100vh - 190px) !important;
+  transform: none !important;
+}
+
+.catalog-popover-centered .ant-popover-content {
+  width: 100%;
+}
+
+.catalog-popover-centered .ant-popover-inner {
+  width: 100%;
+  padding: 0;
 }

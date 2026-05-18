@@ -25,23 +25,23 @@
   "editor.tabSize": 4,
 
   // Autoprefixer
-  "autoprefixer.formatOnSave": true,
-  "autoprefixer.options": {
-    "cascade": false
-  },
+  // "autoprefixer.formatOnSave": true,
+  // "autoprefixer.options": {
+  //   "cascade": false
+  // },
 
 
   // PowerShell
-  // "terminal.integrated.profiles.windows": {
-  //   "PowerShell": {
-  //     "source": "PowerShell",
-  //     "args": [
-  //       "-ExecutionPolicy", "Bypass",
-  //       "-NoExit", 
-  //       "-Command", 
-  //       ". .\\setup_tools.ps1"
-  //     ]
-  //   }
-  // },
-  // "terminal.integrated.defaultProfile.windows": "PowerShell"
+  "terminal.integrated.profiles.windows": {
+     "PowerShell": {
+       "source": "PowerShell",
+       "args": [
+         "-ExecutionPolicy", "Bypass",
+         "-NoExit", 
+         "-Command", 
+         ". .\\setup_tools.ps1"
+       ]
+     }
+   },
+   "terminal.integrated.defaultProfile.windows": "PowerShell"
 }
