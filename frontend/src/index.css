@@ -25,6 +25,8 @@ body,
   margin: 0;
 }
 
+
+/* Header Popover */
 .catalog-popover-centered {
   position: fixed !important;
   top: 6rem !important;
@@ -46,3 +48,12 @@ body,
   padding: 0;
   overflow-y: auto;
 }
+
+
+/* Header Icons */
+.header-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+}
+

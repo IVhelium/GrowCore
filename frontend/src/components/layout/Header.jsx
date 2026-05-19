@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import logo from "/public/svg/growcore-logo-v2.svg";
 import CatalogPopover from "../catalog/CatalogPopover.jsx";
 import { useState } from "react";
+import PromoBar from "./PromoBar.jsx";
 
 export default function Header() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function Header() {
         />
       )}
 
+      <PromoBar />
       <header className="flex sticky top-0 w-full h-23 items-center justify-center pr-[3.5px] z-50 bg-white">
         <div className="flex w-full max-w-7xl h-full justify-between items-center mx-auto text-[#111111]">
           <Link to="/" className="flex shrink-0 items-center">
@@ -44,10 +46,10 @@ export default function Header() {
             </button>
           </Popover>
 
-          <Search className="cursor-pointer" />
-          <Heart className="cursor-pointer" />
-          <User className="cursor-pointer" />
-          <ShoppingBag className="cursor-pointer" />
+          <Search className="header-icon" />
+          <User className="header-icon" />
+          <Heart className="header-icon" />
+          <ShoppingBag className="header-icon" />
         </div>
       </header>
     </>
