@@ -27,19 +27,22 @@ body,
 
 .catalog-popover-centered {
   position: fixed !important;
-  top: 7rem !important;
+  top: 6rem !important;
   left: max(0px, calc((100% - 80rem) / 2)) !important;
   right: auto !important;
   width: min(100%, 80rem) !important;
-  height: calc(100vh - 190px) !important;
+  height: calc(100vh - 160px) !important;
   transform: none !important;
 }
 
 .catalog-popover-centered .ant-popover-content {
   width: 100%;
+  height: calc(100vh - 160px);
+  overflow-y: auto;
 }
 
 .catalog-popover-centered .ant-popover-inner {
   width: 100%;
   padding: 0;
+  overflow-y: auto;
 }

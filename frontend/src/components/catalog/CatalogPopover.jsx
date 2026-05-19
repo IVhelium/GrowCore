@@ -14,14 +14,14 @@ export default function CatalogPopover({ onClose }) {
     ];
 
     return (
-      <div className="w-full h-full overflow-y-auto rounded-xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-5">
+      <div className="w-full overflow-y-auto rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-5 overflow-hidden">
           {categories.map((category) => (
             <Link
               key={category.id}
               to={`/catalog?category=${category.id}`}
               onClick={onClose}
-              className="block w-full rounded-lg text-sm font-medium hover:bg-[#7188D4]/10 hover:text-[#7188D4]"
+              className="block w-full h-full rounded-lg text-sm font-medium hover:bg-[#7188D4]/10 hover:text-[#7188D4]"
             >
               {category.name}
             </Link>

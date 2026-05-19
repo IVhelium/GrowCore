@@ -17,8 +17,8 @@ export default function Header() {
         />
       )}
 
-      <header className="flex w-full items-center justify-center z-40">
-        <div className="flex w-full max-w-7xl h-23 justify-between items-center mx-auto text-[#111111]">
+      <header className="flex sticky top-0 w-full h-23 items-center justify-center pr-[3.5px] z-50 bg-white">
+        <div className="flex w-full max-w-7xl h-full justify-between items-center mx-auto text-[#111111]">
           <Link to="/" className="flex shrink-0 items-center">
             <img src={logo} alt="Shop logo" className="h-16 w-auto" />
           </Link>
@@ -44,10 +44,10 @@ export default function Header() {
             </button>
           </Popover>
 
-          <Search />
-          <Heart />
-          <User />
-          <ShoppingBag />
+          <Search className="cursor-pointer" />
+          <Heart className="cursor-pointer" />
+          <User className="cursor-pointer" />
+          <ShoppingBag className="cursor-pointer" />
         </div>
       </header>
     </>
