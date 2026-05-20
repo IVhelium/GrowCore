@@ -7,6 +7,7 @@ class CategoryModel(Base):
     
     id: Mapped[intPk]
     name: Mapped[str]
+    image_url: Mapped[str]
     
     # Relationships
     products: Mapped[list["ProductModel"]] = relationship(

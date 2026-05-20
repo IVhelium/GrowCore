@@ -1,3 +1,4 @@
+import { QueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
 export const apiClient = axios.create({
@@ -22,3 +23,13 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 )
+
+// React Query
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});

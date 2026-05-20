@@ -1,16 +1,24 @@
-import { BrowserRouter } from "react-router-dom";
-import Header from "./components/layout/Header.jsx";
+import { Route, Routes } from "react-router-dom";
+import MainLayout from "./layout/MainLayout.jsx";
+import NotFoundPage from "./pages/NotFoundPage.jsx";
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
+
 
 
 function App() {
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-[#F7F8FF] text-[#111111]">
-        <Header />
-        <main className="w-full h-dvh mx-auto grid max-w-7xl gap-6 px-4 lg:grid-cols-[280px_1fr] bg-[#da9494]"></main>
-      </div>
-    </BrowserRouter>
+    <Routes>
+      <Route element={<MainLayout />}>
+        
+      </Route>
+
+      <Route element={<ProtectedRoute/>}>
+
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }
 
