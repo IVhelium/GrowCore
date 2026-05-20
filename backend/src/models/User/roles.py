@@ -1,0 +1,17 @@
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from backend.src.core.constants import RoleStatus
+from backend.src.core.custom_types import intPk
+from backend.src.core.database import Base
+
+
+
+class RoleModel(Base):
+    __tablename__ = "roles"
+    
+    id: Mapped[intPk]
+    role: Mapped[RoleStatus] = mapped_column(default=RoleStatus.user)
+    
+    # Relationships
+    users: Mapped[list["UserRoleModel"]] = relationship(
+        back_populates="role",
+    )

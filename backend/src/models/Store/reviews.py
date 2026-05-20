@@ -1,0 +1,27 @@
+import uuid
+from decimal import Decimal
+from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from backend.src.core.custom_types import intPk, createdAt
+from backend.src.core.database import Base
+
+class ReviewModel(Base):
+    __tablename__ = "reviews"
+    
+    id: Mapped[intPk]
+    rating: Mapped[Decimal] = mapped_column(Numeric(precision=3, scale=1), default=0)
+    comment: Mapped[str | None]
+    
+    created_at: Mapped[createdAt]
+    
+    user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
+    
+    # Relationships
+    user: Mapped["UserModel"] = relationship(
+        back_populates="reviews"
+    )
+    
+    product: Mapped["ProductModel"] = relationship(
+        back_populates="reviews"
+    )
