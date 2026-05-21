@@ -8,8 +8,8 @@ export default function Button({
     ...props
 }) {
     const styles = {
-        primary: "bg-indigo-600 text-white hover:bg-indigo-700",
-        secondary: "bg-white text-slate-950 hover:text-indigo-600 border border-slate-200",
+        primary: "bg-[#4F8A5B] text-white hover:bg-[#3F7148]",
+        secondary: "bg-white text-slate-950 hover:text-[#4F8A5B] hover:border-[#4F8A5B] border border-slate-200",
         dark: "bg-slate-950 text-white hover:bg-slate-800",
         ghost: "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950",
     };
@@ -21,7 +21,7 @@ export default function Button({
     };
 
     return (
-        <button className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles[style]} ${sizes[size]} ${className}`} {...props}>
+        <button className={`inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles[style]} ${sizes[size]} ${className}`} {...props}>
             {children}
         </button>
     );

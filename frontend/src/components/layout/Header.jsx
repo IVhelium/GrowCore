@@ -18,7 +18,7 @@ export default function Header() {
         />
       )}
 
-      <PromoBar />
+      {/* <PromoBar /> */}
       <header className="flex sticky top-0 w-full h-23 items-center justify-center pr-[3.5px] z-50 bg-white">
         <div className="flex w-full max-w-7xl h-full justify-between items-center mx-auto text-[#111111]">
           <Link to="/" className="flex items-center">
