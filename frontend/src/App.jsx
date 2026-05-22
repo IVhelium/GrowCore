@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router-dom";
-import MainLayout from "./layout/MainLayout.jsx";
-import NotFoundPage from "./pages/NotFoundPage.jsx";
-import ProtectedRoute from "./routes/ProtectedRoute.jsx";
-import Header from "./components/layout/Header.jsx";
+import MainLayout from "./layout/MainLayout";
+import NotFoundPage from "./pages/NotFoundPage";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import Header from "./components/layout/Header";
 import { PackageSearch } from "lucide-react";
 
 
