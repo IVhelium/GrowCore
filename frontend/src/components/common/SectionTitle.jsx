@@ -9,7 +9,7 @@ export default function SectionTitle({
     <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end">
       <div>
         {pretitle && (
-          <p className="text-md font-semibold uppercase tracking-[0.18em] text-indigo-500">
+          <p className="text-md font-semibold uppercase tracking-[0.18em] text-[#4F8A5B]">
             {pretitle}
           </p>
         )}

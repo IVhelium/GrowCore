@@ -10,12 +10,15 @@ export default function SearchBar({
 }) {
     function handleSearch(event) {  // Поисковая функция
       event.preventDefault();
-      const query = new FormData(event.currrentTarget).get("search");
+      const query = new FormData(event.currrentTarget).get("search").trim();
       onSearch?.(query);
     }
 
     return (
-        <form onSubmit={handleSearch} className={`flex overflow-hidden rounded-lg border border-slate-200 bg-white ${className}`}>
+        <form 
+            onSubmit={handleSearch} 
+            className={`flex overflow-hidden rounded-lg border border-slate-200 bg-white ${className}`}
+        >
             <input
                 name="search"
                 defaultValue={defaultValue}

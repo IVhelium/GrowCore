@@ -1,13 +1,7 @@
-import { Route, Routes } from "react-router-dom";
-import MainLayout from "./layout/MainLayout";
-import NotFoundPage from "./pages/NotFoundPage";
-import ProtectedRoute from "./routes/ProtectedRoute";
 import Header from "./components/layout/Header";
-import { PackageSearch } from "lucide-react";
 
 
-
-function App() {
+export default function App() {
 
   return (
     // <Routes>
@@ -23,9 +17,6 @@ function App() {
     // </Routes>
     <>
       <Header/>
-      <PackageSearch/>
     </>
   );
 }
-
-export default App

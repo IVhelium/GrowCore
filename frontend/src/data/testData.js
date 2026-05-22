@@ -1,173 +1,197 @@
-export const logoText = "GrowCore";
-
 export const categories = [
-  "Для девочек",
-  "Для мальчиков",
-  "Для новорожденных",
-  "Канцелярия",
-  "Аксессуары",
-  "Спорт",
-  "Настольные игры",
-  "Коляски",
-  "Развитие",
-  "Конструкторы",
-  "Хиты",
-  "Новинки",
-  "Акции",
-  "Популярное",
+  {
+    id: 1,
+    name: "Soil Sensors",
+    image:
+      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 2,
+    name: "Climate Sensors",
+    image:
+      "https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 3,
+    name: "Irrigation Parts",
+    image:
+      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 4,
+    name: "Greenhouse Control",
+    image:
+      "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 5,
+    name: "Grow Lights",
+    image:
+      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 6,
+    name: "Pumps & Valves",
+    image:
+      "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 7,
+    name: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 8,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
 ];
 
-export const categoryCards = [
-  { id: 1, title: "Для девочек", icon: "🎀", count: 24 },
-  { id: 2, title: "Для мальчиков", icon: "🚀", count: 31 },
-  { id: 3, title: "Для новорожденных", icon: "🧸", count: 18 },
-  { id: 4, title: "Канцелярия", icon: "✏️", count: 42 },
-  { id: 5, title: "Аксессуары", icon: "🎒", count: 16 },
-  { id: 6, title: "Спорт", icon: "⚽", count: 21 },
-  { id: 7, title: "Настольные игры", icon: "🎲", count: 27 },
-  { id: 8, title: "Коляски", icon: "🛒", count: 9 },
+export const quickCategories = [
+  "Soil Sensors",
+  "Climate Sensors",
+  "Irrigation Parts",
+  "Greenhouse Control",
+  "Grow Lights",
+  "Pumps & Valves",
+  "Cables & Connectors",
+  "Replacement Parts",
+  "Hydroponics",
+  "Controllers",
+  "New Arrivals",
+  "Deals",
 ];
 
 export const products = [
   {
-    id: 1,
-    title: "Тор",
-    description: "Фигурка героя для сюжетных игр.",
-    price: 6600,
+    price: 46,
     oldPrice: null,
-    label: "Хит",
+    label: "Best Seller",
+    category: "Hydroponics",
     image:
-      "https://static.insales-cdn.com/images/products/1/3727/618745487/card__9_.png",
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    title: "Медвежонок",
-    description: "Мягкая игрушка для самых маленьких.",
-    price: 990,
-    oldPrice: null,
-    label: "Новинка",
-    image:
-      "https://static.insales-cdn.com/images/products/1/5100/618755052/card__50_.png",
-    rating: 4.7,
-  },
-  {
-    id: 3,
-    title: "Динозавр",
-    description: "Яркая игрушка для детской комнаты.",
-    price: 1990,
-    oldPrice: null,
-    label: "Хит",
-    image:
-      "https://static.insales-cdn.com/images/products/1/5100/618755052/card__50_.png",
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    title: "Автокресло",
-    description: "Растущее детское автокресло.",
-    price: 10850,
-    oldPrice: 12500,
-    label: "Акция",
-    image:
-      "https://static.insales-cdn.com/images/products/1/3833/618753785/card__43_.png",
+      "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=700&auto=format&fit=crop",
     rating: 4.6,
   },
   {
     id: 5,
-    title: "Коляска",
-    description: "Удобная прогулочная модель.",
-    price: 20800,
-    oldPrice: 22000,
-    label: "Акция",
+    title: "Water Pump 12V Mini",
+    description:
+      "Compact pump for small irrigation, hydroponics, and water circulation systems.",
+    price: 29,
+    oldPrice: 35,
+    label: "Deal",
+    category: "Pumps & Valves",
     image:
-      "https://static.insales-cdn.com/images/products/1/3833/618753785/card__43_.png",
+      "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=700&auto=format&fit=crop",
     rating: 4.8,
   },
   {
     id: 6,
-    title: "Домино",
-    description: "Настольная игра в деревянной коробке.",
-    price: 1180,
-    oldPrice: 1500,
-    label: "Новинка",
+    title: "Full Spectrum LED Board",
+    description:
+      "Replacement grow-light board for seedlings, herbs, and indoor plant racks.",
+    price: 64,
+    oldPrice: 79,
+    label: "New",
+    category: "Grow Lights",
     image:
-      "https://static.insales-cdn.com/images/products/1/5100/618755052/card__50_.png",
+      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=700&auto=format&fit=crop",
     rating: 4.5,
   },
   {
     id: 7,
-    title: "Набор для рисования",
-    description: "Канцелярский набор для творчества.",
-    price: 1450,
+    title: "Controller Relay Module",
+    description:
+      "Relay module for switching pumps, fans, lights, and greenhouse actuators.",
+    price: 18,
     oldPrice: null,
-    label: "Популярное",
+    label: "Popular",
+    category: "Controllers",
     image:
-      "https://static.insales-cdn.com/images/products/1/3727/618745487/card__9_.png",
-    rating: 4.4,
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=700&auto=format&fit=crop",
+    rating: 4.7,
   },
   {
     id: 8,
-    title: "Конструктор",
-    description: "Набор деталей для развития моторики.",
-    price: 3200,
-    oldPrice: 3900,
-    label: "Акция",
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
     image:
-      "https://static.insales-cdn.com/images/products/1/5100/618755052/card__50_.png",
-    rating: 4.9,
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
   },
 ];
 
-export const benefits = [
-  {
-    id: 1,
-    title: "Быстрая доставка",
-    description: "Доставка заказов каждый день с 8:00 до 23:00.",
-  },
-  {
-    id: 2,
-    title: "Акции и бонусы",
-    description: "Сезонные скидки, бонусы и персональные предложения.",
-  },
-  {
-    id: 3,
-    title: "Шоурум в центре",
-    description: "Можно посмотреть товары перед покупкой.",
-  },
-];
-
-export const partners = ["KIDS", "TOYS", "BABY", "PLAY", "JOY", "MOM"];
-
-export const demoUser = {
-  id: 1,
-  firstName: "Максим",
-  email: "maksim@example.com",
-  phone: "+7 (800) 800-80-80",
-};
-
-export const demoOrders = [
-  { id: 101, status: "В обработке", total: 7590, date: "20.05.2026" },
-  { id: 100, status: "Доставлен", total: 12990, date: "12.05.2026" },
-];
-
-export const demoCartItems = [
+export const cartItems = [
   {
     id: 1,
     productId: 1,
-    title: "Тор",
-    price: 6600,
-    quantity: 1,
+    title: "Soil Moisture Sensor V2",
+    price: 24,
+    quantity: 2,
     image:
-      "https://static.insales-cdn.com/images/products/1/3727/618745487/card__9_.png",
+      "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?q=80&w=700&auto=format&fit=crop",
   },
   {
     id: 2,
-    productId: 2,
-    title: "Медвежонок",
-    price: 990,
-    quantity: 2,
+    productId: 3,
+    title: "Smart Irrigation Valve",
+    price: 39,
+    quantity: 1,
     image:
-      "https://static.insales-cdn.com/images/products/1/5100/618755052/card__50_.png",
+      "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=700&auto=format&fit=crop",
+  },
+];
+
+export const savedProducts = [products[0], products[2], products[5]];
+
+export const currentUser = {
+  id: 1,
+  firstName: "Max",
+  lastName: "Green",
+  email: "max@growcore.dev",
+  phone: "+1 (800) 800-8080",
+  role: "Customer",
+};
+
+export const orders = [
+  { id: 1041, date: "May 19, 2026", status: "Processing", total: 87 },
+  { id: 1032, date: "May 11, 2026", status: "Delivered", total: 143 },
+];
+
+export const users = [
+  {
+    id: 1,
+    name: "Max Green",
+    email: "max@growcore.dev",
+    role: "Customer",
+    status: "Active",
+  },
+  {
+    id: 2,
+    name: "Anna Field",
+    email: "anna@growcore.dev",
+    role: "Manager",
+    status: "Active",
+  },
+  {
+    id: 3,
+    name: "John Miller",
+    email: "john@growcore.dev",
+    role: "Customer",
+    status: "Blocked",
+  },
+  {
+    id: 4,
+    name: "Olivia Stone",
+    email: "olivia@growcore.dev",
+    role: "Support",
+    status: "Active",
   },
 ];

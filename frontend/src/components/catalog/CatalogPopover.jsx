@@ -1,18 +1,8 @@
 import CatalogPopoverCard from "./CatalogPopoverCard"
+import { categories } from "../../data/testData"
 
 
 export default function CatalogPopover({ onClose }) {
-    const categories = [
-      { id: 1, name: "Ноутбуки" },
-      { id: 2, name: "Смартфоны" },
-      { id: 3, name: "Мониторы" },
-      { id: 4, name: "Клавиатуры" },
-      { id: 5, name: "Мышки" },
-      { id: 6, name: "Наушники" },
-      { id: 7, name: "Комплектующие" },
-      { id: 8, name: "Аксессуары" },
-    ];
-
     return (
       <div className="w-[min(920px, calc(100vw-32px))] overflow-y-auto rounded-lg bg-white">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-5 overflow-hidden">
