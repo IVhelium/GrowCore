@@ -1,5 +1,5 @@
 
-export function formatPruce(value) {
+export function formatPrice(value) {
     if (value === null || value === undefined) return ""
 
     return new Intl.NumberFormat("de-DE", {

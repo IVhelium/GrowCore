@@ -47,6 +47,48 @@ export const categories = [
     image:
       "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
   },
+  {
+    id: 9,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 10,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 11,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 12,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 13,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 14,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    id: 15,
+    name: "Replacement Parts",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+  },
 ];
 
 export const quickCategories = [

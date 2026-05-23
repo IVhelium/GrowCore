@@ -14,7 +14,7 @@ export default function Footer() {
               className="flex items-center gap-2 text-2xl font-black text-[#4F8A5B]"
             >
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#4F8A5B]">
-                <Leaf size={22} />
+                <Leaf size={22} className="text-white" />
               </span>
               GrowCore
             </Link>

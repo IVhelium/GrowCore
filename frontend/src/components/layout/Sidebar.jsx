@@ -16,7 +16,7 @@ export default function Sidebar() {
             <Link
               key={category}
               to={`/catalog?category=${encodeURIComponent(category)}`}
-              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-[#4F8A5B] hover:text-[#4F8A5B]"
+              className="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-[#4F8A5B] hover:text-white"
             >
                 {category}
                 <ChevronRight size={15} className="opacity-0 transition group-hover:opacity-100"/>

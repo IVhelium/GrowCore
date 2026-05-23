@@ -1,4 +1,4 @@
-import { Menu, Heart, User, ShoppingBag, Leaf } from "lucide-react";
+import { Menu, Heart, User, ShoppingBag, Leaf, X } from "lucide-react";
 import { Popover } from "antd";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -19,7 +19,14 @@ export default function Header({
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl">
+      {isCatalogOpen && (
+        <div
+          className="fixed inset-0 x-998 bg-black/20 backdrop-blur-[1px]"
+          onClick={() => setIsCatalogOpen(false)}
+        />
+      )}
+
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl shadow-md">
         <Container className="py-3 lg:py-4">
           {/* Mobile/tablet header */}
           <div className="lg:hidden">
@@ -80,16 +87,20 @@ export default function Header({
               trigger="click"
               open={isCatalogOpen}
               onOpenChange={setIsCatalogOpen}
-              placement="bottomLeft"
+              placement="bottom"
               arrow={false}
+              autoAdjustOverflow={false}
               content={
                 <CatalogPopover onClose={() => setIsCatalogOpen(false)} />
               }
+              classNames={{
+                root: "catalog-popover-centered",
+              }}
               overlay={{ padding: 0, borderRadius: 12 }}
             >
               <button className="inline-flex items-center gap-2 rounded-lg bg-[#4F8A5B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F7148]">
                 Catalog
-                <Menu size={18} />
+                {isCatalogOpen ? <X size={18}/> : <Menu size={18} />}
               </button>
             </Popover>
 
@@ -106,7 +117,7 @@ export default function Header({
               >
                 <Heart size={20} />
                 {savedCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-lg bg-[#4F8A5B] px-1 text-[11px] font-bold text-white">
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded bg-[#4F8A5B] px-1 text-[11px] font-bold text-white">
                     {savedCount}
                   </span>
                 )}

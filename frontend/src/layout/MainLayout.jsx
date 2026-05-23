@@ -13,18 +13,18 @@ export default function MainLayout({
     onLogout
 }) {
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900">
-            <TopBar/>
-            <Header
-                user={user}
-                cartCount={cartCount}
-                savedCount={savedCount}
-                onSearch={onSearch}
-                onLogout={onLogout}
-            />
-            <Outlet/>
-            <Footer/>
-            <MobileBottomNav/>
-        </div>
+      <div className="min-h-screen bg-slate-50 text-slate-900">
+        <TopBar />
+        <Header
+          user={user}
+          cartCount={cartCount}
+          savedCount={savedCount}
+          onSearch={onSearch}
+          onLogout={onLogout}
+        />
+        <Outlet />          {/* Определяет расположение вложенного контента, верхняя часть лейаута остается неподвижной */}
+        <Footer />
+        <MobileBottomNav />
+      </div>
     );
 }
