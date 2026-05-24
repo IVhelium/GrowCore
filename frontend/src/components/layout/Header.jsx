@@ -1,21 +1,60 @@
 import { Menu, Heart, User, ShoppingBag, Leaf, X } from "lucide-react";
 import { Popover } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Container from "../common/Container";
 import CatalogPopover from "../catalog/CatalogPopover";
 import SearchBar from "../search/SearchBar";
 import MobileMenu from "./MobileMenu";
+import UserAvatar from "../user/UserAvatar";
+import { useAuth } from "../../hooks/useAuth";
+
+
+function AccountPopover({
+  user,
+  onLogout
+}) {
+  return (
+    <div className="w-64 rounded-lg bg-white p-2">
+      <div className="flex items-center gap-3 border-b border-slate-100 px-3 py-3">
+        <UserAvatar user={user} size="sm"/>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-slate-950">{user.username}</p>
+          <p className="truncate text-xs text-slate-500">{user.email}</p>
+        </div>
+      </div>
+      <Link
+        to="/profile"
+        className="mt-2 block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        Profile
+      </Link>
+      <button
+        type="button"
+        onClick={onLogout}
+        className="block w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
+      >
+        Logout
+      </button>
+    </div>
+  );
+}
+
 
 export default function Header({
-  user,
   cartCount = 0,
   savedCount = 0,
   onSearch,
-  onLogout,
 }) {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/");
+  }
 
   return (
     <>
@@ -100,7 +139,7 @@ export default function Header({
             >
               <button className="inline-flex items-center gap-2 rounded-lg bg-[#4F8A5B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F7148]">
                 Catalog
-                {isCatalogOpen ? <X size={18}/> : <Menu size={18} />}
+                {isCatalogOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
             </Popover>
 
@@ -135,21 +174,24 @@ export default function Header({
                 )}
               </Link>
 
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <Link
-                    to="/profile"
-                    className="hidden max-w-160px truncate rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
-                  >
-                    {user.username || user.email}
-                  </Link>
+              {isAuthenticated ? (
+                <Popover
+                  trigger="click"
+                  placement="bottom"
+                  arrow={false}
+                  content={
+                    <AccountPopover user={user} onLogout={handleLogout} />
+                  }
+                  overlay={{ padding: 0, borderRadius: 12 }}
+                >
                   <button
-                    onClick={onLogout}
-                    className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                    type="button"
+                    aria-label="Account"
+                    className="grid h-11 w-11 place-content-center overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-[#4F8A5B]"
                   >
-                    Logout
+                    <UserAvatar user={user} size="md"/>
                   </button>
-                </div>
+                </Popover>
               ) : (
                 <Link
                   to="/login"

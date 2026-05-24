@@ -2,12 +2,19 @@ import { apiClient } from "./apiClient";
 
 
 export async function registerUser(payload) {
-    const { data } = await apiClient.post("/auth/register", payload);
+    const { data } = await apiClient.post("/auth/register", {
+        username: payload.username,
+        email: payload.email,
+        password: payload.password,
+    });
     return data;   
 }
 
 export async function loginUser(payload) {
-    const { data } = await apiClient.post("/auth/login", payload)
+    const { data } = await apiClient.post("/auth/login", {
+        email: payload.email,
+        password: payload.password,
+    })
     return data;
 }
 

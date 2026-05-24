@@ -1,12 +1,14 @@
 import { QueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
+export const API_URL = "http://localhost:8000";
+
 export const apiClient = axios.create({
-    baseURL: "http://localhost:8000",
+    baseURL: API_URL,
     withCredentials: true,
     timeout: 10000,
     headers: {
-        "Content-Type": "application/json",
+        "Accept": "application/json",
     },
 });
 
@@ -33,3 +35,11 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// Корректировка правильной ссылки для папки медиа
+export function resolveMediaUrl(path) {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+
+    return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}

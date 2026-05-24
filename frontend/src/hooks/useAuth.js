@@ -1,48 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCurrentUser, loginUser, logoutUser, registerUser } from "../api/authApi";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 
 export function useAuth() {
-    const queryClient = useQueryClient();
+    const context = useContext(AuthContext);
 
-    const currentUserQuery = useQuery({
-        queryKey: ["current-user"],
-        queryFn: getCurrentUser,
-        retry: false,
-    });
+    if (!context) {
+        throw new Error("useAuth must be used inside AuthProvider");
+    }
 
-    const loginMutation = useMutation({
-        mutationFn: loginUser,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["current-user"] });
-        },
-    });
-
-    const registerMutation = useMutation({
-        mutationFn: registerUser,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["current-user"] });
-        },
-    });
-
-    const logoutMutation = useMutation({
-        mutationFn: logoutUser,
-        onSuccess: () => {
-            queryClient.setQueryData(["current-user"], null);
-        },
-    });
-
-    return {
-      user: currentUserQuery.data,
-      isAuth: Boolean(currentUserQuery.data),
-      isUserLoading: currentUserQuery.isLoading,
-
-      login: loginMutation.mutateAsync,
-      register: registerMutation.mutateAsync,
-      logout: logoutMutation.mutateAsync,
-
-      isLoginLoading: loginMutation.isPending,
-      isRegisterLoading: registerMutation.isPending,
-      isLogoutLoading: logoutMutation.isPending,
-    };
+    return context;
 }

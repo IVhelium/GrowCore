@@ -7,12 +7,20 @@ export async function getUserProfile() {
 }
 
 export async function updateUserProfile(payload) {
-    const { data } = await apiClient.patch("/users/me", payload);
+    const body = {
+        username: payload.username,
+        description: payload.description || null,
+    };
+
+    const { data } = await apiClient.patch("/users/me", body);
     return data;
 }
 
-export async function updateUserAvatar(payload) {
-    const { data } = await apiClient.patch("/users/me/avatar", payload);
+export async function uploadUserAvatar(file) {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const { data } = await apiClient.patch("/users/me/avatar", formData);
     return data;
 }
 
@@ -21,7 +29,10 @@ export async function deletUserAvatar() {
     return data;
 }
 
-export async function changeUserPassword(payload) {
-    const { data } = await apiClient.patch("/users/me/password", payload);
+export async function searchUserByPublicId(publicId) {
+    const { data } = await apiClient.get("/users/search", {
+        params: { public_id: publicId },
+    });
+
     return data;
 }
