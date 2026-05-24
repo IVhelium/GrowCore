@@ -108,6 +108,7 @@ export const quickCategories = [
 
 export const products = [
   {
+    id: 3,
     price: 46,
     oldPrice: null,
     label: "Best Seller",

@@ -73,5 +73,6 @@ async def me(current_user: CurrentUserDependency):
 )
 async def logout(response: Response):
     auth.unset_access_cookies(response=response)
+    auth.unset_refresh_cookies(response=response)
     
     return {"message": "Success"}

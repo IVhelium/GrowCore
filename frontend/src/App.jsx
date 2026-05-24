@@ -35,6 +35,8 @@ export default function App() {
           element={
             <HomePage
               products={products}
+              onAddToCart={(product) => console.log("add to cart", product)}
+              onToggleFavorite={(product) => console.log("toggle favorite", product)}
             />
           }
         />

@@ -2,6 +2,12 @@ import enum
 from pathlib import Path
 import re
 
+# CORS
+ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
 
 # region ===================== ENUMS =====================
 

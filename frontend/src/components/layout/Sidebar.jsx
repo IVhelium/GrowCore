@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export default function Sidebar() {
     return (
-      <aside className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
+      <aside className="hidden rounded-sm border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-950">Catalog</h2>
           <ChevronRight size={18} className="text-[#4F8A5B]" />
