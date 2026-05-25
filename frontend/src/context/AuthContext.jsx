@@ -3,7 +3,7 @@ import { getCurrentUser, loginUser, logoutUser, registerUser } from "../api/auth
 import { updateUserProfile, uploadUserAvatar, deleteUserAvatar } from "../api/userApi";
 
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);

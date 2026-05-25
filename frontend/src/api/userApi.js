@@ -24,7 +24,7 @@ export async function uploadUserAvatar(file) {
     return data;
 }
 
-export async function deletUserAvatar() {
+export async function deleteUserAvatar() {
     const { data } = await apiClient.delete("/users/me/avatar");
     return data;
 }

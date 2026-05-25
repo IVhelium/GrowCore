@@ -54,6 +54,7 @@ export default function ProductCard({
             {product.description}
           </p>
 
+          {/* Сикдка */}
           <div className="mt-auto flex items-end justify-between gap-3 pt-5">
             <div>
               {product.oldPrice && (

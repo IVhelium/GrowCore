@@ -2,11 +2,8 @@ import { Route, Routes } from "react-router-dom";
 import MainLayout from "./layout/MainLayout";
 import {
   cartItems,
-  currentUser,
-  orders,
   products,
   savedProducts,
-  users,
 } from "./data/testData"
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -22,11 +19,8 @@ export default function App() {
       <Route
         element={
           <MainLayout
-            user={currentUser}
             cartCount={cartItems.length}
             savedCount={savedProducts.length}
-            onSearch={(query) => console.log("header search", query)}
-            onLogout={() => console.log("logout")}
           />
         }
       >
@@ -35,8 +29,8 @@ export default function App() {
           element={
             <HomePage
               products={products}
-              onAddToCart={(product) => console.log("add to cart", product)}
-              onToggleFavorite={(product) => console.log("toggle favorite", product)}
+              onAddToCart={(product) => console.log("add", product)}
+              onToggleFavorite={(product) => console.log("favorite", product)}
             />
           }
         />
@@ -52,10 +46,11 @@ export default function App() {
         />
 
         <Route
-          path="/product/"
+          path="/product/:productId"
           element={
             <ProductPage
               product={products[0]}
+              relatedProducts={products.slice(1, 5)}
             />
           }
         />
@@ -64,7 +59,7 @@ export default function App() {
           path="/cart"
           element={
             <CartPage
-              items={cartItems}
+              element={<CartPage items={cartItems}/>}
             />
           }
         />

@@ -1,0 +1,92 @@
+import { useEffect, useState } from "react";
+import { getApiError } from "../../utils/getApiError";
+import FormField from './../common/FormField';
+import Button from "../common/Button";
+
+
+export default function ProfileForm({
+    user,
+    onSave
+}) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [form, setForm] = useState({ username: "", description: "" });
+
+    useEffect(() => {
+        setForm({
+            username: user?.username || "",
+            description: user?.description || "",
+        });
+    }, [user]);
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        setError("");
+        setMessage("");
+        setIsLoading(true);
+
+        try {
+            await onSave?.({
+                username: form.username.trim(),
+                description: form.description.trim() || null,
+            });
+            setMessage("Profile updated successfully");
+        } catch (requestError) {
+            setError(getApiError(requestError, "Unable to update profile"));
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    return (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-950">Profile detail</h2>
+
+            <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+                <FormField
+                    lable="Username"
+                    name="username"
+                    required
+                    minLenght={3}
+                    maxLength={32}
+                    value={form.username}
+                    onChange={(event) => setForm((state) =>  ({ ...state, username: event.target.value }))}
+                />
+
+                <FormField
+                    lable="Email"
+                    name="email"
+                    type="email"
+                    value={user?.email || ""}
+                    disabled
+                />
+
+                <label className="grid gap-2">
+                    <span className="text-sm font-semibold text-slate-500">Description</span>
+                    <textarea
+                        name="description"
+                        maxLength={300}
+                        rows={4}
+                        value={form.description}
+                        onChange={(event) => setForm((state) => ({ ...state, description: event.target.value }))}
+                        placeholder="Tell others about your greenhouse project..."
+                        className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                    />
+                    <span className="text-right text-xs text-slate-400">{form.description.length}/300</span>
+                </label>
+
+                {message && <p className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{message}</p>}
+                {error && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+
+                <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-fit"
+                >
+                    {isLoading ? "Saving..." : "Save changes"}
+                </Button>
+            </form>
+        </section>
+    );
+}

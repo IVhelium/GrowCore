@@ -10,7 +10,7 @@ export default function SearchBar({
 }) {
     function handleSearch(event) {  // Поисковая функция
       event.preventDefault();
-      const query = new FormData(event.currrentTarget).get("search").trim();
+      const query = new FormData(event.currentTarget).get("search").trim();
       onSearch?.(query);
     }
 

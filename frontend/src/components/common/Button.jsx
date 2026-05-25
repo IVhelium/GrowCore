@@ -12,6 +12,7 @@ export default function Button({
         secondary: "bg-white text-slate-950 hover:text-[#4F8A5B] hover:border-[#4F8A5B] border border-slate-200",
         dark: "bg-slate-950 text-white hover:bg-slate-800",
         ghost: "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+        danger: "bg-red-50 text-red-600 hover:bg-red-100"
     };
 
     const sizes = {

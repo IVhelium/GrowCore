@@ -1,15 +1,17 @@
 import { Drawer } from "antd";
-import { Heart, Leaf, ShoppingBag, User } from "lucide-react";
+import { Heart, Leaf, LogOut, ShoppingBag, User } from "lucide-react";
 import { Link } from "react-router-dom"
 import { quickCategories } from "../../data/testData";
+import UserAvatar from "../user/UserAvatar";
 
 
 export default function MobileMenu({
   open,
   onClose,
   user,
+  onLogout,
   cartCount = 0,
-  savedCount = 0
+  savedCount = 0,
 }) {
 
   {/* Burger menu */}
@@ -35,12 +37,12 @@ export default function MobileMenu({
     >
       <nav className="grid gap-2 border-b border-slate-200 pb-5">
         <Link
-          to="/profile"
+          to={user ? "/profile" : "/login"}
           onClick={onClose}
           className="flex items-center gap-3 rounded-lg bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700"
         >
-          <User size={18} />
-          {user?.username ? `${user.username} profile` : "Sign In"}
+          {user ? <UserAvatar user={user} size="sm" /> : <User size={18} />}
+          <span className="truncate">{user?.username || "Sign In"}</span>
         </Link>
 
         <Link
@@ -68,6 +70,19 @@ export default function MobileMenu({
             {savedCount}
           </span>
         </Link>
+
+        {user && (
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onLogout?.();
+            }}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50"
+          >
+            <LogOut size={18}/> Logout
+          </button>
+        )}
       </nav>
 
       <div className="pt-5">

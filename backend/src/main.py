@@ -10,11 +10,11 @@ from backend.src.core.database import new_session
 from backend.src.utils.seed_roles import seed_roles
 
 
+AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+
 # ========= Lifespan =========
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    AVATAR_DIR.mkdir(parents=True, exist_ok=True)
-    
     async with new_session() as db:
         await seed_roles(db)
     yield
