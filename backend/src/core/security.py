@@ -3,7 +3,7 @@ from datetime import timedelta
 from authx import AuthXConfig, AuthX
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
-from backend.src.core.config import settings
+from src.core.config import settings
 
 
 # ================ JWT ================

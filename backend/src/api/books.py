@@ -3,11 +3,11 @@ from fastapi import FastAPI, HTTPException, Response, Depends, BackgroundTasks, 
 from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy import Engine, select
 
-from backend.src.core.dependencies import SessionDependency
-from backend.src.core.database import Base, engine
-from backend.src.models.books import BookModel
-from backend.src.models.User.users import UserModel
-from backend.src.schemas.books import NewBookSchema
+from src.core.dependencies import SessionDependency
+from src.core.database import Base, engine
+from src.models.books import BookModel
+from src.models.User.users import UserModel
+from src.schemas.books import NewBookSchema
 
 
 router = APIRouter()

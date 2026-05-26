@@ -3,14 +3,14 @@ from typing import Annotated
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.src.models.User.user_roles import UserRoleModel
-from backend.src.core.database import get_session
-from backend.src.core.security import auth
-from backend.src.models import UserModel
-from backend.src.api.services.auth import AuthService
-from backend.src.api.services.user import UserService
-from backend.src.api.services.avatar import AvatarService
-from backend.src.core.constants import ALLOWED_AVATAR_CONTENT_TYPES
+from src.models.User.user_roles import UserRoleModel
+from src.core.database import get_session
+from src.core.security import auth
+from src.models import UserModel
+from src.api.services.auth import AuthService
+from src.api.services.user import UserService
+from src.api.services.avatar import AvatarService
+from src.core.constants import ALLOWED_AVATAR_CONTENT_TYPES
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]

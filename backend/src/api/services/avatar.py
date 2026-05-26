@@ -2,7 +2,7 @@ import aiofiles
 import uuid
 from pathlib import Path
 from fastapi import UploadFile, HTTPException, status
-from backend.src.core.constants import (
+from src.core.constants import (
     ALLOWED_AVATAR_CONTENT_TYPES,
     AVATAR_MAX_SIZE_BYTES,
     AVATAR_CHUNK_SIZE,

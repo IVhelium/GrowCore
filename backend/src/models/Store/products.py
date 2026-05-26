@@ -2,8 +2,8 @@ import uuid
 from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from backend.src.core.custom_types import intPk, createdAt
-from backend.src.core.database import Base
+from src.core.custom_types import intPk, createdAt
+from src.core.database import Base
 
 class ProductModel(Base):
     __tablename__ = "products"

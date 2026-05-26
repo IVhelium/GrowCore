@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from authx import TokenPayload
-from backend.src.core.dependencies import AuthServiceDependency, CurrentUserDependency
-from backend.src.core.security import auth
-from backend.src.schemas import ReadUserDTO, RegisterDTO, LoginDTO, TokenResponseDTO
+from src.core.dependencies import AuthServiceDependency, CurrentUserDependency
+from src.core.security import auth
+from src.schemas import ReadUserDTO, RegisterDTO, LoginDTO, TokenResponseDTO
 
 
 router = APIRouter(prefix="/auths", tags=["Auths"])

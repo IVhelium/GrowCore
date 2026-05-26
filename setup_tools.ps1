@@ -85,7 +85,7 @@ function pip-remove {
 function app {
     param (
         [Parameter(Position=0)]
-        [string]$appname = "backend.src.main"
+        [string]$appname = "src.main"
     )
 
     uvicorn "$($appname):app" --reload

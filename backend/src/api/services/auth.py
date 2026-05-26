@@ -3,10 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.src.models import UserModel, RoleModel, UserRoleModel
-from backend.src.schemas import RegisterDTO, LoginDTO
-from backend.src.core.security import hash_password, verify_password
-from backend.src.core.constants import RoleStatus
+from src.models import UserModel, RoleModel, UserRoleModel
+from src.schemas import RegisterDTO, LoginDTO
+from src.core.security import hash_password, verify_password
+from src.core.constants import RoleStatus
 
 
 class AuthService:
