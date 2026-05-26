@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from backend.src.core.custom_types import uuidPk, createdAt
-from backend.src.core.database import Base
+from src.core.custom_types import uuidPk, createdAt
+from src.core.database import Base
 
 def generate_public_id():
     return "#" + uuid.uuid4().hex[:10].upper()    # Ограничивает айди до 10 символов

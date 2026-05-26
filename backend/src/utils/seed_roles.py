@@ -1,8 +1,8 @@
 from sqlalchemy import select 
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
+from src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
     StoreModel, ProductModel, ProductImageModel, CartModel, CartItemModel, OrderModel, OrderItemModel, ReviewModel, SellerRequestModel)
-from backend.src.core.constants import RoleStatus
+from src.core.constants import RoleStatus
 
 
 async def seed_roles(db: AsyncSession):

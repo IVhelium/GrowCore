@@ -4,10 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 from contextlib import asynccontextmanager
-from backend.src.api import main_router
-from backend.src.core.constants import AVATAR_DIR, ORIGINS
-from backend.src.core.database import new_session
-from backend.src.utils.seed_roles import seed_roles
+from src.api import main_router
+from src.core.constants import AVATAR_DIR, ORIGINS
+from src.core.database import new_session
+from src.utils.seed_roles import seed_roles
 
 
 AVATAR_DIR.mkdir(parents=True, exist_ok=True)
@@ -28,7 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
     allow_credentials=True
 )
 
@@ -41,4 +41,4 @@ app.mount(
 
 # Configure the server to run on localhost
 if __name__ == "__main__":
-    uvicorn.run("backend.src.main:app", reload=True)
+    uvicorn.run("src.main:app", reload=True)

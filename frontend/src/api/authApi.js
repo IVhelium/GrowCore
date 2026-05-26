@@ -2,7 +2,7 @@ import { apiClient } from "./apiClient";
 
 
 export async function registerUser(payload) {
-    const { data } = await apiClient.post("/auth/register", {
+    const { data } = await apiClient.post("/auths/register", {
         username: payload.username,
         email: payload.email,
         password: payload.password,
@@ -11,7 +11,7 @@ export async function registerUser(payload) {
 }
 
 export async function loginUser(payload) {
-    const { data } = await apiClient.post("/auth/login", {
+    const { data } = await apiClient.post("/auths/login", {
         email: payload.email,
         password: payload.password,
     })
@@ -19,11 +19,11 @@ export async function loginUser(payload) {
 }
 
 export async function logoutUser() {
-    const { data } = await apiClient.post("/auth/logout");
+    const { data } = await apiClient.post("/auths/logout");
     return data;
 }
 
 export async function getCurrentUser() {
-    const { data } = await apiClient.get("/auth/me");
+    const { data } = await apiClient.get("/auths/me");
     return data;
 }

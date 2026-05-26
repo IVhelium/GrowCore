@@ -1,9 +1,9 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCurrentUser, loginUser, logoutUser, registerUser } from "../api/authApi";
 import { updateUserProfile, uploadUserAvatar, deleteUserAvatar } from "../api/userApi";
+import { AuthContext } from "./auth-context"
 
 
-export const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -15,61 +15,96 @@ export default function AuthProvider({ children }) {
             setUser(currentUser);
             return currentUser;
         } catch (error) {
-            if (error?.response?.status === 401) {
-                setUser(null);
-                return null;
-            }
+            setUser(null);
 
-            throw error;
+            if (error?.response?.status !== 401) {
+                throw error;
+            }
+            
+            return null;
         } finally {
             setIsAuthLoading(false);
         }
     }, []);
 
     useEffect(() => {
+        let active = true;
+
         const init = async () => {
-            await loadCurrentUser();
+            try {
+                const currentUser = await getCurrentUser();
+
+                if (active) {
+                    setUser(currentUser);
+                }
+            } catch {
+                if (active) {
+                    setUser(null);
+                }
+            } finally {
+                setIsAuthLoading(null);
+            }
         };
 
         init();
-    }, [loadCurrentUser]);
 
-    async function login(credentials) {
-        await loginUser(credentials);
-        return loadCurrentUser();
-    }
+        return () => { active = true; };
+    }, []);
 
-    async function register(payload) {
-        await registerUser(payload);
+    const login = useCallback( 
+        async (credentials) => {
+            await loginUser(credentials);
+            return loadCurrentUser();
+        },
+        [loadCurrentUser]
+    );
 
-        return login({
-            email: payload.email,
-            password: payload.password,
-        });
-    }
+    const register = useCallback(
+        async (payload) => {
+            await registerUser(payload);
 
-    async function logout() {
-        await logoutUser();
-        setUser(null);
-    }
+            return login({
+                email: payload.email,
+                password: payload.password,
+            });
+        },
+        [login]
+    );
 
-    async function updateProfile(payload) {
-        const updatedUser = await updateUserProfile(payload);
-        setUser(updatedUser);
-        return updatedUser;
-    }
+    const logout = useCallback(
+        async () => {
+            await logoutUser();
+            setUser(null);
+        },
+        []
+    );
 
-    async function uploadAvatar(file) {
-        const updatedUser = await uploadUserAvatar(file);
-        setUser(updatedUser);
-        return updatedUser;
-    }
+    const updateProfile = useCallback(
+        async (payload) => {
+            const updatedUser = await updateUserProfile(payload);
+            setUser(updatedUser);
+            return updatedUser;
+        },
+        []
+    );
 
-    async function deleteAvatar() {
-        const updatedUser = await deleteUserAvatar();
-        setUser(updatedUser);
-        return updatedUser;
-    }
+    const uploadAvatar = useCallback(
+        async (file) => {
+            const updatedUser = await uploadUserAvatar(file);
+            setUser(updatedUser);
+            return updatedUser;
+        },
+        []
+    );
+
+    const deleteAvatar = useCallback(
+        async () => {
+            const updatedUser = await deleteUserAvatar();
+            setUser(updatedUser);
+            return updatedUser;
+        },
+        []
+    );
 
     const value = useMemo(
         () => ({
@@ -84,7 +119,17 @@ export default function AuthProvider({ children }) {
             deleteAvatar,
             reloadUser: loadCurrentUser,
         }),
-        [user, isAuthLoading, loadCurrentUser]
+        [
+            user, 
+            isAuthLoading,
+            login,
+            register,
+            logout,
+            updateProfile,
+            uploadAvatar,
+            deleteAvatar, 
+            loadCurrentUser,
+        ]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

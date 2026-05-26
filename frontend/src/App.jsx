@@ -10,6 +10,12 @@ import NotFoundPage from "./pages/NotFoundPage";
 import CatalogPage from "./pages/CatalogPage";
 import ProductPage from "./pages/ProductPage";
 import CartPage from "./pages/CartPage";
+import UsersSearchPage from "./pages/UsersSearchPage";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import ProfilePage from "./pages/ProfilePage";
+import AuthLayout from './layout/AuthLayout';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 
 export default function App() {
@@ -63,6 +69,30 @@ export default function App() {
             />
           }
         />
+
+        <Route
+          path="/users"
+          element={<UsersSearchPage/>}
+        />
+        
+        <Route element={<ProtectedRoute/>}>
+          <Route
+            path="/profile"
+            element={<ProfilePage/>}
+          />
+        </Route>
+
+        <Route element={<AuthLayout/>}>
+          <Route
+            path="/login"
+            element={<LoginPage/>}
+          />
+
+          <Route
+            path="/register"
+            element={<RegisterPage/>}
+          />
+        </Route>
 
         <Route path="*" element={<NotFoundPage/>}/>
       </Route>

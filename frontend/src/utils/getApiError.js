@@ -10,7 +10,11 @@ export function getApiError(
     }
 
     if (Array.isArray(detail)) {
-        return detail.map((item) => item.msg).join(". ");
+        return detail.map((item) => item.msg || "Invalid value").join(". ");
+    }
+
+    if (error?.code === "ERR_NETWORK") {
+        return "Cannot connect to the server"
     }
 
     return fallback;

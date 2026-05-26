@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
-from backend.src.core.constants import SellerRequestStatus
+from src.core.constants import SellerRequestStatus
 
 
 # Seller Request Create Schema

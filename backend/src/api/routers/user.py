@@ -2,15 +2,15 @@ from typing import Annotated
 
 from sqlalchemy import select
 from fastapi import APIRouter, Query, status
-from backend.src.core.constants import PUBLIC_ID_RE
-from backend.src.core.dependencies import (
+from src.core.constants import PUBLIC_ID_RE
+from src.core.dependencies import (
     CurrentUserDependency,
     AvatarFileDependency,
     UserServiceDependency,
 )
-from backend.src.api.services.avatar import AvatarService
-from backend.src.models import UserModel
-from backend.src.schemas import CreateUserDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
+from src.api.services.avatar import AvatarService
+from src.models import UserModel
+from src.schemas import CreateUserDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
 
 
 router = APIRouter(

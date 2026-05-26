@@ -1,15 +1,15 @@
 from pydantic import BaseModel
-from backend.src.schemas.Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
-from backend.src.schemas.Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
-from backend.src.schemas.Store.carts import ReadCartDTO, CreateCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO
-from backend.src.schemas.Store.categories import CreateCategoryDTO, ReadCategoryDTO
-from backend.src.schemas.Store.orders import ReadOrderDTO, ReadOrderItemDTO
-from backend.src.schemas.Store.products import CreateProductDTO, ReadProductDTO, ShortProductDTO, UpdateProductDTO, ReadProductImageDTO
-from backend.src.schemas.Store.reviews import CreateReviewDTO, ReadReviewDTO
-from backend.src.schemas.User.roles import ReadRoleDTO
-from backend.src.schemas.User.user_roles import ReadUserRoleDTO
-from backend.src.schemas.User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
-from backend.src.schemas.User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
+from src.schemas.Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
+from src.schemas.Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
+from src.schemas.Store.carts import ReadCartDTO, CreateCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO
+from src.schemas.Store.categories import CreateCategoryDTO, ReadCategoryDTO
+from src.schemas.Store.orders import ReadOrderDTO, ReadOrderItemDTO
+from src.schemas.Store.products import CreateProductDTO, ReadProductDTO, ShortProductDTO, UpdateProductDTO, ReadProductImageDTO
+from src.schemas.Store.reviews import CreateReviewDTO, ReadReviewDTO
+from src.schemas.User.roles import ReadRoleDTO
+from src.schemas.User.user_roles import ReadUserRoleDTO
+from src.schemas.User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
+from src.schemas.User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
 
 
 ReadSellerRequestDTO.model_rebuild()

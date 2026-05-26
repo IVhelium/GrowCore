@@ -2,9 +2,9 @@ import enum
 import uuid
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from backend.src.core.constants import SellerRequestStatus
-from backend.src.core.custom_types import intPk, createdAt
-from backend.src.core.database import Base
+from src.core.constants import SellerRequestStatus
+from src.core.custom_types import intPk, createdAt
+from src.core.database import Base
 
 
 

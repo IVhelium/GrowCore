@@ -1,11 +1,11 @@
-from backend.src.core.database import Base
-from backend.src.models.Seller.seller_requests import SellerRequestModel
-from backend.src.models.Seller.stores import StoreModel
-from backend.src.models.Store.carts import CartModel, CartItemModel
-from backend.src.models.Store.orders import OrderModel, OrderItemModel
-from backend.src.models.Store.products import ProductModel, ProductImageModel
-from backend.src.models.Store.categories import CategoryModel
-from backend.src.models.Store.reviews import ReviewModel
-from backend.src.models.User.roles import RoleModel
-from backend.src.models.User.user_roles import UserRoleModel
-from backend.src.models.User.users import UserModel
+from src.core.database import Base
+from src.models.Seller.seller_requests import SellerRequestModel
+from src.models.Seller.stores import StoreModel
+from src.models.Store.carts import CartModel, CartItemModel
+from src.models.Store.orders import OrderModel, OrderItemModel
+from src.models.Store.products import ProductModel, ProductImageModel
+from src.models.Store.categories import CategoryModel
+from src.models.Store.reviews import ReviewModel
+from src.models.User.roles import RoleModel
+from src.models.User.user_roles import UserRoleModel
+from src.models.User.users import UserModel

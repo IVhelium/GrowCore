@@ -4,10 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from backend.src.api.services.avatar import AvatarService
-from backend.src.core.constants import AVATAR_URL_PREFIX, PUBLIC_ID_RE
-from backend.src.models import UserModel, UserRoleModel
-from backend.src.schemas import UpdateUserDTO
+from src.api.services.avatar import AvatarService
+from src.core.constants import AVATAR_URL_PREFIX, PUBLIC_ID_RE
+from src.models import UserModel, UserRoleModel
+from src.schemas import UpdateUserDTO
 
 
 class UserService:

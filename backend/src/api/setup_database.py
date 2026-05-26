@@ -6,11 +6,11 @@ import uuid
 from faker import Faker
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import insert, select
-from backend.src.core.dependencies import SessionDependency
-from backend.src.core.database import engine
-from backend.src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
+from src.core.dependencies import SessionDependency
+from src.core.database import engine
+from src.models import (Base, UserModel, RoleModel, UserRoleModel, CategoryModel, 
     StoreModel, ProductModel, ProductImageModel, CartModel, CartItemModel, OrderModel, OrderItemModel, ReviewModel, SellerRequestModel)
-from backend.src.core.constants import RoleStatus, OrderStatus
+from src.core.constants import RoleStatus, OrderStatus
 
 # Config endpoints
 router = APIRouter()
