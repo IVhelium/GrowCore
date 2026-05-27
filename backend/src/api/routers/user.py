@@ -1,6 +1,5 @@
 from typing import Annotated
 
-from sqlalchemy import select
 from fastapi import APIRouter, Query, status
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
@@ -8,9 +7,7 @@ from src.core.dependencies import (
     AvatarFileDependency,
     UserServiceDependency,
 )
-from src.api.services.avatar import AvatarService
-from src.models import UserModel
-from src.schemas import CreateUserDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
+from src.schemas import ReadUserDTO, UpdateUserDTO, ShortUserDTO
 
 
 router = APIRouter(

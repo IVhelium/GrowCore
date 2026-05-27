@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from authx import TokenPayload
 from src.core.dependencies import AuthServiceDependency, CurrentUserDependency
 from src.core.security import auth
