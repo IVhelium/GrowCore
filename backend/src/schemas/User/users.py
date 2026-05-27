@@ -47,6 +47,7 @@ class ReadUserDTO(BaseModel):
     public_id: str
     username: str = Field(max_length=32)
     email: EmailStr
+    roles: list["ReadUserRoleDTO"] = Field(default_factory=list)
     avatar_url: str | None
     description: str | None
     followers_count: int = Field(default=0)

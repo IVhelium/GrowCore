@@ -28,28 +28,8 @@ export default function AuthProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        let active = true;
-
-        const init = async () => {
-            try {
-                const currentUser = await getCurrentUser();
-
-                if (active) {
-                    setUser(currentUser);
-                }
-            } catch {
-                if (active) {
-                    setUser(null);
-                }
-            } finally {
-                setIsAuthLoading(null);
-            }
-        };
-
-        init();
-
-        return () => { active = true; };
-    }, []);
+        loadCurrentUser();
+    }, [loadCurrentUser]);
 
     const login = useCallback( 
         async (credentials) => {

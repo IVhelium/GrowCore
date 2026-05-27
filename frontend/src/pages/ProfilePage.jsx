@@ -1,4 +1,4 @@
-
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../hooks/useAuth';
 import Container from '../components/common/Container';
@@ -8,8 +8,12 @@ import AvatarEditor from '../components/user/AvatarEditor';
 import ProfileForm from '../components/user/ProfileForm';
 
 export default function ProfilePage() {
-    const { user, logout, updateProfile, uploadAvatar, deleteAvatar } = useAuth();
+    const { user, logout, updateProfile, uploadAvatar, deleteAvatar, reloadUser } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        reloadUser();
+    }, [reloadUser]);
 
     async function handleLogout() {
         await logout();
