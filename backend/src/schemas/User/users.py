@@ -36,6 +36,7 @@ class UpdateUserDTO(BaseModel):
                 raise ValueError("Username cannot be empty")
             
             return value
+        return value
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     

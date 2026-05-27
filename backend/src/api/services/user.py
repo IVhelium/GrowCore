@@ -128,6 +128,7 @@ class UserService:
         for field, value in data.items():
             setattr(current_user, field, value)
            
+        self.db.add(current_user)
             
         try:
             await self.db.commit()

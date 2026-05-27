@@ -1,11 +1,7 @@
 import Button from "../common/Button";
 import FormField from "../common/FormField";
 
-export default function LoginForm({ 
-  onSubmit, 
-  isLoading = false,
-  error ="" 
-}) {
+export default function LoginForm({ onSubmit, isLoading = false, error = "" }) {
   function handleSubmit(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -15,14 +11,14 @@ export default function LoginForm({
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
       <FormField
-        lable="Email"
+        label="Email"
         name="email"
         type="email"
         required
         placeholder="exemple@growcore.dev"
       />
       <FormField
-        lable="Password"
+        label="Password"
         name="password"
         type="password"
         required

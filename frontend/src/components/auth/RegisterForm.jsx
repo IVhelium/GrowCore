@@ -2,11 +2,10 @@ import { useState } from "react";
 import Button from "../common/Button";
 import FormField from "../common/FormField";
 
-
 export default function RegisterForm({
   onSubmit,
   isLoading = false,
-  error = ""
+  error = "",
 }) {
   const [clientError, setClientError] = useState("");
 
@@ -25,22 +24,29 @@ export default function RegisterForm({
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
-      <FormField lable="Username" name="username" required minLenght={3} maxLenght={25} placeholder="Username" />
+      <FormField
+        label="Username"
+        name="username"
+        required
+        minLength={3}
+        maxLength={25}
+        placeholder="Username"
+      />
 
       <FormField
-        lable="Email"
+        label="Email"
         name="email"
         required
         placeholder="exemple@growcore.dev"
       />
 
       <FormField
-        lable="Password"
+        label="Password"
         name="password"
         type="password"
         required
-        minLenght={8}
-        maxLenght={72}
+        minLength={8}
+        maxLength={72}
         placeholder="Minimum 8 characters"
       />
 
@@ -50,11 +56,7 @@ export default function RegisterForm({
         </p>
       )}
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="mt-2 w-full"
-      >
+      <Button type="submit" disabled={isLoading} className="mt-2 w-full">
         {isLoading ? "Creating account..." : "Create account"}
       </Button>
     </form>
