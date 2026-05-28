@@ -12,14 +12,56 @@ export const apiClient = axios.create({
     },
 });
 
-// Перехвотчик ответов
+const REFRESH_ENDPOINT = "/auths/refresh";
+
+const AUTH_ENDPOINTS_WITHOUT_REFRESH = [
+    "/auths/login",
+    "/auths/logout",
+    "/auths/register",
+    REFRESH_ENDPOINT,
+];
+
+let refreshRequest = null;
+
+// function for verify access token
+function shouldRefreshToken(error) {
+    const status = error?.response?.status;
+    const request = error?.config;
+    const requestUrl = request?.url || "";
+
+    if (status !== 401 || !request || request._retry || request._skipAuthRefresh) {
+        return false;
+    }
+
+    return !AUTH_ENDPOINTS_WITHOUT_REFRESH.some((endpoint) => requestUrl.includes(endpoint));
+}
+
+async function refreshAccessToken() {
+    if (!refreshRequest) {
+        refreshRequest = apiClient
+            .post(REFRESH_ENDPOINT, null, { _skipAuthRefresh: true })
+            .finally(() => {
+                refreshRequest = null;
+            });
+    }
+
+    return refreshRequest;
+}
+
+// Перехватчик ответов
 apiClient.interceptors.response.use(
     (resp) => resp,                                 // Успешный ответ
-    (error) => {
-        const status = error?.response?.status;     // Ответ с Ошибкой
+    async (error) => {
+        if (shouldRefreshToken(error)) {
+            const originalRequest = error.config;
+            originalRequest._retry = true;
 
-        if (status === 401) {
-            console.warn("User is not autorized");
+            try {
+                await refreshAccessToken();
+                return apiClient(originalRequest);
+            } catch (refreshError) {
+                return Promise.reject(refreshError);
+            }
         }
 
         return Promise.reject(error);

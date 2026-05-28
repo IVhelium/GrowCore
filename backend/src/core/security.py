@@ -24,8 +24,8 @@ auth_config = AuthXConfig(
     JWT_COOKIE_SAMESITE = "lax",
     
     # EXPIRE
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1),
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1),
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=80)
 )
 
 # Initialize AuthX
