@@ -1,6 +1,5 @@
 import aiofiles
 import uuid
-from pathlib import Path
 from fastapi import UploadFile, HTTPException, status
 from src.core.constants import (
     ALLOWED_AVATAR_CONTENT_TYPES,

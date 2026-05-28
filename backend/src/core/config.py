@@ -1,5 +1,7 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from src.core.constants import BASE_DIR
 
 class Settings(BaseSettings):
     # Database
@@ -14,10 +16,30 @@ class Settings(BaseSettings):
     JWT_ACCESS_COOKIE_NAME: str
     JWT_REFRESH_COOKIE_NAME: str
     
+    # File Storage
+    STORAGE_ROOT: Path = BASE_DIR / "storage"
     
+    # Media URL Prefix
+    MEDIA_URL_PREFIX: str = "/media"
+    
+    # Frontend
+    FRONTEND_URL: str = "http://localhost:5173"
+    
+    
+    # Db URL
     @property
     def DATABASE_URL_asyncpg(self):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    
+    # File Storage
+    @property
+    def PUBLIC_STORAGE_DIR(self) -> Path:
+        return self.STORAGE_ROOT / "public"
+    
+    @property
+    def PRIVATE_STORAGE_DIR(self) -> Path:
+        return self.STORAGE_ROOT / "private"
+
         
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

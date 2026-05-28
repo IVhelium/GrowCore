@@ -42,7 +42,7 @@ AVATAR_MAX_SIZE_BYTES = 3 * 1024 * 1024   # 3 MB
 AVATAR_CHUNK_SIZE = 1 * 1024 * 1024       # 1 MB
 
 # Avatar Path Config
-BASE_DIR = Path(__file__).resolve().parent.parent.parent    # Specify the folder location two levels above src/core/constants.py
+BASE_DIR = Path(__file__).resolve().parent.parent.parent      # Specify the folder location two levels above src/core/constants.py
 AVATAR_DIR = BASE_DIR / "storage" / "avatars"                 # The folder is located in GrowCore/storage/avatars
 AVATAR_URL_PREFIX = "/storage/avatars"
 
