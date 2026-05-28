@@ -33,7 +33,7 @@ app.add_middleware(
 )
 
 app.mount(
-    "/media/avatars",
+    "/storage/avatars",
     StaticFiles(directory=str(AVATAR_DIR)),
     name="avatars",    
 )

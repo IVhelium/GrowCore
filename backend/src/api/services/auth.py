@@ -22,7 +22,7 @@ class AuthService:
         self,
         schema: RegisterDTO  
     ) -> UserModel:
-        """Регистрация нового пользователя с проверкой дубликатов выдачей роли"""
+        """New user registration with duplicate check and role assignment"""
         
         # Check email | username
         exist_query = (
@@ -80,7 +80,7 @@ class AuthService:
         self,
         schema: LoginDTO
     ) -> UserModel:
-        """Аунтентификация: поиск пользователя и проверка пароля"""
+        """Authentication: User Lookup and Password Verification"""
         
         query = (
             select(UserModel)
@@ -90,14 +90,14 @@ class AuthService:
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
         
-        # Если юсер не найден
+        # If the user is not found
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
         
-        # Валидация пароля
+        # Password validation
         valid_password = verify_password(schema.password, user.password_hash)
         
         if not valid_password:

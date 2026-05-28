@@ -13,7 +13,7 @@ from src.core.constants import (
 class AvatarService:
     def __init__(self):
         self.upload_dir = AVATAR_DIR
-        self.upload_dir.mkdir(parents=True, exist_ok=True)  # Проверка существования папки
+        self.upload_dir.mkdir(parents=True, exist_ok=True)  # Checking if a folder exists
         
     
     @staticmethod
@@ -28,7 +28,7 @@ class AvatarService:
         self,
         file: UploadFile
     ) -> str:
-        """Сохраняет аватар на диск, генерируя уникальное имя. Возвращает только имя сохраненного файла"""
+        """Saves the avatar to disk and generates a unique filename. Returns only the filename of the saved file"""
         
         normalized_content_type = self.normalize_content_type(file.content_type)
         
@@ -39,12 +39,12 @@ class AvatarService:
         total_size = 0
         
         try:
-            # Асинхранное чтение и запись файла чанками
+            # Asynchronous file reading and writing in chunks
             async with aiofiles.open(file_path, "wb") as out_file:
-                while chunk := await file.read(AVATAR_CHUNK_SIZE):  # Чтение чанков по 1 МБ
+                while chunk := await file.read(AVATAR_CHUNK_SIZE):  # Reading 1 MB chunks
                     total_size += len(chunk)
                     
-                    if total_size > AVATAR_MAX_SIZE_BYTES:          # Проверяет размер файла, если больше максимума прерывает запись
+                    if total_size > AVATAR_MAX_SIZE_BYTES:          # Checks the file size; if it exceeds the maximum, it stops writing
                         raise HTTPException(
                             status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                             detail=f"File too large. Max size: {AVATAR_MAX_SIZE_BYTES}"
@@ -59,7 +59,7 @@ class AvatarService:
                 )
                     
         except HTTPException:
-            file_path.unlink(missing_ok=True)   # Прерывем запись файла если больше лимита, и уудаляет недозаписанный кусок файла
+            file_path.unlink(missing_ok=True)   # Stop writing to the file if the limit is exceeded, and delete the unwritten portion of the file
             raise
             
         except Exception:
@@ -76,18 +76,18 @@ class AvatarService:
         self,
         avatar_url: str | None
     ) -> None:
-        """Удаляет старый файл аватара с диска, если он существует. Принимает URL или путь, извлекает имя файла и удаляет его"""
+        """Deletes the old avatar file from the disk, if it exists. Accepts a URL or path, extracts the filename, and deletes it"""
         
         if not avatar_url:
             return
         
-        filename = avatar_url.split("/")[-1]                # Возвращает последний элемент (имя файла)
+        filename = avatar_url.split("/")[-1]                # Returns the last element (file name)
         
         if not filename:
             return
         
-        file_path = (self.upload_dir / filename).resolve()  # Возвращает абсолютный путь
-        resolved_upload_file = self.upload_dir.resolve()    # Возвразает абсолютный путь переданного файла
+        file_path = (self.upload_dir / filename).resolve()  # Returns the absolute path
+        resolved_upload_file = self.upload_dir.resolve()    # Returns the absolute path of the transferred file
         
         if file_path.is_file() and file_path.parent == resolved_upload_file:
             file_path.unlink(missing_ok=True)

@@ -16,7 +16,7 @@ export default function AuthLayout() {
             </span>
             GrowCore
           </Link>
-          <Outlet/>   {/* Определяет расположение вложенного контента, верхняя часть лейаута остается неподвижной */}
+          <Outlet/>   {/* Specifies the positioning of the embedded content; the top of the layout remains fixed */}
         </div>
       </div>
     );

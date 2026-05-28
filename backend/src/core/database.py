@@ -4,14 +4,14 @@ from sqlalchemy.orm import DeclarativeBase
 from src.core.config import settings
 
 
-# ======= Создание движка и сессий для работы с бд ======= #
+# ======= Creating a database engine and sessions for working with the database ======= #
 
 engine = create_async_engine(               # Create an async engine for connecting to a PostgreSQL database
-    url=settings.DATABASE_URL_asyncpg,      # Ссылка на подключение
-    echo=False,                             # Будет показывать в концоли все SQL запросы
-    pool_size=5,                            # Стандартное максимальное количество подключений к базе
-    max_overflow=10,                        # Максимально допустимое количество подключений к базе
-    pool_pre_ping=True,                     # Проверка работоспособности перед использованием
+    url=settings.DATABASE_URL_asyncpg,      # Connection link
+    echo=False,                             # It will display all SQL queries in the console
+    pool_size=5,                            # Standard maximum number of connections to the database
+    max_overflow=10,                        # Maximum number of connections to the database
+    pool_pre_ping=True,                     # Functionality check before use
 )  
 
 new_session = async_sessionmaker(           # Create an async sessionmaker for managing database
@@ -25,7 +25,7 @@ async def get_session():
          
          
 class Base(DeclarativeBase):
-    # Relationships не использются в repr(), т.к могут вести к неожиданным подгрузкам
+    # Relationships are not used in `repr()` because they can lead to unexpected reloads
     
     repr_cols_num = 3
     repr_cols = tuple()

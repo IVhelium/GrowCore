@@ -55,29 +55,29 @@ CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
 
 
 # Avatar Validation
-SIGNATURES = {    # Словарь валидации типов
+SIGNATURES = {    # Type Validation Dictionary
     "image/jpeg": lambda h: h.startswith(b"\xff\xd8\xff"),
     "image/png":  lambda h: h.startswith(b"\x89PNG\r\n\x1a\n"),
     "image/webp": lambda h: h.startswith(b"RIFF") and h[8:12] == b"WEBP"
 }
 
 async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
-    """Зависимость для первичной валидации структуры заголовков и сигнатуры"""
+    """Dependency for initial validation of header structure and signature"""
     
     normalized_content_type = AvatarService.normalize_content_type(file.content_type)
     
     if normalized_content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported media type. Allowed: {list(ALLOWED_AVATAR_CONTENT_TYPES.keys())}"
+            status_code=status.HTTP_415_UNSUPPORTED_storage_TYPE,
+            detail=f"Unsupported storage type. Allowed: {list(ALLOWED_AVATAR_CONTENT_TYPES.keys())}"
         )
         
-    header = await file.read(12)   # Чтение первых 12 байт, чтоб проверить реальный тип файла
-    await file.seek(0)             # Сброс указателя для последующего чтения в сервисе
+    header = await file.read(12)   # Read the first 12 bytes to check the actual file type
+    await file.seek(0)             # Reset the pointer for subsequent reading in the service
     
     if not SIGNATURES[normalized_content_type](header):
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            status_code=status.HTTP_415_UNSUPPORTED_storage_TYPE,
             detail="Invalid image file signature"
         )
         

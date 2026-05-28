@@ -23,7 +23,7 @@ export default function MainLayout({
         savedCount={savedCount}
         onSearch={handleSearch}
       />
-      <Outlet />          {/* Определяет расположение вложенного контента, верхняя часть лейаута остается неподвижной */}
+      <Outlet />          {/* Specifies the positioning of the embedded content; the top of the layout remains fixed */}
       <Footer />
       <MobileBottomNav />
     </div>

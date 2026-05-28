@@ -22,6 +22,7 @@ class OrderStatus(enum.Enum):
 class RoleStatus(enum.Enum):
     user = "user"
     seller = "seller"
+    support="support"
     admin = "admin"
     
 
@@ -41,9 +42,9 @@ AVATAR_MAX_SIZE_BYTES = 3 * 1024 * 1024   # 3 MB
 AVATAR_CHUNK_SIZE = 1 * 1024 * 1024       # 1 MB
 
 # Avatar Path Config
-BASE_DIR = Path(__file__).resolve().parent.parent.parent    # Определяем расположение папки на два уровня вверх от src/core/constants.py
-AVATAR_DIR = BASE_DIR / "media" / "avatars"                 # Расположение папки в GrowCore/media/avatars
-AVATAR_URL_PREFIX = "/media/avatars"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent    # Specify the folder location two levels above src/core/constants.py
+AVATAR_DIR = BASE_DIR / "storage" / "avatars"                 # The folder is located in GrowCore/storage/avatars
+AVATAR_URL_PREFIX = "/storage/avatars"
 
 # Dictionary With Allowed Avatar Image Types
 ALLOWED_AVATAR_CONTENT_TYPES = {
@@ -55,5 +56,5 @@ ALLOWED_AVATAR_CONTENT_TYPES = {
 # endregion
 
 
-# Регулярное выражение для публичного айди
-PUBLIC_ID_RE = re.compile(r"^#[0-9A-F]{10}$")   # Разрешает только правильные публичные айди ex: #A1B2C3D4E5
+# Regular expression for a public ID
+PUBLIC_ID_RE = re.compile(r"^#[0-9A-F]{10}$")   # Allows only valid public IDs ex: #A1B2C3D4E5

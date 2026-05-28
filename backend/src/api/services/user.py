@@ -21,10 +21,10 @@ class UserService:
         
     
     @staticmethod
-    def normalize_public_id(public_id: str) -> str:  # Нормализация публичного адйи к правильному типу
+    def normalize_public_id(public_id: str) -> str:  # Normalizing public data to the correct type
         value = public_id.strip().upper()
         
-        if not value.startswith("#"):   # Если айди не начинается с хетега то добавляет его с начал строки к айди
+        if not value.startswith("#"):                # If the ID doesn't start with a hashtag, it adds one at the beginning of the ID
             value = f"#{value}"
             
         if not PUBLIC_ID_RE.fullmatch(value):
@@ -36,7 +36,7 @@ class UserService:
         return value
     
     
-    # Получаем юзера с ролями
+    # Retrieving a user with roles
     async def get_user_with_relations(
         self,
         user_id: str
@@ -63,7 +63,7 @@ class UserService:
         return user
     
     
-    # Получение пользователя с публичным айди
+    # Retrieving a user by public ID
     async def get_user_by_public_id(
         self,
         public_id: str  
@@ -88,22 +88,22 @@ class UserService:
         return user
     
     
-    # Метод для обновление данного пользователя
+    # Method for updating current user
     async def update_current_user(
         self,
         current_user: UserModel,
         schema: UpdateUserDTO
     ) -> UserModel:
         
-        data = schema.model_dump(exclude_unset=True)    # Преобразует схему в словарь
+        data = schema.model_dump(exclude_unset=True)    # Converts the schema into a dictionary
         
         if not data:
             return await self.get_user_with_relations(current_user.id)
         
-        username = data.get("username")    # Достает юсернейм из схемы
+        username = data.get("username")                 # Retrieves the username from the schema
         
         if username is not None:   
-            # Если юсернейм был изменен, проверка на уже имеющиеся в базе
+            # If the username has been changed, check the database for existing entries
             if username != current_user.username:
                 query = (
                     select(UserModel)
@@ -124,7 +124,7 @@ class UserService:
                     
             data["username"] = username
             
-        # Обновляем объект
+        # Updating the object
         for field, value in data.items():
             setattr(current_user, field, value)
            
@@ -144,13 +144,13 @@ class UserService:
         return await self.get_user_with_relations(current_user.id)
         
     
-    # Метод загрузки аватара
+    # Method for upload an avatar
     async def upload_avatar(
         self,
         current_user: UserModel,
         avatar: UploadFile
     ) -> UserModel:
-        """Загружает новый аватар пользователю, если уже существует, то добавляет новый и удаляет старый"""
+        """Uploads a new avatar for the user; if one already exists, it adds the new one and deletes the old one"""
         
         old_avatar_url = current_user.avatar_url
         
@@ -177,12 +177,12 @@ class UserService:
         return await self.get_user_with_relations(current_user.id)
     
     
-    # Метод удаления аватара
+    # Method for removing an avatar
     async def delete_avatar(
         self,
         current_user: UserModel
     ) -> UserModel:
-        """Удаляет аватар текущего пользователя. Сначала аватар удаляется с Бд. После успешного коммита удаляется с диска"""
+        """Deletes the current user's avatar. First, the avatar is deleted from the database. After a successful commit, it is deleted from disk."""
         
         old_avatar_url = current_user.avatar_url
         

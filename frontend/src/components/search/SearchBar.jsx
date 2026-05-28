@@ -8,7 +8,7 @@ export default function SearchBar({
   buttonlabel = "",
 }) {
   function handleSearch(event) {
-    // Поисковая функция
+    // Search function
     event.preventDefault();
     const query = new FormData(event.currentTarget).get("search").trim();
     onSearch?.(query);

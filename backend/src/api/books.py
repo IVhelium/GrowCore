@@ -80,4 +80,4 @@ def iter_file(file_name: str):  # Generator function to read a file in chunks fo
 
 @router.get("/stream_file/{file_name}")
 async def get_streaming_file(file_name: str):
-    return StreamingResponse(iter_file(file_name), media_type="video/mp4")
+    return StreamingResponse(iter_file(file_name), storage_type="video/mp4")
