@@ -1,10 +1,5 @@
-from datetime import datetime
-import time
-import random
-from decimal import Decimal
-import uuid
 from faker import Faker
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import insert, select
 from src.core.dependencies import SessionDependency
 from src.core.database import engine

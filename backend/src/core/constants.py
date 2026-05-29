@@ -47,7 +47,7 @@ AVATAR_DIR = BASE_DIR / "storage" / "avatars"                 # The folder is lo
 AVATAR_URL_PREFIX = "/storage/avatars"
 
 # Dictionary With Allowed Avatar Image Types
-ALLOWED_AVATAR_CONTENT_TYPES = {
+ALLOWED_PHOTO_CONTENT_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp"
