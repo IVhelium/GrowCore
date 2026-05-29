@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.custom_types import intPk, createdAt
 from src.core.database import Base
@@ -19,6 +19,8 @@ class ProductModel(Base):
     rating_count: Mapped[int] = mapped_column(default=0)
     
     created_at: Mapped[createdAt]
+    
+    image_storage_prefix: Mapped[str | None] = mapped_column(String(300), unique=True, nullable=True)
     
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
