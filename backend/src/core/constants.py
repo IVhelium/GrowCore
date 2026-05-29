@@ -35,8 +35,7 @@ class SellerRequestStatus(enum.Enum):
 # endregion
     
     
-# region ===================== File Upload Constants =====================
-
+# File Upload Constants
 # Avatar Upload Size Settings
 AVATAR_MAX_SIZE_BYTES = 3 * 1024 * 1024   # 3 MB
 AVATAR_CHUNK_SIZE = 1 * 1024 * 1024       # 1 MB
@@ -45,15 +44,23 @@ AVATAR_CHUNK_SIZE = 1 * 1024 * 1024       # 1 MB
 BASE_DIR = Path(__file__).resolve().parent.parent.parent      # Specify the folder location two levels above src/core/constants.py
 AVATAR_DIR = BASE_DIR / "storage" / "avatars"                 # The folder is located in GrowCore/storage/avatars
 AVATAR_URL_PREFIX = "/storage/avatars"
+PUBLIC_STORAGE_DIR = BASE_DIR / "public"
+PRIVATE_STORAGE_DIR = BASE_DIR / "private"
 
-# Dictionary With Allowed Avatar Image Types
+# Dictionary With Allowed Images Types
 ALLOWED_PHOTO_CONTENT_TYPES = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
     "image/webp": ".webp"
 }
+ALLOWED_AVATAR_CONTENT_TYPES = ALLOWED_PHOTO_CONTENT_TYPES
 
-# endregion
+# Dictionary With Allowed Documents Types
+ALLOWED_DOCUMENT_CONTENT_TYPES = {
+    "application/pdf": ".pdf",
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+}
 
 
 # Regular expression for a public ID

@@ -68,7 +68,7 @@ async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
     
     if normalized_content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_storage_TYPE,
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"Unsupported storage type. Allowed: {list(ALLOWED_AVATAR_CONTENT_TYPES.keys())}"
         )
         
@@ -77,7 +77,7 @@ async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
     
     if not SIGNATURES[normalized_content_type](header):
         raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_storage_TYPE,
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="Invalid image file signature"
         )
         
