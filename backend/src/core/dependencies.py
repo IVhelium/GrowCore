@@ -1,16 +1,20 @@
-from fastapi import Depends, File, HTTPException, UploadFile, status
+from fastapi import Depends, HTTPException, status
 from typing import Annotated
+from collections.abc import Callable
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.api.services.products.product_moderation import ProductModerationService
+from src.api.services.products.product_image import ProductImageService
+from src.core.constants import RoleStatus
 from src.models.User.user_roles import UserRoleModel
 from src.core.database import get_session
 from src.core.security import auth
 from src.models import UserModel
 from src.api.services.auth import AuthService
 from src.api.services.user import UserService
-from src.api.services.avatar import AvatarService
-from src.core.constants import ALLOWED_AVATAR_CONTENT_TYPES
+from src.api.services.products.product import ProductService
+from src.api.services.files.file_storage import FileStorageService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -22,9 +26,6 @@ async def get_auth_service(db: SessionDependency) -> AuthService:
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 
-# Get Avatar Service
-async def get_avatar_service() -> AvatarService:
-    return AvatarService()
 
 # Get Current User
 async def get_current_user(
@@ -54,43 +55,81 @@ async def get_current_user(
 CurrentUserDependency = Annotated[UserModel, Depends(get_current_user)]
 
 
-# Avatar Validation
-SIGNATURES = {    # Type Validation Dictionary
-    "image/jpeg": lambda h: h.startswith(b"\xff\xd8\xff"),
-    "image/png":  lambda h: h.startswith(b"\x89PNG\r\n\x1a\n"),
-    "image/webp": lambda h: h.startswith(b"RIFF") and h[8:12] == b"WEBP"
-}
-
-async def validate_avatar_upload(file: UploadFile = File(...)) -> UploadFile:
-    """Dependency for initial validation of header structure and signature"""
-    
-    normalized_content_type = AvatarService.normalize_content_type(file.content_type)
-    
-    if normalized_content_type not in ALLOWED_AVATAR_CONTENT_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported storage type. Allowed: {list(ALLOWED_AVATAR_CONTENT_TYPES.keys())}"
-        )
+# Roles
+def require_roles(*allowed_roles: RoleStatus) -> Callable:
+    async def role_checker(current_user: CurrentUserDependency) -> UserModel:
+        current_roles = {
+            relation.role.role
+            for relation in current_user.roles
+        }
         
-    header = await file.read(12)   # Read the first 12 bytes to check the actual file type
-    await file.seek(0)             # Reset the pointer for subsequent reading in the service
-    
-    if not SIGNATURES[normalized_content_type](header):
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Invalid image file signature"
-        )
+        if not current_roles.intersection(set(allowed_roles)):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not hove premission to perform this action"
+            )
         
-    return file
+        return current_user
+    return role_checker
+    
+SellerDependency = Annotated[UserModel, Depends(require_roles(RoleStatus.seller))]
+AdminDependency = Annotated[UserModel, Depends(require_roles(RoleStatus.admin))]
+SupportDependency = Annotated[UserModel, Depends(require_roles(RoleStatus.support))]
+SupportOrAdminDependency = Annotated[UserModel, Depends(require_roles(RoleStatus.support , RoleStatus.admin))]
+    
 
-AvatarFileDependency = Annotated[UploadFile, Depends(validate_avatar_upload)]
-AvatarServiceDependency = Annotated[AvatarService, Depends(get_avatar_service)]
+# Get File Storage Service
+async def get_file_storage_service() -> FileStorageService:
+    return FileStorageService()
+
+FileStorageServiceDependency = Annotated[FileStorageService, Depends(get_file_storage_service)]
+
 
 # Get User Service
 async def get_user_service(
     db: SessionDependency,
-    avatar_service: AvatarServiceDependency
+    file_storage_service: FileStorageServiceDependency
 ) -> UserService:
-    return UserService(db=db, avatar_service=avatar_service)
+    return UserService(
+        db=db, 
+        file_storage_service=file_storage_service
+    )
 
 UserServiceDependency = Annotated[UserService, Depends(get_user_service)]
+
+
+# Get Product Service
+async def get_product_service(
+    db: SessionDependency,
+    file_storage_service: FileStorageServiceDependency
+) -> ProductService: 
+    return ProductService(
+        db=db,
+        file_storage_service=file_storage_service
+    )
+
+ProductServiceDependency = Annotated[ProductService, Depends(get_product_service)]
+
+# Get Product Image Service
+async def get_product_image_service(
+    db: SessionDependency,
+    file_storage_service: FileStorageServiceDependency
+):
+    return ProductService(
+        db=db,
+        file_storage_service=file_storage_service
+    )
+    
+ProductImageServiceDependency = Annotated[ProductImageService, Depends(get_product_image_service)]
+
+# Get Product Moderation Service
+async def get_product_image_service(
+    db: SessionDependency,
+    file_storage_service: FileStorageServiceDependency
+):
+    return ProductService(
+        db=db,
+        file_storage_service=file_storage_service
+    )
+    
+ProductModerationServiceDependency = Annotated[ProductModerationService, Depends(get_product_image_service)]

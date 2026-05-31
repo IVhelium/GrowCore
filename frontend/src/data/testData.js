@@ -109,6 +109,48 @@ export const quickCategories = [
 export const products = [
   {
     id: 3,
+    title: "Smart Irrigation Valve",
+    description:
+      "Wireless valve for automated watering schedules and precise flow control.",
+    price: 46,
+    oldPrice: null,
+    label: "Best Seller",
+    category: "Hydroponics",
+    image:
+      "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 10,
+    title: "Smart Irrigation Valve",
+    description:
+      "Wireless valve for automated watering schedules and precise flow control.",
+    price: 46,
+    oldPrice: null,
+    label: "Best Seller",
+    category: "Hydroponics",
+    image:
+      "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 11,
+    title: "Smart Irrigation Valve",
+    description:
+      "Wireless valve for automated watering schedules and precise flow control.",
+    price: 46,
+    oldPrice: null,
+    label: "Best Seller",
+    category: "Hydroponics",
+    image:
+      "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 12,
+    title: "Smart Irrigation Valve",
+    description:
+      "Wireless valve for automated watering schedules and precise flow control.",
     price: 46,
     oldPrice: null,
     label: "Best Seller",
@@ -169,6 +211,84 @@ export const products = [
       "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
     rating: 4.6,
   },
+  {
+    id: 22,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 23,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 24,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 25,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 26,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
+  {
+    id: 27,
+    title: "Waterproof Cable Set",
+    description:
+      "Connector and cable kit for outdoor sensors, valves, and irrigation controllers.",
+    price: 14,
+    oldPrice: 21,
+    label: "Deal",
+    category: "Cables & Connectors",
+    image:
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=700&auto=format&fit=crop",
+    rating: 4.6,
+  },
 ];
 
 export const cartItems = [
@@ -192,7 +312,7 @@ export const cartItems = [
   },
 ];
 
-export const savedProducts = [products[0], products[2], products[5]];
+export const savedProducts = [products[0], products[2], products[4]];
 
 export const currentUser = {
   id: 1,

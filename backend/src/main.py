@@ -1,18 +1,20 @@
 # FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from authx.exceptions import AuthXException
 import uvicorn
 from contextlib import asynccontextmanager
 from src.api import main_router
-from src.core.constants import PUBLIC_STORAGE_DIR, PRIVATE_STORAGE_DIR, AVATAR_DIR, ORIGINS
+from src.core.config import settings
+from src.core.constants import ORIGINS
 from src.core.database import new_session
 from src.utils.seed_roles import seed_roles
 
 
-PUBLIC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
-PRIVATE_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
-AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+settings.PUBLIC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+settings.PRIVATE_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ========= Lifespan =========
@@ -25,6 +27,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)  # Create a FastAPI application instance
 
+
+@app.exception_handler(AuthXException)
+async def authx_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Unauthorized"},
+    )
+
+
 app.include_router(main_router)
 
 app.add_middleware(
@@ -36,9 +47,9 @@ app.add_middleware(
 )
 
 app.mount(
-    "/storage/avatars",
-    StaticFiles(directory=str(AVATAR_DIR)),
-    name="avatars",    
+    settings.MEDIA_URL_PREFIX,
+    StaticFiles(directory=str(settings.PUBLIC_STORAGE_DIR)),
+    name="media",
 )
 
 

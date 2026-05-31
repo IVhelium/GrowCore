@@ -60,7 +60,7 @@ export default function Header({
     <>
       {isCatalogOpen && (
         <div
-          className="fixed inset-0 x-998 bg-black/20 backdrop-blur-[1px]"
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]"
           onClick={() => setIsCatalogOpen(false)}
         />
       )}

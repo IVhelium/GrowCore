@@ -9,12 +9,16 @@ import SearchBar from "../components/search/SearchBar";
 export default function CatalogPage({
   products = [],
   total = 0,
+  currentPage = 1,
+  pageSize = 10,
+  searchValue = "",
   onSearch,
   onFilterChange,
   onSortChange,
   onPageChange,
   onAddToCart,
   onToggleFavorite,
+  favoriteProductIds = [],
 }) {
   return (
     <main>
@@ -29,22 +33,24 @@ export default function CatalogPage({
         <SearchBar
           placeholder="Search in catalog..."
           buttonlabel="Search"
+          defaultValue={searchValue}
           onSearch={onSearch}
           className="mb-6 shadow-sm"
         />
 
-        <div className="grid gap-6 lg:grid-clos-[280px_minmax(0,1fr)]">
+        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <ProductFilters onChange={onFilterChange} />
           <div>
             <ProductGrid
               products={products}
               onAddToCart={onAddToCart}
               onToggleFavorite={onToggleFavorite}
+              favoriteProductIds={favoriteProductIds}
             />
             <PaginationBar
-              current={1}
+              current={currentPage}
               total={total}
-              pageSize={8}
+              pageSize={pageSize}
               onChange={onPageChange}
             />
           </div>

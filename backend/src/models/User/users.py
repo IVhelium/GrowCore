@@ -9,45 +9,63 @@ def generate_public_id():
 
 class UserModel(Base):
     __tablename__ = "users"
-    
+
     id: Mapped[uuidPk]
-    public_id: Mapped[str] = mapped_column(String(16), default=generate_public_id, index=True, unique=True)
+
+    public_id: Mapped[str] = mapped_column(
+        String(16),
+        default=generate_public_id,
+        index=True,
+        unique=True,
+    )
+
     username: Mapped[str] = mapped_column(String(25), unique=True)
     email: Mapped[str] = mapped_column(String(256), unique=True)
     password_hash: Mapped[str]
-    
-    avatar_url: Mapped[str | None]
-    description: Mapped[str | None] = mapped_column(String(300))
-    
+
+    avatar_url: Mapped[str | None] = mapped_column(nullable=True)
+    description: Mapped[str | None] = mapped_column(String(300), nullable=True)
+
     created_at: Mapped[createdAt]
-    
+
     followers_count: Mapped[int] = mapped_column(default=0)
     following_count: Mapped[int] = mapped_column(default=0)
-    
-    # Relationships
+
     roles: Mapped[list["UserRoleModel"]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
     )
-    
-    seller_request: Mapped["SellerRequestModel"] = relationship(
+
+    seller_request: Mapped["SellerRequestModel | None"] = relationship(
         back_populates="user",
-        uselist=False
+        uselist=False,
+        foreign_keys="SellerRequestModel.user_id",
     )
-    
-    store: Mapped["StoreModel"] = relationship(
+
+    store: Mapped["StoreModel | None"] = relationship(
         back_populates="user",
-        uselist=False
+        uselist=False,
     )
-    
-    cart: Mapped["CartModel"] = relationship(
+
+    cart: Mapped["CartModel | None"] = relationship(
         back_populates="user",
-        uselist=False
+        uselist=False,
     )
-    
-    orders: Mapped["OrderModel"] = relationship(
+
+    orders: Mapped[list["OrderModel"]] = relationship(
         back_populates="user",
     )
-    
-    reviews: Mapped["ReviewModel"] = relationship(
-        back_populates="user"
+
+    reviews: Mapped[list["ReviewModel"]] = relationship(
+        back_populates="user",
+    )
+
+    support_tickets: Mapped[list["SupportTicketModel"]] = relationship(
+        foreign_keys="SupportTicketModel.user_id",
+        back_populates="user",
+    )
+
+    assigned_tickets: Mapped[list["SupportTicketModel"]] = relationship(
+        foreign_keys="SupportTicketModel.assigned_support_id",
+        back_populates="assigned_support",
     )

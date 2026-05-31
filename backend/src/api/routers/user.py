@@ -1,10 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
     CurrentUserDependency,
-    AvatarFileDependency,
     UserServiceDependency,
 )
 from src.schemas import ReadUserDTO, UpdateUserDTO, ShortUserDTO
@@ -46,9 +45,18 @@ async def update_me(
 async def upload_my_avatar(
     current_user: CurrentUserDependency,
     user_service: UserServiceDependency,
-    avatar: AvatarFileDependency
+    avatar: Annotated[UploadFile | None, File()] = None,
+    file: Annotated[UploadFile | None, File()] = None,
 ):
-    return await user_service.upload_avatar(current_user=current_user, avatar=avatar)
+    uploaded_avatar = avatar or file
+
+    if uploaded_avatar is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar file is required",
+        )
+
+    return await user_service.upload_avatar(current_user=current_user, avatar=uploaded_avatar)
 
 
 @router.delete(

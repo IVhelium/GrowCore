@@ -9,7 +9,7 @@ class RoleModel(Base):
     __tablename__ = "roles"
     
     id: Mapped[intPk]
-    role: Mapped[RoleStatus] = mapped_column(default=RoleStatus.user)
+    role: Mapped[RoleStatus] = mapped_column(default=RoleStatus.user, unique=True)
     
     # Relationships
     users: Mapped[list["UserRoleModel"]] = relationship(

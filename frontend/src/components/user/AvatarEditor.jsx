@@ -1,34 +1,40 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getApiError } from './../../utils/getApiError';
 import UserAvatar from "./UserAvatar";
 import Button from "../common/Button";
-import { ImageUp, Trash2 } from "lucide-react";
+import { ImageUp, Trash2, X } from "lucide-react";
 
 
 export default function AvatarEditor({
     user,
-    onUpload,
+    selectedFile,
+    onSelect,
     onDelete
 }) {
     const inputRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [previewUrl, setPreviewUrl] = useState("");
+
+    useEffect(() => {
+        if (!selectedFile) {
+            setPreviewUrl("");
+            return undefined;
+        }
+
+        const objectUrl = URL.createObjectURL(selectedFile);
+        setPreviewUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [selectedFile]);
 
     async function handleFileChange(event) {
         const file = event.target.files?.[0];
         if (!file) return;
 
         setError("");
-        setIsLoading(true);
-
-        try {
-            await onUpload?.(file);
-        } catch (requestError) {
-            setError(getApiError(requestError, "Unable to upload avatar"));
-        } finally {
-            setIsLoading(false);
-            event.target.value = "";
-        }
+        onSelect?.(file);
+        event.target.value = "";
     }
 
     async function handleDelete() {
@@ -49,7 +55,15 @@ export default function AvatarEditor({
             <h2 className="text-xl font-bold text-slate-950">Avatar</h2>
 
             <div className="mt-5 flex items-center gap-4">
-                <UserAvatar user={user} size="lg"/>
+                {previewUrl ? (
+                    <img
+                        src={previewUrl}
+                        alt="Selected avatar preview"
+                        className="h-20 w-20 rounded-lg object-cover"
+                    />
+                ) : (
+                    <UserAvatar user={user} size="lg"/>
+                )}
                 <div className="flex flex-wrap gap-2">
                     <input
                         ref={inputRef}
@@ -63,10 +77,21 @@ export default function AvatarEditor({
                         onClick={() => inputRef.current?.click()}
                         disabled={isLoading}
                     >
-                        <ImageUp size={17}/> Upload
+                        <ImageUp size={17}/> Choose
                     </Button>
 
-                    {user?.avatar_url && (
+                    {selectedFile && (
+                        <Button
+                            type="button"
+                            style="secondary"
+                            onClick={() => onSelect?.(null)}
+                            disabled={isLoading}
+                        >
+                            <X size={17}/> Cancel
+                        </Button>
+                    )}
+
+                    {!selectedFile && user?.avatar_url && (
                         <Button
                             type="button"
                             style="danger"
@@ -79,7 +104,9 @@ export default function AvatarEditor({
                 </div>
             </div>
 
-            <p className="mt-4 text-xs text-slate-500">JPEG, PNG or WEBP. Maximum file size: 3 MB</p>
+            <p className="mt-4 text-xs text-slate-500">
+                JPEG, PNG or WEBP. Maximum file size: 3 MB. The selected avatar is uploaded when you save changes.
+            </p>
             {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
         </div>
     );

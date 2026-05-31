@@ -3,7 +3,7 @@ import { getApiError } from "../../utils/getApiError";
 import FormField from "./../common/FormField";
 import Button from "../common/Button";
 
-export default function ProfileForm({ user, onSave }) {
+export default function ProfileForm({ user, onSave, hasPendingAvatar = false }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +27,11 @@ export default function ProfileForm({ user, onSave }) {
         username: form.username.trim(),
         description: form.description.trim() || null,
       });
-      setMessage("Profile updated successfully");
+      setMessage(
+        hasPendingAvatar
+          ? "Profile and avatar updated successfully"
+          : "Profile updated successfully",
+      );
     } catch (requestError) {
       setError(getApiError(requestError, "Unable to update profile"));
     } finally {

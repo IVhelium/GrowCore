@@ -1,3 +1,4 @@
+from datetime import datetime
 import enum
 import uuid
 from sqlalchemy import ForeignKey, String
@@ -19,13 +20,22 @@ class SellerRequestModel(Base):
     country: Mapped[str]
     
     message: Mapped[str]
-    status: Mapped[SellerRequestStatus] = mapped_column(default=SellerRequestStatus.pending)
+    status: Mapped[SellerRequestStatus] = mapped_column(default=SellerRequestStatus.pending, index=True)
+    rejection_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    
+    reviewed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     
     created_at: Mapped[createdAt]
     
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    reviewer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
     user: Mapped["UserModel"] = relationship(
         back_populates="seller_request",
-        uselist=False
+        uselist=False,
+        foreign_keys=[user_id],
+    )
+    
+    reviewed_by: Mapped["UserModel | None"] = relationship(
+        foreign_keys=[reviewer_id]
     )

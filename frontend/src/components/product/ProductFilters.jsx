@@ -11,15 +11,16 @@ export default function ProductFilters({ onChange }) {
     return (
       <form
         onSubmit={handleSubmit}
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:slef-start"
+        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:self-start"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-950">Filters</h2>
           <button type="reset" className="text-sm font-semibold text-[#4F8A5B]">
             Reset
           </button>
+        </div>
 
-          <div className="grid gap-6">
+        <div className="grid gap-6">
             <div>
               <h3 className="mb-3 text-sm font-bold text-slate-950">
                 Category
@@ -47,7 +48,7 @@ export default function ProductFilters({ onChange }) {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   name="minPrice"
-                  placeholder="Form"
+                  placeholder="From"
                   className="rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
                 />
                 <input
@@ -81,7 +82,6 @@ export default function ProductFilters({ onChange }) {
             <button className="rounded-lg bg-[#4F8A5B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F7148]">
                 Apply filters
             </button>
-          </div>
         </div>
       </form>
     );

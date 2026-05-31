@@ -4,15 +4,25 @@ export default function PaginationBar({
     current = 1,
     total = 0,
     pageSize = 8,
-    onChange
+    onChange,
+    hideWhenSinglePage = true,
 }) {
-    <div className="mt-8 flex justify-center border-t border-slate-200 pt-6">
+    if (hideWhenSinglePage && total <= pageSize) {
+        return null;
+    }
+
+    const paginationProps = onChange
+        ? { current, onChange }
+        : { defaultCurrent: current };
+
+    return (
+      <div className="mt-8 flex justify-center border-t border-slate-200 pt-6">
         <Pagination
-            current={current}
             total={total}
             pageSize={pageSize}
             showSizeChanger={false}
-            onChange={onChange}
+            {...paginationProps}
         />
-    </div>
+      </div>
+    );
 }

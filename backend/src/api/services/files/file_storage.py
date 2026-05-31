@@ -4,7 +4,7 @@ from pathlib import Path, PurePosixPath
 import aiofiles
 from fastapi import HTTPException, UploadFile, status
 
-from src.api.services.file_validator import FileValidator
+from src.api.services.files.file_validator import FileValidator
 from src.core.config import settings
 from src.core.upload_policies import UploadPolicy
 
@@ -59,7 +59,7 @@ class FileStorageService:
                 policy=policy
             )
             
-            filename = f"{uuid.uuid4.hex}{validated_upload.extension}"
+            filename = f"{uuid.uuid4().hex}{validated_upload.extension}"
             
             storage_key = (
                 PurePosixPath(validated_directory_key) / filename
@@ -115,14 +115,14 @@ class FileStorageService:
                 
             raise 
             
-        except Exception:
+        except Exception as exc:
             if filesystem_path is not None:
                 filesystem_path.unlink(missing_ok=True)
                 
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Error occurred while saving the file",
-            ) from exec
+            ) from exc
             
         finally:
             await file.close()

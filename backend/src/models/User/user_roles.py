@@ -1,11 +1,15 @@
 import uuid
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.custom_types import intPk
 from src.core.database import Base
 
 class UserRoleModel(Base):
     __tablename__ = "user_roles"
+    
+    __table_args__ = (
+        UniqueConstraint("user_id", "role_id", name="uq_user_role"),
+    )
     
     id: Mapped[intPk]
     

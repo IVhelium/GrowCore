@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import Sidebar from "../components/layout/Sidebar";
 import { randomArray } from "../utils/randomArray";
+import { usePagination } from "../hooks/usePagination";
 import Container from "../components/common/Container";
 import Hero from "../components/home/Hero";
 import SectionTitle from "../components/common/SectionTitle";
@@ -8,13 +9,22 @@ import ProductGrid from "../components/product/ProductGrid";
 import PaginationBar from "../components/common/PaginationBar";
 import Benefits from "../components/home/Benefits";
 
+const HOME_PAGE_SIZE = 10;
 
 export default function HomePage({
   products = [],
   onAddToCart,
-  onToggleFavorite
+  onToggleFavorite,
+  favoriteProductIds = [],
 }) {
   const randomProducts = useMemo(() => randomArray(products), [products]);
+  const {
+    currentPage,
+    pageItems,
+    pageSize,
+    total,
+    changePage,
+  } = usePagination(randomProducts, HOME_PAGE_SIZE);
 
   return (
     <main>
@@ -24,16 +34,20 @@ export default function HomePage({
         <div className="min-w-0 space-y-10">
           <Hero />
           <section id="products">
-            <SectionTitle
-              pretitle="Products"
-              title="Product for your system"
-            />
+            <SectionTitle pretitle="Products" title="Product for your system" />
             <ProductGrid
-              products={randomProducts}
+              products={pageItems}
               onAddToCart={onAddToCart}
               onToggleFavorite={onToggleFavorite}
+              favoriteProductIds={favoriteProductIds}
             />
-            <PaginationBar current={1} total={48} pageSize={8} />
+            <PaginationBar
+              current={currentPage}
+              total={total}
+              pageSize={pageSize}
+              onChange={changePage}
+              hideWhenSinglePage={false}
+            />
           </section>
 
           <section>

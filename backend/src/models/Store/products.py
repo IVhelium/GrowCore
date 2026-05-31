@@ -1,7 +1,9 @@
+from datetime import datetime
 import uuid
 from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.core.constants import ProductModerationStatus
 from src.core.custom_types import intPk, createdAt
 from src.core.database import Base
 
@@ -20,14 +22,20 @@ class ProductModel(Base):
     
     created_at: Mapped[createdAt]
     
+    moderation_status: Mapped[ProductModerationStatus] = mapped_column(default=ProductModerationStatus.draft, index=True)
+    rejection_reason: Mapped[str | None] = mapped_column(String(400), nullable=True)
+    moderated_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    
     image_storage_prefix: Mapped[str | None] = mapped_column(String(300), unique=True, nullable=True)
     
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
+    moderator_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     
     # Relationships
     images: Mapped[list["ProductImageModel"]] = relationship(
-        back_populates="product"
+        back_populates="product",
+        cascade="all, delete-orphan"
     )
     
     store: Mapped["StoreModel"] = relationship(
@@ -48,6 +56,10 @@ class ProductModel(Base):
     
     order_items: Mapped[list["OrderItemModel"]] = relationship(
         back_populates="product"
+    )
+    
+    moderator: Mapped["UserModel | None"] = relationship(
+        foreign_keys=[moderator_id]
     )
     
     

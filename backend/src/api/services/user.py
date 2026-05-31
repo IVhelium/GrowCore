@@ -4,8 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from src.api.services.avatar import AvatarService
-from src.core.constants import AVATAR_URL_PREFIX, PUBLIC_ID_RE
+from src.utils.storage_paths import avatar_directory_key
+from src.api.services.files.file_storage import FileStorageService
+from src.core.upload_policies import AVATAR_POLICY
+from src.core.constants import PUBLIC_ID_RE
 from src.models import UserModel, UserRoleModel
 from src.schemas import UpdateUserDTO
 
@@ -14,10 +16,10 @@ class UserService:
     def __init__(
         self,
         db: AsyncSession,
-        avatar_service: AvatarService
+        file_storage_service: FileStorageService
     ):
         self.db = db
-        self.avatar_service = avatar_service
+        self.file_storage_service = file_storage_service
         
     
     @staticmethod
@@ -102,13 +104,21 @@ class UserService:
         
         username = data.get("username")                 # Retrieves the username from the schema
         
-        if username is not None:   
+        if username is not None:
+            normalized_username = username.strip()
+            
+            if not normalized_username:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    detail="Username cannot be empty"
+                )  
+               
             # If the username has been changed, check the database for existing entries
-            if username != current_user.username:
+            if normalized_username != current_user.username:
                 query = (
                     select(UserModel)
                     .where(
-                        UserModel.username == username,
+                        UserModel.username == normalized_username,
                         UserModel.id != current_user.id
                     )
                 )
@@ -122,7 +132,7 @@ class UserService:
                         detail="Username already exists"
                     )
                     
-            data["username"] = username
+            data["username"] = normalized_username
             
         # Updating the object
         for field, value in data.items():
@@ -154,10 +164,24 @@ class UserService:
         
         old_avatar_url = current_user.avatar_url
         
-        new_filename = await self.avatar_service.save_avatar(avatar)
-        new_avatar_url = f"{AVATAR_URL_PREFIX}/{new_filename}"
+        stored_file = await self.file_storage_service.save_file(
+            file=avatar,
+            policy=AVATAR_POLICY,
+            directory_key=avatar_directory_key(current_user)
+        )
         
-        current_user.avatar_url = new_avatar_url
+        if stored_file.public_url is None:
+            self.file_storage_service.delete_by_storage_key(
+                storage_key=stored_file.storage_key,
+                policy=AVATAR_POLICY
+            )
+            
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Avatar public URL is not configured"
+            )
+        
+        current_user.avatar_url = stored_file.public_url
         
         try:
             await self.db.commit()
@@ -165,14 +189,20 @@ class UserService:
         except Exception:
             await self.db.rollback()
             
-            self.avatar_service.delete_avatar(new_avatar_url)
-            
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save avatar"
+            self.file_storage_service.delete_by_storage_key(
+                storage_key=stored_file.storage_key,
+                policy=AVATAR_POLICY
             )
             
-        self.avatar_service.delete_avatar(old_avatar_url)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Avatar was saved, but profile update failed"
+            )
+            
+        self.file_storage_service.delete_by_public_url(
+            public_url=old_avatar_url,
+            policy=AVATAR_POLICY
+        )
         
         return await self.get_user_with_relations(current_user.id)
     
@@ -202,6 +232,9 @@ class UserService:
                 detail="Avatar delete failed"
             )
             
-        self.avatar_service.delete_avatar(old_avatar_url)
+        self.file_storage_service.delete_by_public_url(
+            public_url=old_avatar_url,
+            policy=AVATAR_POLICY
+        )
         
         return await self.get_user_with_relations(current_user.id)

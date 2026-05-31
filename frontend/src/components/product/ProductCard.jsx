@@ -6,7 +6,10 @@ export default function ProductCard({
   product,
   onAddToCart,
   onToggleFavorite,
+  isFavorite = false,
 }) {
+  const favoriteColor = "#4F8A5B";
+
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <div className="relative bg-slate-50 p-5">
@@ -18,15 +21,23 @@ export default function ProductCard({
 
         <button
           type="button"
-          onClick={() => onToggleFavorite?.(product)}
-          aria-label="Add to favorites"
-          className="absolute right-5 top-5 z-10 rounded-lg bg-white p-2 text-slate-400 shadow-sm transition hover:text-[#4F8A5B]"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onToggleFavorite?.(product);
+          }}
+          className="absolute right-5 top-5 z-10 rounded-lg bg-white p-2 shadow-sm transition hover:bg-[#4F8A5B]/10"
+          style={{ color: isFavorite ? favoriteColor : "#94a3b8" }}
         >
-          <Heart size={18} />
+          <Heart
+            size={18}
+            stroke={isFavorite ? favoriteColor : "currentColor"}
+            fill={isFavorite ? favoriteColor : "transparent"}
+          />
         </button>
 
         <Link
-          to={`/products/${product.id}`}
+          to={`/product/${product.id}`}
           className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-white"
         >
           <img
@@ -43,7 +54,7 @@ export default function ProductCard({
           <span className="font-semibold">{product.rating}</span>
         </div>
 
-        <Link to={`/products/${product.id}`}>
+        <Link to={`/product/${product.id}`}>
           <h3 className="text-lg font-semibold text-slate-950 transition hover:text-[#4F8A5B]">
             {product.title}
           </h3>

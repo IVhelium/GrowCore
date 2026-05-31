@@ -28,7 +28,7 @@ export default function SearchBar({
       <button
         type="submit"
         aria-label="Search"
-        className="inline-flex min-h-44px items-center justify-center gap-2 border-l border-slate-200 bg-white px-4 text-sm font-semibold text-slate-500 transition hover:bg-[#4F8A5B] hover:text-white"
+        className="inline-flex min-h-11 items-center justify-center gap-2 border-l border-slate-200 bg-white px-4 text-sm font-semibold text-slate-500 transition hover:bg-[#4F8A5B] hover:text-white"
       >
         <Search size={18} />
         {buttonlabel && <span>{buttonlabel}</span>}

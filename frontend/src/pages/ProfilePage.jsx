@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './../hooks/useAuth';
 import Container from '../components/common/Container';
@@ -10,6 +10,7 @@ import ProfileForm from '../components/user/ProfileForm';
 export default function ProfilePage() {
     const { user, logout, updateProfile, uploadAvatar, deleteAvatar, reloadUser } = useAuth();
     const navigate = useNavigate();
+    const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
 
     useEffect(() => {
         reloadUser();
@@ -18,6 +19,15 @@ export default function ProfilePage() {
     async function handleLogout() {
         await logout();
         navigate("/");
+    }
+
+    async function saveProfileChanges(payload) {
+        await updateProfile(payload);
+
+        if (pendingAvatarFile) {
+            await uploadAvatar(pendingAvatarFile);
+            setPendingAvatarFile(null);
+        }
     }
 
     return (
@@ -33,8 +43,17 @@ export default function ProfilePage() {
                     <UserProfileCard user={user} onLogout={handleLogout}/>
 
                     <div className="grid gap-6">
-                        <AvatarEditor user={user} onUpload={uploadAvatar} onDelete={deleteAvatar}/>
-                        <ProfileForm user={user} onSave={updateProfile}/>
+                        <AvatarEditor
+                            user={user}
+                            selectedFile={pendingAvatarFile}
+                            onSelect={setPendingAvatarFile}
+                            onDelete={deleteAvatar}
+                        />
+                        <ProfileForm
+                            user={user}
+                            onSave={saveProfileChanges}
+                            hasPendingAvatar={Boolean(pendingAvatarFile)}
+                        />
                     </div>
                 </div>
             </Container>

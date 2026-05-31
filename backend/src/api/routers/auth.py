@@ -5,7 +5,10 @@ from src.core.security import auth
 from src.schemas import ReadUserDTO, RegisterDTO, LoginDTO, TokenResponseDTO
 
 
-router = APIRouter(prefix="/auths", tags=["Auths"])
+router = APIRouter(
+    prefix="/auths", 
+    tags=["Auths"]
+)
 
 
 # Register new User
