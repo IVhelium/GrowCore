@@ -21,6 +21,7 @@ from .User.user_roles import ReadUserRoleDTO
 from .User.users import CreateUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
 from .User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
 from .pagination import PaginationDTO
+from .Support.support_tickets import CreateSupportTicketDTO, ReadSupportTicketDTO, UpdateSupportTicketDTO
 
 
 ReadSellerRequestDTO.model_rebuild()
@@ -41,3 +42,4 @@ ReadRoleDTO.model_rebuild()
 ReadUserRoleDTO.model_rebuild()
 ReadUserDTO.model_rebuild()
 ShortUserDTO.model_rebuild()
+ReadSupportTicketDTO.model_rebuild()

@@ -4,8 +4,8 @@ from collections.abc import Callable
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.api.services.products.product_moderation import ProductModerationService
-from src.api.services.products.product_image import ProductImageService
+from src.api.services.products import ProductModerationService, ProductImageService
+from src.api.services.seller_requests import SellerRequestAdminService, SellerRequestService
 from src.core.constants import RoleStatus
 from src.models.User.user_roles import UserRoleModel
 from src.core.database import get_session
@@ -123,7 +123,7 @@ async def get_product_image_service(
 ProductImageServiceDependency = Annotated[ProductImageService, Depends(get_product_image_service)]
 
 # Get Product Moderation Service
-async def get_product_image_service(
+async def get_product_moderation_service(
     db: SessionDependency,
     file_storage_service: FileStorageServiceDependency
 ):
@@ -132,4 +132,17 @@ async def get_product_image_service(
         file_storage_service=file_storage_service
     )
     
-ProductModerationServiceDependency = Annotated[ProductModerationService, Depends(get_product_image_service)]
+ProductModerationServiceDependency = Annotated[ProductModerationService, Depends(get_product_moderation_service)]
+
+
+# Get Seller Request Service
+async def get_seller_request_service(db: SessionDependency) -> SellerRequestService:
+    return SellerRequestService(db=db)
+
+SellerRequestServiceDependency = Annotated[SellerRequestService, Depends(get_seller_request_service)]
+
+# Get Seller Request Moderation Service
+async def get_seller_request_moderation_service(db: SessionDependency) -> SellerRequestAdminService:
+    return SellerRequestAdminService(db=db)
+
+SellerRequestAdminServiceDependency = Annotated[SellerRequestAdminService, Depends(get_seller_request_moderation_service)]

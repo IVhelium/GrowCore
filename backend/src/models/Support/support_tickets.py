@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.constants import TicketStatus
+from src.core.constants import SupportTicketStatus
 from src.core.custom_types import intPk, createdAt, updatedAt
 from src.core.database import Base
 
@@ -23,7 +23,7 @@ class SupportTicketModel(Base):
         nullable=True,
     )
 
-    status: Mapped[TicketStatus] = mapped_column(default=TicketStatus.open, index=True)
+    status: Mapped[SupportTicketStatus] = mapped_column(default=SupportTicketStatus.open, index=True)
 
     created_at: Mapped[createdAt]
     updated_at: Mapped[updatedAt]

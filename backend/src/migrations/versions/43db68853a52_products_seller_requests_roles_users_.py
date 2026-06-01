@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('subject', sa.String(length=150), nullable=False),
     sa.Column('message', sa.String(length=2000), nullable=False),
     sa.Column('response', sa.String(length=2000), nullable=True),
-    sa.Column('status', sa.Enum('open', 'in_progress', 'resolved', 'closed', name='ticketstatus'), nullable=False),
+    sa.Column('status', sa.Enum('open', 'in_progress', 'resolved', 'closed', name='SupportTicketStatus'), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('resolved_at', sa.DateTime(), nullable=True),

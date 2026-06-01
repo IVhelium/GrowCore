@@ -41,8 +41,8 @@ class ProductModerationStatus(enum.Enum):
     rejected = "rejected"
     
     
-# Ticket Status
-class TicketStatus(enum.Enum):
+# Support Request Status
+class SupportTicketStatus(enum.Enum):
     open = "open"
     in_progress = "in_progress"
     resolved = "resolved"
