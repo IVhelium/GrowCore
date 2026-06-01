@@ -15,6 +15,8 @@ from src.api.services.auth import AuthService
 from src.api.services.user import UserService
 from src.api.services.products.product import ProductService
 from src.api.services.files.file_storage import FileStorageService
+from src.api.services.store import StoreService
+from src.api.services.support_ticket import SupportTicketService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -146,3 +148,17 @@ async def get_seller_request_moderation_service(db: SessionDependency) -> Seller
     return SellerRequestAdminService(db=db)
 
 SellerRequestAdminServiceDependency = Annotated[SellerRequestAdminService, Depends(get_seller_request_moderation_service)]
+
+
+# Get Store Service
+async def get_store_service(db: SessionDependency) -> StoreService:
+    return StoreService(db=db)
+
+StoreServiceDependency = Annotated[StoreService, Depends(get_store_service)]
+
+
+# Get Support Ticket Service
+async def get_support_ticket_service(db: SessionDependency) -> SupportTicketService:
+    return SupportTicketService(db=db)
+
+SupportTicketServiceDependency = Annotated[SupportTicketService, Depends(get_support_ticket_service)]
