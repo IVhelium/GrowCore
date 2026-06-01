@@ -14,7 +14,7 @@ class CreateStoreDTO(BaseModel):
 
 # Store Update Schema
 class UpdateStoreDTO(BaseModel):
-    name: str | None = Field(max_length=100)
+    name: str | None = Field(min_length=3, max_length=100)
     description: str | None = Field(max_length=300)
     
     model_config = ConfigDict(extra="forbid")
@@ -32,7 +32,7 @@ class ShortStoreDTO(BaseModel):
 class ReadStoreDTO(CreateStoreDTO):
     id: UUID
     name: str
-    description: str | None
+    description: str | None = None
     created_at: datetime
     
     user: "ReadUserDTO"

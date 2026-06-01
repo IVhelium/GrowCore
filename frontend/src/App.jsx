@@ -22,6 +22,7 @@ export default function App() {
     products: backendProducts,
     productsError,
   } = useProducts();
+  
   const visibleProducts =
     productsError || backendProducts.length === 0
       ? products

@@ -9,7 +9,7 @@ import ProductGrid from "../components/product/ProductGrid";
 import PaginationBar from "../components/common/PaginationBar";
 import Benefits from "../components/home/Benefits";
 
-const HOME_PAGE_SIZE = 10;
+const HOME_PAGE_SIZE = 12;
 
 export default function HomePage({
   products = [],

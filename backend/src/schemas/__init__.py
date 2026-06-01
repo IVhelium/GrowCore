@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
+from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO, RejectSellerRequestDTO, ResubmitSellerRequestDTO
 from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
 from .Store.carts import ReadCartDTO, CreateCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO
 from .Store.categories import CreateCategoryDTO, ReadCategoryDTO

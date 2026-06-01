@@ -26,12 +26,13 @@ export default function ProductCard({
             event.stopPropagation();
             onToggleFavorite?.(product);
           }}
-          className="absolute right-5 top-5 z-10 rounded-lg bg-white p-2 shadow-sm transition hover:bg-[#4F8A5B]/10"
+          className="group/favorite absolute right-5 top-5 z-10 rounded-lg bg-white p-2 shadow-sm transition"
           style={{ color: isFavorite ? favoriteColor : "#94a3b8" }}
         >
           <Heart
             size={18}
-            stroke={isFavorite ? favoriteColor : "currentColor"}
+            className="transition group-hover/favorite:text-[#4F8A5B] group-hover/favorite:fill-[#4F8A5B]"
+            stroke="currentColor"
             fill={isFavorite ? favoriteColor : "transparent"}
           />
         </button>

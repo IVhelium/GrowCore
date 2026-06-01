@@ -10,7 +10,7 @@ export default function CatalogPage({
   products = [],
   total = 0,
   currentPage = 1,
-  pageSize = 10,
+  pageSize = 12,
   searchValue = "",
   onSearch,
   onFilterChange,
