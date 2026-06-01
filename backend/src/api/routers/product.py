@@ -150,7 +150,7 @@ async def submit_product_for_moderation(
     product_service: ProductServiceDependency,
 ):
     """
-    Отправляет товар продавца на модерацию
+    Submits the seller's product for review
     """
 
     return await product_service.submit_for_moderation(
@@ -170,7 +170,7 @@ async def update_product_availability(
     product_service: ProductServiceDependency,
 ):
     """
-    Включает или выключает опубликованный товар продавца
+    Enables or disables the seller's listed item
     """
 
     return await product_service.update_availability(

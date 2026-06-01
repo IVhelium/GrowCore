@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,6 +16,14 @@ class AuthService:
         db: AsyncSession
     ):
         self.db = db
+
+
+    async def _safe_rollback(self) -> None:
+        try:
+            await self.db.rollback()
+
+        except SQLAlchemyError:
+            pass
        
         
     # Redister new User method  
@@ -30,7 +39,17 @@ class AuthService:
             .where((UserModel.email == schema.email) | (UserModel.username == schema.username))
         )
         
-        exist_result = await self.db.execute(exist_query)
+        try:
+            exist_result = await self.db.execute(exist_query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not check existing user"
+            ) from exc
+
         user_exist = exist_result.scalar_one_or_none()
         
         if user_exist:
@@ -48,8 +67,24 @@ class AuthService:
             .where(RoleModel.role == RoleStatus.user)
         )
         
-        role_result = await self.db.execute(role_query)
+        try:
+            role_result = await self.db.execute(role_query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load user role"
+            ) from exc
+
         user_role = role_result.scalar_one_or_none()
+
+        if not user_role:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Default user role is not configured"
+            )
         
         
         # Create User
@@ -59,18 +94,35 @@ class AuthService:
             password_hash=hash_password(schema.password)
         )
         
-        self.db.add(user)   
-        await self.db.flush()
-        
-        
-        # User Role Relation
-        user_role_relation = UserRoleModel(
-            user_id=user.id,
-            role_id=user_role.id
-        )
-        
-        self.db.add(user_role_relation)
-        await self.db.commit()
+        try:
+            self.db.add(user)
+            await self.db.flush()
+            
+            
+            # User Role Relation
+            user_role_relation = UserRoleModel(
+                user_id=user.id,
+                role_id=user_role.id
+            )
+            
+            self.db.add(user_role_relation)
+            await self.db.commit()
+
+        except IntegrityError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User already exist"
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not register user"
+            ) from exc
         
         return await self.get_user_with_relations(user.id)
     
@@ -87,7 +139,17 @@ class AuthService:
             .where(UserModel.email == schema.email)
         )
         
-        result = await self.db.execute(query)
+        try:
+            result = await self.db.execute(query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not authenticate user"
+            ) from exc
+
         user = result.scalar_one_or_none()
         
         # If the user is not found
@@ -124,6 +186,24 @@ class AuthService:
             .where(UserModel.id == user_id)
         )
         
-        result = await self.db.execute(query)
-        return result.scalar_one()
+        try:
+            result = await self.db.execute(query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load user"
+            ) from exc
+
+        user = result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+
+        return user
     

@@ -1,7 +1,6 @@
-import re
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from src.utils.storage_paths import avatar_directory_key
@@ -20,7 +19,15 @@ class UserService:
     ):
         self.db = db
         self.file_storage_service = file_storage_service
-        
+
+
+    async def _safe_rollback(self) -> None:
+        try:
+            await self.db.rollback()
+
+        except SQLAlchemyError:
+            pass
+
     
     @staticmethod
     def normalize_public_id(public_id: str) -> str:  # Normalizing public data to the correct type
@@ -53,7 +60,17 @@ class UserService:
             .where(UserModel.id == user_id)
         )
         
-        result = await self.db.execute(query)
+        try:
+            result = await self.db.execute(query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load user"
+            ) from exc
+
         user = result.scalar_one_or_none()
         
         if not user:
@@ -78,7 +95,17 @@ class UserService:
             .where(UserModel.public_id == normalize_public_id)
         )
         
-        result = await self.db.execute(query)
+        try:
+            result = await self.db.execute(query)
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load user"
+            ) from exc
+
         user = result.scalar_one_or_none()
         
         if not user:
@@ -123,7 +150,17 @@ class UserService:
                     )
                 )
                 
-                result = await self.db.execute(query)
+                try:
+                    result = await self.db.execute(query)
+
+                except SQLAlchemyError as exc:
+                    await self._safe_rollback()
+
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Could not check username"
+                    ) from exc
+
                 user_exists = result.scalar_one_or_none()
                 
                 if user_exists:
@@ -143,13 +180,21 @@ class UserService:
         try:
             await self.db.commit()
 
-        except IntegrityError:
-            await self.db.rollback()
+        except IntegrityError as exc:
+            await self._safe_rollback()
             
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="User update conflict"
-            )
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not update user"
+            ) from exc
             
         return await self.get_user_with_relations(current_user.id)
         
@@ -186,8 +231,8 @@ class UserService:
         try:
             await self.db.commit()
             
-        except Exception:
-            await self.db.rollback()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
             
             self.file_storage_service.delete_by_storage_key(
                 storage_key=stored_file.storage_key,
@@ -197,7 +242,7 @@ class UserService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Avatar was saved, but profile update failed"
-            )
+            ) from exc
             
         self.file_storage_service.delete_by_public_url(
             public_url=old_avatar_url,
@@ -224,13 +269,13 @@ class UserService:
         try:
             await self.db.commit()
             
-        except Exception:
-            await self.db.rollback()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
             
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Avatar delete failed"
-            )
+            ) from exc
             
         self.file_storage_service.delete_by_public_url(
             public_url=old_avatar_url,
