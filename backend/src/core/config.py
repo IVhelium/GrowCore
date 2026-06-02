@@ -25,6 +25,19 @@ class Settings(BaseSettings):
     # Frontend
     FRONTEND_URL: str = "http://localhost:5173"
     
+    # Seed
+    RUN_STAFF_SEED: bool = False
+
+    SEED_ADMIN_USERNAME: str | None = None
+    SEED_ADMIN_EMAIL: str | None = None
+    SEED_ADMIN_PASSWORD: str | None = None
+
+    SEED_SUPPORT_USERNAME: str | None = None
+    SEED_SUPPORT_EMAIL: str | None = None
+    SEED_SUPPORT_PASSWORD: str | None = None
+
+    UPDATE_SEEDED_USERS_PASSWORDS: bool = False
+    
     
     # Db URL
     @property

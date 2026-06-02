@@ -5,27 +5,20 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from authx.exceptions import AuthXException
 import uvicorn
-from contextlib import asynccontextmanager
 from src.api import main_router
 from src.core.config import settings
 from src.core.constants import ORIGINS
-from src.core.database import new_session
-from src.utils.seed_roles import seed_roles
+from src.core.lifespan import lifespan
 
 
 settings.PUBLIC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 settings.PRIVATE_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ========= Lifespan =========
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with new_session() as db:
-        await seed_roles(db)
-    yield
-
-
-app = FastAPI(lifespan=lifespan)  # Create a FastAPI application instance
+app = FastAPI(
+    title="GrowCore API",
+    lifespan=lifespan
+)  # Create a FastAPI application instance
 
 
 @app.exception_handler(AuthXException)
