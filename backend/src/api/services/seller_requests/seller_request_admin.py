@@ -36,7 +36,7 @@ class SellerRequestAdminService(SellerRequestBaseService):
         self,
         request_status: SellerRequestStatus | None,
         pagination: PaginationParams,
-    ) -> PaginationDTO[SellerRequestModel]:
+    ) -> PaginationDTO:
         """
         Returns a list of seller requests for the administrator
         You can filter by status: pending, approved, rejected

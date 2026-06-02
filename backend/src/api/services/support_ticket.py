@@ -173,7 +173,7 @@ class SupportTicketService:
         self,
         current_user: UserModel,
         pagination: PaginationParams,
-    ) -> PaginationDTO[SupportTicketModel]:
+    ) -> PaginationDTO:
         """
         Returns the current user's requests with pagination
         """
@@ -196,7 +196,7 @@ class SupportTicketService:
         self,
         ticket_status: SupportTicketStatus | None,
         pagination: PaginationParams,
-    ) -> PaginationDTO[SupportTicketModel]:
+    ) -> PaginationDTO:
         """
         Returns the queue of requests for support/admin
         You can filter by status: open, in_progress, resolved, closed

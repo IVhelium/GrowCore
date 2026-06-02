@@ -6,26 +6,14 @@ from src.core.constants import RoleStatus
 
 
 async def seed_roles(db: AsyncSession):
-    roles = [
-        RoleStatus.user,
-        RoleStatus.seller,
-        RoleStatus.admin
-    ]
-    
-    for role in roles:
-        query = (
-            select(RoleModel)
-            .where(RoleModel.role == role.value)
+    for role in RoleStatus:
+        result = await db.execute(
+            select(RoleModel).where(RoleModel.role == role)
         )
-        
-        result = await db.execute(query)
-        
-        role_exist = result.scalar_one_or_none()
-        
-        # Create role if not exists
-        if not role_exist:
-            new_role = RoleModel(role = role.value)
-            
-            db.add(new_role)
-        
+
+        existing_role = result.scalar_one_or_none()
+
+        if existing_role is None:
+            db.add(RoleModel(role=role))
+
     await db.commit()
