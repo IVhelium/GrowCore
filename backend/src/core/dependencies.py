@@ -17,6 +17,8 @@ from src.api.services.products.product import ProductService
 from src.api.services.files.file_storage import FileStorageService
 from src.api.services.store import StoreService
 from src.api.services.support_ticket import SupportTicketService
+from src.api.services.cart import CartService
+from src.api.services.favorite import FavoriteService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -160,3 +162,26 @@ async def get_support_ticket_service(db: SessionDependency) -> SupportTicketServ
     return SupportTicketService(db=db)
 
 SupportTicketServiceDependency = Annotated[SupportTicketService, Depends(get_support_ticket_service)]
+
+
+# Get Cart Service
+async def get_cart_service(
+    db: SessionDependency,
+) -> CartService:
+    return CartService(db=db)
+
+CartServiceDependency = Annotated[CartService, Depends(get_cart_service)]
+
+
+# Get Favorite Service
+async def get_favorite_service(
+    db: SessionDependency,
+) -> FavoriteService:
+    cart_service = CartService(db=db)
+
+    return FavoriteService(
+        db=db,
+        cart_service=cart_service,
+    )
+
+FavoriteServiceDependency = Annotated[FavoriteService, Depends(get_favorite_service)]
