@@ -54,6 +54,11 @@ class ProductModel(Base):
         back_populates="product"
     )
     
+    favorite_items: Mapped[list["FavoriteItemModel"]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan"
+    )
+    
     order_items: Mapped[list["OrderItemModel"]] = relationship(
         back_populates="product"
     )

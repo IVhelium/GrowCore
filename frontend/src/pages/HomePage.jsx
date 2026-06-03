@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Sidebar from "../components/layout/Sidebar";
 import { randomArray } from "../utils/randomArray";
 import { usePagination } from "../hooks/usePagination";
@@ -17,6 +17,7 @@ export default function HomePage({
   onToggleFavorite,
   favoriteProductIds = [],
 }) {
+  const productsSectionRef = useRef(null);
   const randomProducts = useMemo(() => randomArray(products), [products]);
   const {
     currentPage,
@@ -26,6 +27,14 @@ export default function HomePage({
     changePage,
   } = usePagination(randomProducts, HOME_PAGE_SIZE);
 
+  function handlePageChange(page) {
+    changePage(page);
+    productsSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   return (
     <main>
       <Container className="grid gap-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
@@ -33,7 +42,7 @@ export default function HomePage({
 
         <div className="min-w-0 space-y-10">
           <Hero />
-          <section id="products">
+          <section id="products" ref={productsSectionRef} className="scroll-mt-24">
             <SectionTitle pretitle="Products" title="Product for your system" />
             <ProductGrid
               products={pageItems}
@@ -45,7 +54,7 @@ export default function HomePage({
               current={currentPage}
               total={total}
               pageSize={pageSize}
-              onChange={changePage}
+              onChange={handlePageChange}
               hideWhenSinglePage={false}
             />
           </section>

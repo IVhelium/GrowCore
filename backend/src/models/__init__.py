@@ -6,6 +6,7 @@ from src.models.Store.orders import OrderModel, OrderItemModel
 from src.models.Store.products import ProductModel, ProductImageModel
 from src.models.Store.categories import CategoryModel
 from src.models.Store.reviews import ReviewModel
+from src.models.Store.favorites import FavoriteItemModel
 from src.models.Support.support_tickets import SupportTicketModel
 from src.models.User.roles import RoleModel
 from src.models.User.user_roles import UserRoleModel

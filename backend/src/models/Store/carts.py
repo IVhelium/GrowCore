@@ -1,7 +1,7 @@
 import uuid
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.core.custom_types import uuidPk, intPk
+from src.core.custom_types import intPk, uuidPk
 from src.core.database import Base
 
 class CartModel(Base):
@@ -9,7 +9,7 @@ class CartModel(Base):
     
     id: Mapped[uuidPk]
     
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
     
     # Relationships
     user: Mapped["UserModel"] = relationship(
@@ -18,18 +18,27 @@ class CartModel(Base):
     )
     
     items: Mapped[list["CartItemModel"]] = relationship(
-        back_populates="cart"
+        back_populates="cart",
+        cascade="all, delete-orphan"
     )
     
     
 class CartItemModel(Base):
     __tablename__ = "cart_items"
     
-    id: Mapped[intPk]
-    quantity: Mapped[int]
+    __table_args__ = (
+        UniqueConstraint(
+            "cart_id",
+            "product_id",
+            name="uq_cart_item_cart_product"
+        ),
+    )
     
-    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
-    cart_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("carts.id", ondelete="CASCADE"))
+    id: Mapped[intPk]
+    quantity: Mapped[int] = mapped_column(default=1)
+    
+    product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    cart_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("carts.id", ondelete="CASCADE"), index=True)
     
     # Relationships
     product: Mapped["ProductModel"] = relationship(

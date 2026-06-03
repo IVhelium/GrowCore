@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO, RejectSellerRequestDTO, ResubmitSellerRequestDTO
 from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
-from .Store.carts import ReadCartDTO, CreateCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO
+from .Store.carts import ReadCartDTO, AddCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO, ReadCartProductDTO, ReadCartProductImageDTO
 from .Store.categories import CreateCategoryDTO, ReadCategoryDTO
 from .Store.orders import ReadOrderDTO, ReadOrderItemDTO
 from .Store.products import (
@@ -14,6 +14,13 @@ from .Store.products import (
     ReadProductCategoryDTO,
     ReadProductStoreDTO,
     RejectProductDTO,
+)
+from .Store.favorites import (
+    AddFavoriteDTO,
+    MoveFavoriteToCartDTO,
+    ReadFavoriteItemDTO,
+    ReadFavoriteProductDTO,
+    ReadFavoriteProductImageDTO,
 )
 from .Store.reviews import CreateReviewDTO, ReadReviewDTO
 from .User.roles import ReadRoleDTO
@@ -29,6 +36,8 @@ ShortStoreDTO.model_rebuild()
 ReadStoreDTO.model_rebuild()
 ReadCartDTO.model_rebuild()
 ReadCartItemDTO.model_rebuild()
+ReadCartProductDTO.model_rebuild()
+ReadCartProductImageDTO.model_rebuild()
 ReadCategoryDTO.model_rebuild()
 ReadOrderDTO.model_rebuild()
 ReadOrderItemDTO.model_rebuild()
@@ -43,3 +52,6 @@ ReadUserRoleDTO.model_rebuild()
 ReadUserDTO.model_rebuild()
 ShortUserDTO.model_rebuild()
 ReadSupportTicketDTO.model_rebuild()
+ReadFavoriteItemDTO.model_rebuild()
+ReadFavoriteProductDTO.model_rebuild()
+ReadFavoriteProductImageDTO.model_rebuild()

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -5,8 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
  
     
 # Cart Item Create Schema
-class CreateCartItemDTO(BaseModel):
-    quantity: int = Field(ge=0)
+class AddCartItemDTO(BaseModel):
+    quantity: int = Field(default=1, ge=0)
     product_id: int
     
     model_config = ConfigDict(extra="forbid")
@@ -14,19 +15,39 @@ class CreateCartItemDTO(BaseModel):
 
 # Cart Item Update Schema
 class UpdateCartItemDTO(BaseModel):
-    quantity: int
+    quantity: int = Field(ge=0)
     
     model_config = ConfigDict(extra="forbid")
     
 
+class ReadCartProductImageDTO(BaseModel):
+    id: int
+    image: str
+
+    model_config = ConfigDict(from_attributes=True)
+    
+
+class ReadCartProductDTO(BaseModel):
+    id: int
+    title: str
+    price: Decimal
+    quantity: int
+    enabled: bool
+    
+    images: list[ReadCartProductImageDTO] = {}
+    
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+    
+    
 # Cart Item Read Schema
 class ReadCartItemDTO(BaseModel):
     id: int
     quantity: int
-    product_id: "ReadProductDTO"
+    
+    product: ReadCartProductDTO
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
-    
+
 
 # Cart Read Schemas
 class ReadCartDTO(BaseModel):

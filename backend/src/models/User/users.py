@@ -50,6 +50,13 @@ class UserModel(Base):
     cart: Mapped["CartModel | None"] = relationship(
         back_populates="user",
         uselist=False,
+        cascade="all, delete-orphan"
+    )
+    
+    favorite_items: Mapped[list["FavoriteItemModel"]] = relationship(
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
     )
 
     orders: Mapped[list["OrderModel"]] = relationship(

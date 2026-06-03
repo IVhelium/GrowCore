@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import PaginationBar from "../components/common/PaginationBar";
@@ -20,6 +21,16 @@ export default function CatalogPage({
   onToggleFavorite,
   favoriteProductIds = [],
 }) {
+  const productsContainerRef = useRef(null);
+
+  function handlePageChange(page) {
+    onPageChange?.(page);
+    productsContainerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
   return (
     <main>
       <Container className="py-8">
@@ -40,7 +51,7 @@ export default function CatalogPage({
 
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <ProductFilters onChange={onFilterChange} />
-          <div>
+          <div ref={productsContainerRef} className="scroll-mt-24">
             <ProductGrid
               products={products}
               onAddToCart={onAddToCart}
@@ -51,7 +62,7 @@ export default function CatalogPage({
               current={currentPage}
               total={total}
               pageSize={pageSize}
-              onChange={onPageChange}
+              onChange={handlePageChange}
             />
           </div>
         </div>
