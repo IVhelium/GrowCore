@@ -1,4 +1,4 @@
-import { CalendarDays, Hash, LogOut } from "lucide-react";
+import { CalendarDays, Hash, LogOut, Contact } from "lucide-react";
 import Button from "../common/Button";
 import UserAvatar from "./UserAvatar";
 
@@ -27,7 +27,7 @@ export default function UserProfileCard({
         }) : "-";
 
     return (
-      <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
         <UserAvatar user={user} size="lg" />
 
         <h2 className="mt-5 text-2xl font-bold text-slate-950">
@@ -42,7 +42,9 @@ export default function UserProfileCard({
             <div className="mt-1 font-semibold">{user?.public_id}</div>
           </div>
           <div className="rounded-lg bg-slate-50 p-4">
-            <div className="flex items-center gap-2 text-slate-500">Role</div>
+            <div className="flex items-center gap-2 text-slate-500">
+              <Contact size={15}/> Role
+            </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {roles?.length ? (
                 roles.map((role, index) => (
