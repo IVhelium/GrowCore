@@ -52,6 +52,7 @@ def build_staff_seed_users() -> list[StaffUserSeed]:
         ),
         roles=(
             RoleStatus.user,
+            RoleStatus.support,
             RoleStatus.admin,
         ),
     )
