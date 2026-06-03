@@ -4,8 +4,10 @@ from collections.abc import Callable
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.api.services.products import ProductModerationService, ProductImageService
-from src.api.services.seller_requests import SellerRequestAdminService, SellerRequestService
+from src.api.services.products.product_image import ProductImageService
+from src.api.services.products.product_moderation import ProductModerationService
+from src.api.services.seller_requests.seller_request import SellerRequestService
+from src.api.services.seller_requests.seller_request_admin import SellerRequestAdminService
 from src.core.constants import RoleStatus
 from src.models.User.user_roles import UserRoleModel
 from src.core.database import get_session

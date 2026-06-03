@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
     
 # Cart Item Create Schema
 class AddCartItemDTO(BaseModel):
-    quantity: int = Field(default=1, ge=0)
+    quantity: int = Field(default=1, ge=1)
     product_id: int
     
     model_config = ConfigDict(extra="forbid")
@@ -15,7 +15,7 @@ class AddCartItemDTO(BaseModel):
 
 # Cart Item Update Schema
 class UpdateCartItemDTO(BaseModel):
-    quantity: int = Field(ge=0)
+    quantity: int = Field(ge=1)
     
     model_config = ConfigDict(extra="forbid")
     
@@ -34,7 +34,7 @@ class ReadCartProductDTO(BaseModel):
     quantity: int
     enabled: bool
     
-    images: list[ReadCartProductImageDTO] = {}
+    images: list[ReadCartProductImageDTO] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
@@ -51,7 +51,7 @@ class ReadCartItemDTO(BaseModel):
 
 # Cart Read Schemas
 class ReadCartDTO(BaseModel):
-    id: int
+    id: UUID
     items: list["ReadCartItemDTO"] = []
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)

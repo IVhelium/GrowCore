@@ -50,6 +50,7 @@ class CartService:
             select(CartModel)
             .options(*self._cart_options())
             .where(CartModel.user_id == current_user.id)
+            .execution_options(populate_existing=True)
         )
 
         result = await self.db.execute(query)
@@ -72,6 +73,7 @@ class CartService:
 
         cart = CartModel(
             user_id=current_user.id,
+            items=[],
         )
 
         self.db.add(cart)

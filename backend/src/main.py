@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from authx.exceptions import AuthXException
 import uvicorn
-from src.api import main_router
+from src.api.router import main_router
 from src.core.config import settings
 from src.core.constants import ORIGINS
 from src.core.lifespan import lifespan

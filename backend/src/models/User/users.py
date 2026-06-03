@@ -55,7 +55,6 @@ class UserModel(Base):
     
     favorite_items: Mapped[list["FavoriteItemModel"]] = relationship(
         back_populates="user",
-        uselist=False,
         cascade="all, delete-orphan"
     )
 

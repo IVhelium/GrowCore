@@ -8,7 +8,12 @@ from src.api.services.cart import CartService
 from src.core.constants import ProductModerationStatus
 from src.core.pagination import PaginationParams, PaginationService
 from src.models import FavoriteItemModel, ProductModel, UserModel
-from src.schemas import AddFavoriteDTO, MoveFavoriteToCartDTO, PaginationDTO
+from src.schemas import (
+    AddFavoriteDTO,
+    MoveFavoriteToCartDTO,
+    PaginationDTO,
+    ReadFavoriteItemDTO,
+)
 
 
 class FavoriteService:
@@ -119,7 +124,7 @@ class FavoriteService:
         self,
         current_user: UserModel,
         pagination: PaginationParams,
-    ) -> PaginationDTO[FavoriteItemModel]:
+    ) -> PaginationDTO[ReadFavoriteItemDTO]:
         """
         Returns the current user's selected items with pagination
         """
