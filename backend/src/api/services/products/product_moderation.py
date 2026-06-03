@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -76,7 +76,7 @@ class ProductModerationService(ProductBaseService):
         product.moderation_status = ProductModerationStatus.approved
         product.enabled = True
         product.rejection_reason = None
-        product.moderated_at = datetime.now(timezone.utc)
+        product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id
 
         try:
@@ -124,7 +124,7 @@ class ProductModerationService(ProductBaseService):
         product.moderation_status = ProductModerationStatus.rejected
         product.enabled = False
         product.rejection_reason = reason
-        product.moderated_at = datetime.now(timezone.utc)
+        product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id
 
         try:

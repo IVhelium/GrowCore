@@ -11,4 +11,4 @@ uuidPk = Annotated[UUID, mapped_column(primary_key=True, default=uuid4)]       #
 
 # Datetime
 createdAt = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]                                                 # Created at datetime type
-updatedAt = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"), onupdate=lambda: datetime.now(timezone.utc))]    # Updated at datetime type
+updatedAt = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"), onupdate=datetime.now(timezone.utc))]    # Updated at datetime type

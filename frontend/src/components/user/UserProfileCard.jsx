@@ -15,6 +15,7 @@ export default function UserProfileCard({
     const roleStyles = {
       user: "border-emerald-200 bg-emerald-50 text-emerald-700",
       seller: "border-amber-200 bg-amber-50 text-amber-700",
+      support: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
       admin: "border-rose-200 bg-rose-50 text-rose-700",
     };
 

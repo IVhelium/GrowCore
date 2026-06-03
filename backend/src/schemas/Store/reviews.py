@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
+from src.schemas.User.users import ShortUserDTO
 
 
 # Review Create Schema
@@ -18,6 +19,6 @@ class ReadReviewDTO(BaseModel):
     rating: Decimal = Field(ge=1, le=5)
     comment: str | None
     created_at: datetime
-    user_id: "ReadUserDTO"
-    
+    user: ShortUserDTO | None
+
     model_config = ConfigDict(extra="forbid", from_attributes=True)

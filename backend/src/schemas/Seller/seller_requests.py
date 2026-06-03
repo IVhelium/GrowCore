@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from src.core.constants import SellerRequestStatus
+from src.schemas.User.users import ShortUserDTO
 
 
 # Seller Request Create Schema
@@ -25,22 +26,22 @@ class ReadSellerRequestDTO(BaseModel):
     
     status: SellerRequestStatus
     rejection_reason: str | None = None
-    
+
     created_at: datetime
-    reviewed_reason: datetime | None = None
-    
-    user_id: "ShortUserDTO"
-    
+    reviewed_at: datetime | None = None
+
+    user: ShortUserDTO
+
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
     
 # Resubmit Seller Request Schema
 class ResubmitSellerRequestDTO(BaseModel):
-    passport_id: str | None = Field(min_length=8, max_length=10)
-    full_name: str | None
-    phone_number: str | None
-    country: str | None
-    message: str | None
+    passport_id: str | None = Field(default=None, min_length=8, max_length=10)
+    full_name: str | None = None
+    phone_number: str | None = None
+    country: str | None = None
+    message: str | None = None
     
     model_config = ConfigDict(extra="forbid")
     

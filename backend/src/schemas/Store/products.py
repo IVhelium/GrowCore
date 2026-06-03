@@ -25,7 +25,7 @@ class ReadProductCategoryDTO(BaseModel):
 class ReadProductStoreDTO(BaseModel):
     id: UUID
     name: str
-    desription: str | None = None
+    description: str | None = None
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
   
@@ -43,12 +43,12 @@ class CreateProductDTO(BaseModel):
 
 # Product Update Schema
 class UpdateProductDTO(BaseModel):
-    title: str | None
-    description: str | None
-    price: Decimal | None
-    quantity: int | None
-    enabled: bool | None
-    category_id: int | None
+    title: str | None = None
+    description: str | None = None
+    price: Decimal | None = None
+    quantity: int | None = None
+    enabled: bool | None = None
+    category_id: int | None = None
     
     model_config = ConfigDict(extra="forbid")
     

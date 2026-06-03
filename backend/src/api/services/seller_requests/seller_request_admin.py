@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -132,7 +132,7 @@ class SellerRequestAdminService(SellerRequestBaseService):
 
             seller_request.status = SellerRequestStatus.approved
             seller_request.rejection_reason = None
-            seller_request.reviewed_at = datetime.now(timezone.utc)
+            seller_request.reviewed_at = datetime.utcnow()
             seller_request.reviewer_id = admin.id
 
             await self.db.commit()
@@ -188,7 +188,7 @@ class SellerRequestAdminService(SellerRequestBaseService):
 
         seller_request.status = SellerRequestStatus.rejected
         seller_request.rejection_reason = reason
-        seller_request.reviewed_at = datetime.now(timezone.utc)
+        seller_request.reviewed_at = datetime.utcnow()
         seller_request.reviewer_id = admin.id
 
         try:

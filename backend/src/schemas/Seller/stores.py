@@ -7,15 +7,15 @@ from pydantic import BaseModel, ConfigDict, Field
 # Store Create Schema
 class CreateStoreDTO(BaseModel):
     name: str = Field(max_length=100)
-    description: str | None = Field(max_length=300)
+    description: str | None = Field(default=None, max_length=300)
     
     model_config = ConfigDict(extra="forbid")
     
 
 # Store Update Schema
 class UpdateStoreDTO(BaseModel):
-    name: str | None = Field(min_length=3, max_length=100)
-    description: str | None = Field(max_length=300)
+    name: str | None = Field(default=None, min_length=3, max_length=100)
+    description: str | None = Field(default=None, max_length=300)
     
     model_config = ConfigDict(extra="forbid")
     

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Enum as SQLAlchemyEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.constants import SupportTicketStatus
@@ -23,7 +23,11 @@ class SupportTicketModel(Base):
         nullable=True,
     )
 
-    status: Mapped[SupportTicketStatus] = mapped_column(default=SupportTicketStatus.open, index=True)
+    status: Mapped[SupportTicketStatus] = mapped_column(
+        SQLAlchemyEnum(SupportTicketStatus, name="SupportTicketStatus"),
+        default=SupportTicketStatus.open,
+        index=True,
+    )
 
     created_at: Mapped[createdAt]
     updated_at: Mapped[updatedAt]

@@ -2,8 +2,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.models import StoreModel, UserModel
+from src.models import StoreModel, UserModel, UserRoleModel
 from src.schemas import UpdateStoreDTO
 
 
@@ -41,6 +42,11 @@ class StoreService:
 
         query = (
             select(StoreModel)
+            .options(
+                selectinload(StoreModel.user)
+                .selectinload(UserModel.roles)
+                .selectinload(UserRoleModel.role)
+            )
             .where(StoreModel.user_id == seller.id)
         )
 

@@ -117,7 +117,7 @@ async def get_product_image_service(
     db: SessionDependency,
     file_storage_service: FileStorageServiceDependency
 ):
-    return ProductService(
+    return ProductImageService(
         db=db,
         file_storage_service=file_storage_service
     )
@@ -127,11 +127,9 @@ ProductImageServiceDependency = Annotated[ProductImageService, Depends(get_produ
 # Get Product Moderation Service
 async def get_product_moderation_service(
     db: SessionDependency,
-    file_storage_service: FileStorageServiceDependency
 ):
-    return ProductService(
+    return ProductModerationService(
         db=db,
-        file_storage_service=file_storage_service
     )
     
 ProductModerationServiceDependency = Annotated[ProductModerationService, Depends(get_product_moderation_service)]

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.constants import ProductModerationStatus
-from src.models import CategoryModel, ProductModel, StoreModel, UserModel
+from src.models import CategoryModel, ProductModel, ReviewModel, StoreModel, UserModel
 
 
 class ProductBaseService:
@@ -41,6 +41,8 @@ class ProductBaseService:
             selectinload(ProductModel.images),
             selectinload(ProductModel.category),
             selectinload(ProductModel.store),
+            selectinload(ProductModel.reviews)
+            .selectinload(ReviewModel.user),
         )
 
 
@@ -129,6 +131,7 @@ class ProductBaseService:
         query = (
             select(ProductModel)
             .options(*self._product_options())
+            .execution_options(populate_existing=True)
             .where(ProductModel.id == product_id)
         )
 
@@ -170,6 +173,7 @@ class ProductBaseService:
         query = (
             select(ProductModel)
             .options(*self._product_options())
+            .execution_options(populate_existing=True)
             .where(
                 ProductModel.id == product_id,
                 ProductModel.store_id == store.id,

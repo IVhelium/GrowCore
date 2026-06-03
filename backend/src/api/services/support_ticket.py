@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.constants import RoleStatus, SupportTicketStatus
 from src.core.pagination import PaginationParams, PaginationService
-from src.models import SupportTicketModel, UserModel
+from src.models import SupportTicketModel, UserModel, UserRoleModel
 from src.schemas import (
     CreateSupportTicketDTO,
     PaginationDTO,
@@ -47,7 +47,9 @@ class SupportTicketService:
     def _ticket_options():
         return (
             selectinload(SupportTicketModel.user),
-            selectinload(SupportTicketModel.assigned_support),
+            selectinload(SupportTicketModel.assigned_support)
+            .selectinload(UserModel.roles)
+            .selectinload(UserRoleModel.role),
         )
 
 
@@ -74,6 +76,7 @@ class SupportTicketService:
         query = (
             select(SupportTicketModel)
             .options(*self._ticket_options())
+            .execution_options(populate_existing=True)
             .where(SupportTicketModel.id == ticket_id)
         )
 
@@ -305,7 +308,7 @@ class SupportTicketService:
                 SupportTicketStatus.resolved,
                 SupportTicketStatus.closed,
             }:
-                ticket.resolved_at = datetime.now(timezone.utc)
+                ticket.resolved_at = datetime.utcnow()
 
             else:
                 ticket.resolved_at = None
