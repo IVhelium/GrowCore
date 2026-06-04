@@ -21,6 +21,7 @@ from src.api.services.store import StoreService
 from src.api.services.support_ticket import SupportTicketService
 from src.api.services.cart import CartService
 from src.api.services.favorite import FavoriteService
+from src.api.services.category import CategoryService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -115,6 +116,13 @@ async def get_product_service(
     )
 
 ProductServiceDependency = Annotated[ProductService, Depends(get_product_service)]
+
+
+# Get Category Service
+async def get_category_service(db: SessionDependency) -> CategoryService:
+    return CategoryService(db=db)
+
+CategoryServiceDependency = Annotated[CategoryService, Depends(get_category_service)]
 
 # Get Product Image Service
 async def get_product_image_service(

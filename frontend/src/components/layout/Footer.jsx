@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { Leaf } from "lucide-react";
 import Container from "../common/Container";
-import { quickCategories } from "../../data/testData"
 
 
-export default function Footer() {
+// Site footer with backend category links and static informational links.
+export default function Footer({ categories = [] }) {
     return (
       <footer className="mt-10 border-t border-slate-200 bg-white pb-20 md:pb-0">
         <Container className="grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
@@ -24,23 +24,23 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Catalog */}
+          {/* Backend category links */}
           <div>
             <h3 className="mb-4 font-bold text-slate-950">Catalog</h3>
             <nav className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-500">
-              {quickCategories.slice(0, 10).map((category) => (
+              {categories.slice(0, 10).map((category) => (
                 <Link
-                  key={category}
-                  to={`/catalog?category=${encodeURIComponent(category)}`}
+                  key={category.id}
+                  to={`/catalog?category=${category.id}`}
                   className="transition hover:text-[#4F8A5B]"
                 >
-                  {category}
+                  {category.name}
                 </Link>
               ))}
             </nav>
           </div>
 
-          {/* Company */}
+          {/* Static company links */}
           <div>
             <h3 className="mb-4 font-bold text-slate-950">Company</h3>
             <nav className="grid gap-2 text-sm text-slate-500">
@@ -62,7 +62,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Contacts */}
+          {/* Contact information */}
           <div>
             <h3 className="mb-4 font-bold text-slate-950">Contacts</h3>
             <div className="grid gap-3 text-sm text-slate-950">

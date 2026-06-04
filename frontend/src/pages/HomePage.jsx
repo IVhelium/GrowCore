@@ -11,13 +11,16 @@ import Benefits from "../components/home/Benefits";
 
 const HOME_PAGE_SIZE = 12;
 
+// Home page product feed with catalog sidebar and paginated product section.
 export default function HomePage({
   products = [],
+  categories = [],
   onAddToCart,
   onToggleFavorite,
   favoriteProductIds = [],
 }) {
   const productsSectionRef = useRef(null);
+  // Randomized product order for a less static home feed.
   const randomProducts = useMemo(() => randomArray(products), [products]);
   const {
     currentPage,
@@ -27,6 +30,7 @@ export default function HomePage({
     changePage,
   } = usePagination(randomProducts, HOME_PAGE_SIZE);
 
+  // Product section scroll restoration after pagination changes.
   function handlePageChange(page) {
     changePage(page);
     productsSectionRef.current?.scrollIntoView({
@@ -38,7 +42,7 @@ export default function HomePage({
   return (
     <main>
       <Container className="grid gap-6 py-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-        <Sidebar />
+        <Sidebar categories={categories} />
 
         <div className="min-w-0 space-y-10">
           <Hero />

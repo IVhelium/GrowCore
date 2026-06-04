@@ -5,12 +5,15 @@ import Footer from "../components/layout/Footer";
 import MobileBottomNav from "../components/layout/MobileBottomNav";
 
 
+// Main application shell for public and protected content routes.
 export default function MainLayout({
   cartCount,
   savedCount,
+  categories = [],
 }) {
   const navigate = useNavigate();
 
+  // Header search navigation into catalog query params.
   function handleSearch(query) {
     navigate(`/catalog?search=${encodeURIComponent(query)}`)
   }
@@ -21,10 +24,11 @@ export default function MainLayout({
       <Header
         cartCount={cartCount}
         savedCount={savedCount}
+        categories={categories}
         onSearch={handleSearch}
       />
-      <Outlet />          {/* Specifies the positioning of the embedded content; the top of the layout remains fixed */}
-      <Footer />
+      <Outlet />          {/* Nested page route outlet below the shared shell */}
+      <Footer categories={categories} />
       <MobileBottomNav />
     </div>
   );

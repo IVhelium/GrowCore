@@ -39,7 +39,7 @@ class ProductSeed:
 SELLER_USERNAME = "growcore-seller"
 SELLER_EMAIL = "seller@growcore.dev"
 SELLER_PASSWORD = "seller123"
-STORE_NAME = "GrowCore Demo Store"
+STORE_NAME = "GrowCore Store"
 
 
 CATEGORIES = [
@@ -67,6 +67,22 @@ CATEGORIES = [
         name="Pumps & Valves",
         image_url="https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=600&auto=format&fit=crop",
     ),
+    CategorySeed(
+        name="Cables & Connectors",
+        image_url="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop",
+    ),
+    CategorySeed(
+        name="Replacement Parts",
+        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+    ),
+    CategorySeed(
+        name="Hydroponics",
+        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop"
+    ),
+    CategorySeed(
+        name="Controllers",
+        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop"
+    )
 ]
 
 
@@ -207,6 +223,8 @@ async def _ensure_categories(db) -> dict[str, CategoryModel]:
             )
             db.add(category)
             await db.flush()
+        else:
+            category.image_url = seed.image_url
 
         categories[seed.name] = category
 

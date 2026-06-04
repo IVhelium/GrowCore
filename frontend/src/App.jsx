@@ -1,7 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import { moveFavoriteToCart } from "./api/favoritesApi";
 import MainLayout from "./layout/MainLayout";
-import { categories, products } from "./data/testData";
+import { products } from "./data/testData";
+import { useCategories } from "./hooks/useCategories";
 import { useCart } from "./hooks/useCart";
 import { useFavorites } from "./hooks/useFavorites";
 import { useAuth } from "./hooks/useAuth";
@@ -26,7 +27,10 @@ export default function App() {
     products: backendProducts,
     productsError,
   } = useProducts();
+  // Backend category catalog shared across catalog navigation UI.
+  const { categories } = useCategories();
   
+  // Demo product fallback for unauthenticated empty backend catalog.
   const visibleProducts =
     (productsError || backendProducts.length === 0) && !isAuthenticated
       ? products
@@ -63,6 +67,7 @@ export default function App() {
     categories,
   });
 
+  // Stock-limit validation for favorite-to-cart movement.
   function canMoveFavoriteToCart(product, currentCart) {
     const cartItem = currentCart.find(
       (item) => String(item.productId) === String(product.id),
@@ -129,7 +134,11 @@ export default function App() {
     <Routes>
       <Route
         element={
-          <MainLayout cartCount={cartCount} savedCount={favorites.length} />
+          <MainLayout
+            cartCount={cartCount}
+            savedCount={favorites.length}
+            categories={categories}
+          />
         }
       >
         <Route
@@ -137,6 +146,7 @@ export default function App() {
           element={
             <HomePage
               products={visibleProducts}
+              categories={categories}
               onAddToCart={addToCart}
               onToggleFavorite={toggleFavorite}
               favoriteProductIds={favoriteProductIds}
@@ -149,6 +159,7 @@ export default function App() {
           element={
             <CatalogPage
               products={catalogProducts}
+              categories={categories}
               total={catalogTotal}
               currentPage={currentPage}
               pageSize={catalogPageSize}

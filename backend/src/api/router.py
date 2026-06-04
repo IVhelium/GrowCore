@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from src.api.routers.auth import router as auth_router
 from src.api.routers.cart import router as cart_router
+from src.api.routers.category import router as category_router
 from src.api.routers.favorite import router as favorite_router
 from src.api.routers.product import router as product_router
 from src.api.routers.seller_requests.seller_request import router as seller_request_router
@@ -16,6 +17,7 @@ main_router = APIRouter()
 
 main_router.include_router(auth_router)
 main_router.include_router(user_router)
+main_router.include_router(category_router)
 main_router.include_router(product_router)
 main_router.include_router(config_router)
 main_router.include_router(store_router)

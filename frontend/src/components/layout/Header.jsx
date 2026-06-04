@@ -10,6 +10,7 @@ import UserAvatar from "../user/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
 
 
+// Account popover menu for authenticated header users.
 function AccountPopover({
   user,
   onLogout
@@ -41,9 +42,11 @@ function AccountPopover({
 }
 
 
+// Responsive site header with catalog popover, search, and account actions.
 export default function Header({
   cartCount = 0,
   savedCount = 0,
+  categories = [],
   onSearch,
 }) {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
@@ -51,6 +54,7 @@ export default function Header({
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Logout action with home route redirect.
   async function handleLogout() {
     await logout();
     navigate("/");
@@ -67,7 +71,7 @@ export default function Header({
 
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-xl shadow-md">
         <Container className="py-3 lg:py-4">
-          {/* Mobile/tablet header */}
+          {/* Mobile and tablet header layout */}
           <div className="lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <button
@@ -110,7 +114,7 @@ export default function Header({
             />
           </div>
 
-          {/* Desktop header */}
+          {/* Desktop header layout */}
           <div className="hidden items-center justify-between gap-4 lg:flex">
             <Link
               to="/"
@@ -130,7 +134,10 @@ export default function Header({
               arrow={false}
               autoAdjustOverflow={false}
               content={
-                <CatalogPopover onClose={() => setIsCatalogOpen(false)} />
+                <CatalogPopover
+                  categories={categories}
+                  onClose={() => setIsCatalogOpen(false)}
+                />
               }
               classNames={{
                 root: "catalog-popover-centered",
@@ -211,6 +218,7 @@ export default function Header({
         user={user}
         cartCount={cartCount}
         savedCount={savedCount}
+        categories={categories}
       />
     </>
   );

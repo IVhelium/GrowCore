@@ -1,10 +1,11 @@
 import { Drawer } from "antd";
 import { Heart, Leaf, LogOut, ShoppingBag, User } from "lucide-react";
 import { Link } from "react-router-dom"
-import { quickCategories } from "../../data/testData";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 import UserAvatar from "../user/UserAvatar";
 
 
+// Mobile drawer menu with account, cart, saved, and category navigation.
 export default function MobileMenu({
   open,
   onClose,
@@ -12,9 +13,10 @@ export default function MobileMenu({
   onLogout,
   cartCount = 0,
   savedCount = 0,
+  categories = [],
 }) {
 
-  {/* Burger menu */}
+  // Mobile drawer navigation.
   return (
     <Drawer
       open={open}
@@ -90,16 +92,22 @@ export default function MobileMenu({
           Catalog
         </h3>
         <nav className="grid gap-1">
-          {quickCategories.map((category) => (
+          {categories.map((category) => {
+            // Category icon selection from shared mapping.
+            const Icon = getCategoryIcon(category.name);
+
+            return (
             <Link
-              key={category}
-              to={`/catalog?category=${encodeURIComponent(category)}`}
+              key={category.id}
+              to={`/catalog?category=${category.id}`}
               onClick={onClose}
-              className="rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-[#4F8A5B]/10 hover:text-[#4F8A5B]"
+              className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-slate-600 transition hover:bg-[#4F8A5B]/10 hover:text-[#4F8A5B]"
             >
-              {category}
+              <Icon size={17} className="text-slate-400" />
+              {category.name}
             </Link>
-          ))}
+            );
+          })}
         </nav>
       </div>
     </Drawer>

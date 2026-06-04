@@ -7,8 +7,10 @@ import ProductGrid from "../components/product/ProductGrid";
 import ProductSort from "../components/product/ProductSort";
 import SearchBar from "../components/search/SearchBar";
 
+// Catalog page layout for search, filters, sorting, and paginated products.
 export default function CatalogPage({
   products = [],
+  categories = [],
   total = 0,
   currentPage = 1,
   pageSize = 12,
@@ -23,6 +25,7 @@ export default function CatalogPage({
 }) {
   const productsContainerRef = useRef(null);
 
+  // Product grid scroll restoration after backend page changes.
   function handlePageChange(page) {
     onPageChange?.(page);
     productsContainerRef.current?.scrollIntoView({
@@ -50,7 +53,7 @@ export default function CatalogPage({
         />
 
         <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <ProductFilters onChange={onFilterChange} />
+          <ProductFilters categories={categories} onChange={onFilterChange} />
           <div ref={productsContainerRef} className="scroll-mt-24">
             <ProductGrid
               products={products}

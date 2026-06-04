@@ -1,7 +1,8 @@
-import { categories } from "../../data/testData";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 
-
-export default function ProductFilters({ onChange }) {
+// Catalog filter form for category, price, and label filters.
+export default function ProductFilters({ categories = [], onChange }) {
+    // FormData extraction for filter submission.
     function handleSubmit(event) {
         event.preventDefault();
         const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -26,7 +27,11 @@ export default function ProductFilters({ onChange }) {
                 Category
               </h3>
               <div className="grid gap-2">
-                {categories.map((category) => (
+                {categories.map((category) => {
+                  // Visual category icon matching the sidebar catalog.
+                  const Icon = getCategoryIcon(category.name);
+
+                  return (
                   <label
                     key={category.id}
                     className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50"
@@ -37,9 +42,11 @@ export default function ProductFilters({ onChange }) {
                       type="radio"
                       className="h-4 w-4 accent-[#4F8A5B]"
                     />
+                    <Icon size={17} className="text-slate-400" />
                     {category.name}
                   </label>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

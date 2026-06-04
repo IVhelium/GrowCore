@@ -110,7 +110,7 @@ function notifyApiError(error) {
   );
 }
 
-// function for verify access token
+// Access-token refresh eligibility check.
 function shouldRefreshToken(error) {
   const status = error?.response?.status;
   const request = error?.config;
@@ -142,9 +142,9 @@ async function refreshAccessToken() {
   return refreshRequest;
 }
 
-// Response Interceptor
+// Global response interceptor for auth refresh and API notices.
 apiClient.interceptors.response.use(
-  (resp) => resp,           // Correct answer
+  (resp) => resp,
   async (error) => {
     if (shouldRefreshToken(error)) {
       const originalRequest = error.config;
@@ -170,7 +170,7 @@ apiClient.interceptors.response.use(
   },
 );
 
-// React Query
+// Shared React Query client configuration.
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -180,7 +180,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Correcting the correct link for the media folder
+// Backend storage path to browser-accessible media URL.
 export function resolvestorageUrl(path) {
   if (!path) return null;
   if (/^https?:\/\//i.test(path)) return path;
