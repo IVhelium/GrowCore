@@ -1,20 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getApiError } from "../../utils/getApiError";
+import { useAutoDismissMessage } from "../../hooks/useAutoDismissMessage";
 import FormField from "./../common/FormField";
 import Button from "../common/Button";
 
 export default function ProfileForm({ user, onSave, hasPendingAvatar = false }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [form, setForm] = useState({ username: "", description: "" });
-
-  useEffect(() => {
-    setForm({
-      username: user?.username || "",
-      description: user?.description || "",
-    });
-  }, [user]);
+  const [message, setMessage] = useAutoDismissMessage("");
+  const [error, setError] = useAutoDismissMessage("");
+  const [form, setForm] = useState(() => ({
+    username: user?.username || "",
+    description: user?.description || "",
+  }));
 
   async function handleSubmit(event) {
     event.preventDefault();

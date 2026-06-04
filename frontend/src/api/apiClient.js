@@ -32,11 +32,60 @@ function getApiNoticeMessage(error) {
     return detail;
   }
 
+  if (Array.isArray(detail) && detail.length) {
+    return detail.map((item) => item.msg || "Invalid value").join(". ");
+  }
+
   if (retryAfter) {
     return `Too many requests. Please try again in ${retryAfter} seconds.`;
   }
 
-  return "Too many requests. Please wait a moment and try again.";
+  if (error?.code === "ERR_NETWORK") {
+    return "Cannot connect to the server";
+  }
+
+  const status = error?.response?.status;
+
+  if (status >= 500) {
+    return "Server error. Please try again later.";
+  }
+
+  if (status === 404) {
+    return "Requested item was not found.";
+  }
+
+  if (status === 403) {
+    return "You do not have permission to perform this action.";
+  }
+
+  if (status === 401) {
+    return "Please sign in to continue.";
+  }
+
+  return "Something went wrong. Please try again.";
+}
+
+function shouldNotifyApiError(error) {
+  const status = error?.response?.status;
+  const requestUrl = error?.config?.url || "";
+
+  if (error?.config?._silent) {
+    return false;
+  }
+
+  if (!status && error?.code !== "ERR_NETWORK") {
+    return false;
+  }
+
+  if (status === 401 && requestUrl.includes("/auths/me")) {
+    return false;
+  }
+
+  if (requestUrl.includes(REFRESH_ENDPOINT)) {
+    return false;
+  }
+
+  return !status || status >= 400;
 }
 
 function notifyApiError(error) {
@@ -97,10 +146,6 @@ async function refreshAccessToken() {
 apiClient.interceptors.response.use(
   (resp) => resp,           // Correct answer
   async (error) => {
-    if ([409, 429].includes(error?.response?.status)) {
-      notifyApiError(error);
-    }
-
     if (shouldRefreshToken(error)) {
       const originalRequest = error.config;
       originalRequest._retry = true;
@@ -109,8 +154,16 @@ apiClient.interceptors.response.use(
         await refreshAccessToken();
         return apiClient(originalRequest);
       } catch (refreshError) {
+        if (shouldNotifyApiError(refreshError)) {
+          notifyApiError(refreshError);
+        }
+
         return Promise.reject(refreshError);
       }
+    }
+
+    if (shouldNotifyApiError(error)) {
+      notifyApiError(error);
     }
 
     return Promise.reject(error);

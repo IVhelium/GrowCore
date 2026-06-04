@@ -6,6 +6,7 @@ import { useCart } from "./hooks/useCart";
 import { useFavorites } from "./hooks/useFavorites";
 import { useAuth } from "./hooks/useAuth";
 import { useProductCatalog, useProducts } from "./hooks/useProduct";
+import { showToast } from "./utils/showToast";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
 import CatalogPage from "./pages/CatalogPage";
@@ -38,7 +39,6 @@ export default function App() {
     changeCartQuantity,
     removeFromCart,
     replaceCart,
-    syncCartQuantities,
   } = useCart();
 
   const {
@@ -63,13 +63,41 @@ export default function App() {
     categories,
   });
 
-  async function moveFavoritesToCart() {
-    for (const product of [...favorites]) {
-      if (isAuthenticated && product.favoriteId) {
-        const updatedCart = await moveFavoriteToCart(product.favoriteId);
+  function canMoveFavoriteToCart(product, currentCart) {
+    const cartItem = currentCart.find(
+      (item) => String(item.productId) === String(product.id),
+    );
+    const maxQuantity = cartItem?.maxQuantity || product.quantity || 0;
 
-        replaceCart(updatedCart);
-        removeFavoritesByFavoriteIds([product.favoriteId]);
+    if (!cartItem) {
+      return maxQuantity > 0;
+    }
+
+    return cartItem.quantity < maxQuantity;
+  }
+
+  async function moveFavoritesToCart() {
+    let movedCount = 0;
+    let skippedCount = 0;
+    let currentCart = cart;
+
+    for (const product of [...favorites]) {
+      if (!canMoveFavoriteToCart(product, currentCart)) {
+        skippedCount += 1;
+        continue;
+      }
+
+      if (isAuthenticated && product.favoriteId) {
+        try {
+          const updatedCart = await moveFavoriteToCart(product.favoriteId);
+
+          currentCart = updatedCart.items;
+          replaceCart(updatedCart);
+          removeFavoritesByFavoriteIds([product.favoriteId]);
+          movedCount += 1;
+        } catch {
+          skippedCount += 1;
+        }
         continue;
       }
 
@@ -77,15 +105,23 @@ export default function App() {
 
       if (updatedCart !== null || !isAuthenticated) {
         await toggleFavorite(product);
+        movedCount += 1;
+        currentCart = currentCart.map((item) =>
+          String(item.productId) === String(product.id)
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+      } else {
+        skippedCount += 1;
       }
     }
-  }
 
-  async function checkoutCart() {
-    const updatedCart = await syncCartQuantities();
-
-    if (updatedCart) {
-      alert("Checkout is not connected yet.");
+    if (movedCount > 0 && skippedCount > 0) {
+      showToast("Available favorites moved to cart. Some stayed because the cart is already full");
+    } else if (movedCount > 0) {
+      showToast("Available favorites moved to cart", "success");
+    } else if (skippedCount > 0) {
+      showToast("Some favorites stayed because the cart already has the maximum quantity");
     }
   }
 
@@ -147,7 +183,6 @@ export default function App() {
               items={cart}
               onQuantityChange={changeCartQuantity}
               onRemove={removeFromCart}
-              onCheckout={checkoutCart}
             />
           }
         />

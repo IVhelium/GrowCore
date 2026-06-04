@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiError } from './../../utils/getApiError';
+import { useAutoDismissMessage } from "../../hooks/useAutoDismissMessage";
 import UserAvatar from "./UserAvatar";
 import Button from "../common/Button";
 import { ImageUp, Trash2, X } from "lucide-react";
@@ -13,20 +14,20 @@ export default function AvatarEditor({
 }) {
     const inputRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [previewUrl, setPreviewUrl] = useState("");
+    const [error, setError] = useAutoDismissMessage("");
+
+    const previewUrl = useMemo(
+        () => (selectedFile ? URL.createObjectURL(selectedFile) : ""),
+        [selectedFile],
+    );
 
     useEffect(() => {
-        if (!selectedFile) {
-            setPreviewUrl("");
-            return undefined;
-        }
-
-        const objectUrl = URL.createObjectURL(selectedFile);
-        setPreviewUrl(objectUrl);
-
-        return () => URL.revokeObjectURL(objectUrl);
-    }, [selectedFile]);
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     async function handleFileChange(event) {
         const file = event.target.files?.[0];

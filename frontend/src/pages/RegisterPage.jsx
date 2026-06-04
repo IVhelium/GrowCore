@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
 import { Link, useNavigate } from "react-router-dom";
 import { getApiError } from "../utils/getApiError";
 import RegisterForm from "../components/auth/RegisterForm";
@@ -7,7 +8,7 @@ import RegisterForm from "../components/auth/RegisterForm";
 
 export default function RegisterPage() {
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useAutoDismissMessage("");
     const { register } = useAuth();
     const navigate = useNavigate();
 

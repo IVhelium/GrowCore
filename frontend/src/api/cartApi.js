@@ -50,17 +50,6 @@ export async function updateCartItem(itemId, quantity) {
   return normalizeCart(data);
 }
 
-export async function updateCartItems(items) {
-  const { data } = await apiClient.patch("/cart/items", {
-    items: items.map((item) => ({
-      item_id: item.id,
-      quantity: item.quantity,
-    })),
-  });
-
-  return normalizeCart(data);
-}
-
 export async function removeCartItem(itemId) {
   const { data } = await apiClient.delete(`/cart/items/${itemId}`);
   return normalizeCart(data);

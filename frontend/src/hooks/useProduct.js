@@ -57,11 +57,61 @@ export function useProductCatalog({
   const [filters, setFilters] = useState({});
   const [sortValue, setSortValue] = useState("random");
   const [currentPage, setCurrentPage] = useState(1);
+  const [backendCatalogPage, setBackendCatalogPage] = useState({
+    items: [],
+    total: 0,
+  });
+  const [catalogError, setCatalogError] = useState(null);
+  const [isCatalogLoading, setIsCatalogLoading] = useState(true);
 
   const searchValue = searchParams.get("search") || "";
   const categoryValue = searchParams.get("category") || filters.category || "";
+  const categoryId = /^\d+$/.test(categoryValue) ? Number(categoryValue) : null;
 
-  const sortedCatalogProducts = useMemo(() => {
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadCatalogPage() {
+      setIsCatalogLoading(true);
+      setCatalogError(null);
+
+      try {
+        const productPage = await getProducts({
+          limit: CATALOG_PAGE_SIZE,
+          offset: (currentPage - 1) * CATALOG_PAGE_SIZE,
+          search: searchValue,
+          categoryId,
+        });
+
+        if (isActive) {
+          setBackendCatalogPage({
+            items: productPage.items,
+            total: productPage.total,
+          });
+        }
+      } catch (error) {
+        if (isActive) {
+          setCatalogError(error);
+          setBackendCatalogPage({
+            items: [],
+            total: 0,
+          });
+        }
+      } finally {
+        if (isActive) {
+          setIsCatalogLoading(false);
+        }
+      }
+    }
+
+    loadCatalogPage();
+
+    return () => {
+      isActive = false;
+    };
+  }, [categoryId, currentPage, searchValue]);
+
+  const fallbackCatalogProducts = useMemo(() => {
     const filteredProducts = filterProducts({
       products,
       categories,
@@ -73,13 +123,29 @@ export function useProductCatalog({
     return sortProducts(filteredProducts, sortValue);
   }, [categories, categoryValue, filters, products, searchValue, sortValue]);
 
-  const catalogProducts = useMemo(() => {
+  const fallbackPageProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * CATALOG_PAGE_SIZE;
-    return sortedCatalogProducts.slice(
+    return fallbackCatalogProducts.slice(
       startIndex,
       startIndex + CATALOG_PAGE_SIZE,
     );
-  }, [currentPage, sortedCatalogProducts]);
+  }, [currentPage, fallbackCatalogProducts]);
+
+  const hasClientOnlyCategory = categoryValue && categoryId === null;
+  const hasClientOnlyFilters =
+    hasClientOnlyCategory ||
+    filters.minPrice ||
+    filters.maxPrice ||
+    filters.label ||
+    sortValue !== "random";
+
+  const shouldUseFallbackCatalog = catalogError || hasClientOnlyFilters;
+  const catalogProducts = shouldUseFallbackCatalog
+    ? fallbackPageProducts
+    : backendCatalogPage.items;
+  const catalogTotal = shouldUseFallbackCatalog
+    ? fallbackCatalogProducts.length
+    : backendCatalogPage.total;
 
   function searchCatalog(query) {
     const params = new URLSearchParams(searchParams);
@@ -116,9 +182,11 @@ export function useProductCatalog({
 
   return {
     catalogProducts,
-    catalogTotal: sortedCatalogProducts.length,
+    catalogTotal,
     catalogPageSize: CATALOG_PAGE_SIZE,
     currentPage,
+    isCatalogLoading,
+    catalogError,
     searchValue,
     searchCatalog,
     changeCatalogFilters,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useAutoDismissMessage } from "../../hooks/useAutoDismissMessage";
 import Button from "../common/Button";
 import FormField from "../common/FormField";
 
@@ -7,7 +7,7 @@ export default function RegisterForm({
   isLoading = false,
   error = "",
 }) {
-  const [clientError, setClientError] = useState("");
+  const [clientError, setClientError] = useAutoDismissMessage("");
 
   function handleSubmit(event) {
     event.preventDefault();

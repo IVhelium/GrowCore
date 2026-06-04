@@ -26,9 +26,12 @@ class ReadFavoriteProductImageDTO(BaseModel):
 class ReadFavoriteProductDTO(BaseModel):
     id: int
     title: str
+    description: str
     price: Decimal
     quantity: int
     enabled: bool
+    rating_avg: Decimal
+    rating_count: int
 
     images: list[ReadFavoriteProductImageDTO] = []
 

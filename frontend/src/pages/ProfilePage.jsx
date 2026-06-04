@@ -50,6 +50,7 @@ export default function ProfilePage() {
                             onDelete={deleteAvatar}
                         />
                         <ProfileForm
+                            key={user?.id || "empty-profile"}
                             user={user}
                             onSave={saveProfileChanges}
                             hasPendingAvatar={Boolean(pendingAvatarFile)}

@@ -1,7 +1,6 @@
 
 import { Link } from "react-router-dom";
 import CartItem from "../components/cart/CartItem";
-import CartSummary from "../components/cart/CartSummary";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
@@ -10,7 +9,6 @@ export default function CartPage({
   items = [],
   onQuantityChange,
   onRemove,
-  onCheckout,
 }) {
   if (!items.length) {
     return (
@@ -50,11 +48,6 @@ export default function CartPage({
               />
             ))}
           </div>
-
-          <CartSummary
-            items={items}
-            onCheckout={onCheckout}
-          />
         </div>
       </Container>
     </main>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { searchUserByPublicId } from "../api/userApi";
+import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
 import { getApiError } from "./../utils/getApiError";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
@@ -9,7 +10,7 @@ import UserAvatar from "../components/user/UserAvatar";
 
 export default function UsersSearchPage() {
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useAutoDismissMessage("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event) {

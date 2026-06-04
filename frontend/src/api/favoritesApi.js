@@ -19,8 +19,8 @@ function normalizeFavoriteProduct(favorite) {
     label: "Product",
     category: "",
     image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
-    rating: 0,
-    ratingCount: 0,
+    rating: Number(product.rating_avg ?? 0),
+    ratingCount: product.rating_count ?? 0,
     quantity: product.quantity,
     raw: product,
   };

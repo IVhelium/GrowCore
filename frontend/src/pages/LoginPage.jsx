@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getApiError } from "./../utils/getApiError";
 import LoginForm from "../components/auth/LoginForm";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useAutoDismissMessage("");
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

@@ -7,6 +7,7 @@ export function normalizeProduct(product) {
 
   return {
     id: product.id,
+    categoryId: product.category?.id ?? null,
     title: product.title,
     description: product.description,
     price: Number(product.price),
@@ -23,11 +24,18 @@ export function normalizeProduct(product) {
   };
 }
 
-export async function getProducts({ limit = PRODUCT_LIST_LIMIT, offset = 0 } = {}) {
+export async function getProducts({
+  limit = PRODUCT_LIST_LIMIT,
+  offset = 0,
+  search,
+  categoryId,
+} = {}) {
   const { data } = await apiClient.get("/products", {
     params: {
       limit,
       offset,
+      search: search || undefined,
+      category_id: categoryId || undefined,
     },
   });
 

@@ -1,19 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addCartItem,
   getCart,
   removeCartItem,
-  updateCartItems,
+  updateCartItem,
 } from "../api/cartApi";
+import { showToast } from "../utils/showToast";
 import { useAuth } from "./useAuth";
 
 const EMPTY_CART = [];
+const QUANTITY_UPDATE_DELAY_MS = 600;
 
 export function useCart(initialItems = EMPTY_CART) {
   const [cart, setCart] = useState(initialItems);
   const [cartError, setCartError] = useState(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
+  const quantityUpdateTimers = useRef({});
   const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const timers = quantityUpdateTimers.current;
+
+    return () => {
+      Object.values(timers).forEach(clearTimeout);
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -60,6 +71,7 @@ export function useCart(initialItems = EMPTY_CART) {
         const updatedCart = await addCartItem(product.id, 1);
         setCart(updatedCart.items);
         setCartError(null);
+        showToast("Added to cart", "success");
         return updatedCart;
       } catch (error) {
         setCartError(error);
@@ -92,6 +104,7 @@ export function useCart(initialItems = EMPTY_CART) {
         },
       ];
     });
+    showToast("Added to cart", "success");
   }
 
   async function changeCartQuantity(item, quantity) {
@@ -100,25 +113,34 @@ export function useCart(initialItems = EMPTY_CART) {
         cartItem.id === item.id ? { ...cartItem, quantity } : cartItem,
       ),
     );
-  }
 
-  async function syncCartQuantities() {
     if (!isAuthenticated) {
-      return { items: cart };
+      return;
     }
 
-    try {
-      const updatedCart = await updateCartItems(cart);
-      setCart(updatedCart.items);
-      setCartError(null);
-      return updatedCart;
-    } catch (error) {
-      setCartError(error);
-      return null;
+    if (quantityUpdateTimers.current[item.id]) {
+      clearTimeout(quantityUpdateTimers.current[item.id]);
     }
+
+    quantityUpdateTimers.current[item.id] = setTimeout(async () => {
+      try {
+        const updatedCart = await updateCartItem(item.id, quantity);
+        setCart(updatedCart.items);
+        setCartError(null);
+      } catch (error) {
+        setCartError(error);
+      } finally {
+        delete quantityUpdateTimers.current[item.id];
+      }
+    }, QUANTITY_UPDATE_DELAY_MS);
   }
 
   async function removeFromCart(item) {
+    if (quantityUpdateTimers.current[item.id]) {
+      clearTimeout(quantityUpdateTimers.current[item.id]);
+      delete quantityUpdateTimers.current[item.id];
+    }
+
     if (isAuthenticated) {
       try {
         const updatedCart = await removeCartItem(item.id);
@@ -159,6 +181,5 @@ export function useCart(initialItems = EMPTY_CART) {
     changeCartQuantity,
     removeFromCart,
     replaceCart,
-    syncCartQuantities,
   };
 }

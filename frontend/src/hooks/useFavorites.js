@@ -4,6 +4,7 @@ import {
   getFavorites,
   removeFavorite,
 } from "../api/favoritesApi";
+import { showToast } from "../utils/showToast";
 import { useAuth } from "./useAuth";
 
 const EMPTY_FAVORITES = [];
@@ -68,6 +69,7 @@ export function useFavorites(initialProducts = EMPTY_FAVORITES) {
             ),
           );
           setFavoritesError(null);
+          showToast("Removed from favorites", "success");
           return;
         }
 
@@ -84,6 +86,7 @@ export function useFavorites(initialProducts = EMPTY_FAVORITES) {
           return [...currentFavorites, createdFavorite];
         });
         setFavoritesError(null);
+        showToast("Added to favorites", "success");
       } catch (error) {
         setFavoritesError(error);
       }
@@ -97,11 +100,13 @@ export function useFavorites(initialProducts = EMPTY_FAVORITES) {
       );
 
       if (isSaved) {
+        showToast("Removed from favorites", "success");
         return currentFavorites.filter(
           (item) => String(item.id) !== String(product.id),
         );
       }
 
+      showToast("Added to favorites", "success");
       return [...currentFavorites, product];
     });
   }
