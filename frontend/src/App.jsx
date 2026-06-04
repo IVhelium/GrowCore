@@ -1,8 +1,10 @@
 import { Route, Routes } from "react-router-dom";
+import { moveFavoriteToCart } from "./api/favoritesApi";
 import MainLayout from "./layout/MainLayout";
-import { categories, cartItems, products, savedProducts } from "./data/testData";
+import { categories, products } from "./data/testData";
 import { useCart } from "./hooks/useCart";
 import { useFavorites } from "./hooks/useFavorites";
+import { useAuth } from "./hooks/useAuth";
 import { useProductCatalog, useProducts } from "./hooks/useProduct";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -18,13 +20,14 @@ import RegisterPage from "./pages/RegisterPage";
 import FavoritesPage from "./pages/FavoritesPage";
 
 export default function App() {
+  const { isAuthenticated } = useAuth();
   const {
     products: backendProducts,
     productsError,
   } = useProducts();
   
   const visibleProducts =
-    productsError || backendProducts.length === 0
+    (productsError || backendProducts.length === 0) && !isAuthenticated
       ? products
       : backendProducts;
 
@@ -34,13 +37,16 @@ export default function App() {
     addToCart,
     changeCartQuantity,
     removeFromCart,
-  } = useCart(cartItems);
+    replaceCart,
+    syncCartQuantities,
+  } = useCart();
 
   const {
     favorites,
     favoriteProductIds,
     toggleFavorite,
-  } = useFavorites(savedProducts);
+    removeFavoritesByFavoriteIds,
+  } = useFavorites();
 
   const {
     catalogProducts,
@@ -56,6 +62,32 @@ export default function App() {
     products: visibleProducts,
     categories,
   });
+
+  async function moveFavoritesToCart() {
+    for (const product of [...favorites]) {
+      if (isAuthenticated && product.favoriteId) {
+        const updatedCart = await moveFavoriteToCart(product.favoriteId);
+
+        replaceCart(updatedCart);
+        removeFavoritesByFavoriteIds([product.favoriteId]);
+        continue;
+      }
+
+      const updatedCart = await addToCart(product);
+
+      if (updatedCart !== null || !isAuthenticated) {
+        await toggleFavorite(product);
+      }
+    }
+  }
+
+  async function checkoutCart() {
+    const updatedCart = await syncCartQuantities();
+
+    if (updatedCart) {
+      alert("Checkout is not connected yet.");
+    }
+  }
 
   return (
     <Routes>
@@ -115,6 +147,7 @@ export default function App() {
               items={cart}
               onQuantityChange={changeCartQuantity}
               onRemove={removeFromCart}
+              onCheckout={checkoutCart}
             />
           }
         />
@@ -126,6 +159,7 @@ export default function App() {
               products={favorites}
               onAddToCart={addToCart}
               onToggleFavorite={toggleFavorite}
+              onMoveAllToCart={moveFavoritesToCart}
               favoriteProductIds={favoriteProductIds}
             />
           }

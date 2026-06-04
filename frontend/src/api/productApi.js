@@ -2,7 +2,7 @@ import { apiClient, resolvestorageUrl } from "./apiClient";
 
 const PRODUCT_LIST_LIMIT = 100;
 
-function normalizeProduct(product) {
+export function normalizeProduct(product) {
   const primaryImage = product.images?.[0]?.image;
 
   return {

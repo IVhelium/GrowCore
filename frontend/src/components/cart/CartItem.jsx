@@ -7,6 +7,9 @@ export default function CartItem({
     onQuantityChange,
     onRemove
 }) {
+    const maxQuantity = item.maxQuantity || item.product?.quantity || Infinity;
+    const isMaxQuantity = item.quantity >= maxQuantity;
+
     return (
         <article className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto] sm:items-center">
             <div className="grid aspect-square place-items-center overflow-hidden rounded-xl bg-slate-50">
@@ -30,8 +33,10 @@ export default function CartItem({
                     </button>
                     <span className="w-10 text-center text-sm font-bold">{item.quantity}</span>
                     <button
-                        className="grid h-9 w-9 place-items-center rounded-md hover:bg-slate-100"
-                        onClick={() => onQuantityChange?.(item, item.quantity + 1)}
+                        className="grid h-9 w-9 place-items-center rounded-md hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-white"
+                        disabled={isMaxQuantity}
+                        title={isMaxQuantity ? "No more items in stock" : undefined}
+                        onClick={() => onQuantityChange?.(item, Math.min(maxQuantity, item.quantity + 1))}
                     >
                         <Plus size={16}/>
                     </button>

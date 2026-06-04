@@ -1,4 +1,7 @@
+import { ShoppingBag } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
@@ -8,8 +11,21 @@ export default function FavoritesPage({
   products = [],
   onAddToCart,
   onToggleFavorite,
+  onMoveAllToCart,
   favoriteProductIds = [],
 }) {
+  const [isMoving, setIsMoving] = useState(false);
+
+  async function handleMoveAllToCart() {
+    setIsMoving(true);
+
+    try {
+      await onMoveAllToCart?.();
+    } finally {
+      setIsMoving(false);
+    }
+  }
+
   return (
     <main>
       <Container className="py-8">
@@ -20,12 +36,21 @@ export default function FavoritesPage({
         />
 
         {products.length ? (
-          <ProductGrid
-            products={products}
-            onAddToCart={onAddToCart}
-            onToggleFavorite={onToggleFavorite}
-            favoriteProductIds={favoriteProductIds}
-          />
+          <>
+            <div className="mb-5 flex justify-end">
+              <Button onClick={handleMoveAllToCart} disabled={isMoving}>
+                <ShoppingBag size={17} />
+                {isMoving ? "Moving..." : "Move all to cart"}
+              </Button>
+            </div>
+
+            <ProductGrid
+              products={products}
+              onAddToCart={onAddToCart}
+              onToggleFavorite={onToggleFavorite}
+              favoriteProductIds={favoriteProductIds}
+            />
+          </>
         ) : (
           <>
             <EmptyState

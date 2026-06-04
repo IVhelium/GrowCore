@@ -1,13 +1,25 @@
 import { formatPrice } from "../../utils/formatPrice";
 import Button from "../common/Button";
+import { useState } from "react";
 
 
 export default function CartSummary({
     items = [],
     onCheckout
 }) {
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const count = items.reduce((sum, item) => sum + item.quantity, 0);
+
+    async function handleCheckout() {
+        setIsCheckingOut(true);
+
+        try {
+            await onCheckout?.();
+        } finally {
+            setIsCheckingOut(false);
+        }
+    }
 
     return (
         <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 lg:self-start">
@@ -32,11 +44,12 @@ export default function CartSummary({
             </div>
 
             <Button
-                onClick={onCheckout}
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
                 size="lg"
                 className="mt-6 w-full"
             >
-                Checkout
+                {isCheckingOut ? "Checking..." : "Checkout"}
             </Button>
         </aside>
     );

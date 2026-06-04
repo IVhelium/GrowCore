@@ -10,6 +10,7 @@ export default function CartPage({
   items = [],
   onQuantityChange,
   onRemove,
+  onCheckout,
 }) {
   if (!items.length) {
     return (
@@ -52,7 +53,7 @@ export default function CartPage({
 
           <CartSummary
             items={items}
-            onCheckout={() => alert("Checkout is not connected yet.")}
+            onCheckout={onCheckout}
           />
         </div>
       </Container>
