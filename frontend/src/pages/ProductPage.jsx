@@ -204,7 +204,7 @@ export default function ProductPage({
         <Container className="py-10">
           <EmptyState
             title="Product not found"
-            text={error ? "Could not load this product from the server." : "This product is not available."}
+            text={error ? "Could not load this product from the server" : "This product is not available"}
           />
         </Container>
       </main>
@@ -222,10 +222,10 @@ export default function ProductPage({
   return (
     <main>
       <Container className="py-8">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
-          <section className="grid gap-4">
+        <div className="grid gap-6 lg:grid-cols-[minmax(360px,560px)_minmax(0,1fr)] lg:items-start">
+          <section className="grid w-full max-w-560px gap-4">
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="grid aspect-square place-items-center overflow-hidden rounded-xl bg-slate-50">
+              <div className="grid aspect-square max-h-[min(560px,calc(100vh-180px))] place-items-center overflow-hidden rounded-xl bg-slate-50">
                 <img
                   src={selectedGalleryImage}
                   alt={product.title}
@@ -235,7 +235,7 @@ export default function ProductPage({
             </div>
 
             {galleryImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
                 {galleryImages.map((image) => (
                   <button
                     key={image}
@@ -258,7 +258,7 @@ export default function ProductPage({
             )}
           </section>
 
-          <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+          <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm h-full">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="rounded-lg bg-[#4F8A5B]/10 px-3 py-1 text-xs font-bold uppercase text-[#4F8A5B]">
                 {product.category || "Product"}

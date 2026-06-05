@@ -7,7 +7,7 @@ import ProductGrid from "../components/product/ProductGrid";
 import ProductSort from "../components/product/ProductSort";
 import SearchBar from "../components/search/SearchBar";
 
-// Catalog page layout for search, filters, sorting, and paginated products.
+
 export default function CatalogPage({
   products = [],
   categories = [],
@@ -25,7 +25,6 @@ export default function CatalogPage({
 }) {
   const productsContainerRef = useRef(null);
 
-  // Product grid scroll restoration after backend page changes.
   function handlePageChange(page) {
     onPageChange?.(page);
     productsContainerRef.current?.scrollIntoView({

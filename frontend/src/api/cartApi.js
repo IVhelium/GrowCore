@@ -54,3 +54,8 @@ export async function removeCartItem(itemId) {
   const { data } = await apiClient.delete(`/cart/items/${itemId}`);
   return normalizeCart(data);
 }
+
+export async function checkoutCart() {
+  const { data } = await apiClient.post("/cart/checkout");
+  return normalizeCart(data);
+}

@@ -4,6 +4,7 @@ import {
   getCart,
   removeCartItem,
   updateCartItem,
+  checkoutCart,
 } from "../api/cartApi";
 import { showToast } from "../utils/showToast";
 import { useAuth } from "./useAuth";
@@ -85,13 +86,29 @@ export function useCart(initialItems = EMPTY_CART) {
       const existingItem = currentCart.find(
         (item) => item.productId === product.id,
       );
+      const maxQuantity = product.quantity || product.maxQuantity || Infinity;
 
       if (existingItem) {
+        const nextQuantity = Math.min(
+          maxQuantity,
+          existingItem.quantity + safeQuantity,
+        );
+
+        if (nextQuantity === existingItem.quantity) {
+          showToast("No more items in stock");
+          return currentCart;
+        }
+
         return currentCart.map((item) =>
           item.productId === product.id
-            ? { ...item, quantity: item.quantity + safeQuantity }
+            ? { ...item, quantity: nextQuantity }
             : item,
         );
+      }
+
+      if (safeQuantity > maxQuantity) {
+        showToast("Not enough product quantity in stock");
+        return currentCart;
       }
 
       return [
@@ -102,6 +119,7 @@ export function useCart(initialItems = EMPTY_CART) {
           title: product.title,
           price: product.price,
           quantity: safeQuantity,
+          maxQuantity,
           image: product.image,
         },
       ];
@@ -110,9 +128,12 @@ export function useCart(initialItems = EMPTY_CART) {
   }
 
   async function changeCartQuantity(item, quantity) {
+    const maxQuantity = item.maxQuantity || item.product?.quantity || Infinity;
+    const safeQuantity = Math.min(Math.max(1, quantity), maxQuantity);
+
     setCart((currentCart) =>
       currentCart.map((cartItem) =>
-        cartItem.id === item.id ? { ...cartItem, quantity } : cartItem,
+        cartItem.id === item.id ? { ...cartItem, quantity: safeQuantity } : cartItem,
       ),
     );
 
@@ -126,7 +147,7 @@ export function useCart(initialItems = EMPTY_CART) {
 
     quantityUpdateTimers.current[item.id] = setTimeout(async () => {
       try {
-        const updatedCart = await updateCartItem(item.id, quantity);
+        const updatedCart = await updateCartItem(item.id, safeQuantity);
         setCart(updatedCart.items);
         setCartError(null);
       } catch (error) {
@@ -169,6 +190,24 @@ export function useCart(initialItems = EMPTY_CART) {
     setCartError(null);
   }
 
+  async function checkout() {
+    if (!isAuthenticated) {
+      showToast("Please sign in to complete checkout");
+      return null;
+    }
+
+    try {
+      const updatedCart = await checkoutCart();
+      setCart(updatedCart.items);
+      setCartError(null);
+      showToast("Order completed", "success");
+      return updatedCart;
+    } catch (error) {
+      setCartError(error);
+      return null;
+    }
+  }
+
   const cartCount = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
     [cart],
@@ -183,5 +222,6 @@ export function useCart(initialItems = EMPTY_CART) {
     changeCartQuantity,
     removeFromCart,
     replaceCart,
+    checkout,
   };
 }

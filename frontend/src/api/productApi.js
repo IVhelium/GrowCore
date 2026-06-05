@@ -91,3 +91,61 @@ export async function rejectProduct(productId, reason) {
 
   return normalizeProduct(data);
 }
+
+export async function getMySellerProducts({ limit = 20, offset = 0 } = {}) {
+  const { data } = await apiClient.get("/seller/products", {
+    params: getPaginationParams({ limit, offset }),
+  });
+
+  return {
+    ...data,
+    items: (data.items || []).map(normalizeProduct),
+  };
+}
+
+export async function getMySellerProduct(productId) {
+  const { data } = await apiClient.get(`/seller/products/${productId}`);
+  return normalizeProduct(data);
+}
+
+export async function createSellerProduct(payload) {
+  const { data } = await apiClient.post("/seller/products", {
+    title: payload.title,
+    description: payload.description,
+    price: Number(payload.price),
+    quantity: Number(payload.quantity),
+    category_id: Number(payload.categoryId),
+  });
+
+  return normalizeProduct(data);
+}
+
+export async function updateSellerProduct(productId, payload) {
+  const body = {
+    title: payload.title || undefined,
+    description: payload.description || undefined,
+    price: payload.price === "" ? undefined : Number(payload.price),
+    quantity: payload.quantity === "" ? undefined : Number(payload.quantity),
+    category_id: payload.categoryId ? Number(payload.categoryId) : undefined,
+  };
+
+  const { data } = await apiClient.patch(`/seller/products/${productId}`, body);
+  return normalizeProduct(data);
+}
+
+export async function uploadSellerProductImage(productId, file) {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const { data } = await apiClient.post(
+    `/seller/products/${productId}/images`,
+    formData,
+  );
+
+  return normalizeProduct(data);
+}
+
+export async function submitSellerProduct(productId) {
+  const { data } = await apiClient.post(`/seller/products/${productId}/submit`);
+  return normalizeProduct(data);
+}

@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { moveFavoriteToCart } from "./api/favoritesApi";
 import MainLayout from "./layout/MainLayout";
-import { products } from "./data/testData";
 import { useCategories } from "./hooks/useCategories";
 import { useCart } from "./hooks/useCart";
 import { useFavorites } from "./hooks/useFavorites";
@@ -22,6 +21,11 @@ import RegisterPage from "./pages/RegisterPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import SellerRequestPage from "./pages/SellerRequestPage";
+import SellerStorePage from "./pages/SellerStorePage";
+import SellerProductRequestPage from "./pages/SellerProductRequestPage";
+import SupportPanelPage from "./pages/SupportPanelPage";
+import SellerProductEditPage from "./pages/SellerProductEditPage";
+import SupportPage from "./pages/SupportPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -32,10 +36,7 @@ export default function App() {
 
   const { categories } = useCategories();
   
-  const visibleProducts =
-    (productsError || backendProducts.length === 0) && !isAuthenticated
-      ? products
-      : backendProducts;
+  const visibleProducts = productsError ? [] : backendProducts;
 
   const {
     cart,
@@ -44,6 +45,7 @@ export default function App() {
     changeCartQuantity,
     removeFromCart,
     replaceCart,
+    checkout,
   } = useCart();
 
   const {
@@ -194,6 +196,7 @@ export default function App() {
               items={cart}
               onQuantityChange={changeCartQuantity}
               onRemove={removeFromCart}
+              onCheckout={checkout}
             />
           }
         />
@@ -213,12 +216,22 @@ export default function App() {
 
         <Route path="/users" element={<UsersSearchPage />} />
 
-        <Route path="/admin" element={<AdminPanelPage/>}/>
-
         <Route path="/seller-request" element={<SellerRequestPage/>}/>
 
         <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminPanelPage />} />
+          <Route path="/support-panel" element={<SupportPanelPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/seller/store" element={<SellerStorePage />} />
+          <Route
+            path="/seller/products/new"
+            element={<SellerProductRequestPage />}
+          />
+          <Route
+            path="/seller/products/:productId/edit"
+            element={<SellerProductEditPage />}
+          />
         </Route>
 
         <Route element={<AuthLayout />}>

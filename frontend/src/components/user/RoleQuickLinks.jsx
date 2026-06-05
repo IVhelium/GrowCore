@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ShieldCheck, Store, UserCog } from "lucide-react";
+import { PackagePlus, ShieldCheck, Store, UserCog } from "lucide-react";
 
 function getUserRoles(user) {
   return (
@@ -25,21 +25,44 @@ export default function RoleQuickLinks({
   const isSeller = roles.includes("seller");
   const links = [];
 
-  if (isAdmin || isSupport) {
+  if (isAdmin) {
     links.push({
       to: "/admin",
-      label: isAdmin ? "Admin panel" : "Support panel",
+      label: "Admin panel",
       icon: UserCog,
       style: "bg-slate-950 text-white hover:bg-slate-800",
     });
   }
 
+  if (isSupport) {
+    links.push({
+      to: "/support-panel",
+      label: "Support panel",
+      icon: UserCog,
+      style: isAdmin
+        ? "border border-slate-200 bg-white text-slate-700 hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+        : "bg-slate-950 text-white hover:bg-slate-800",
+    });
+  }
+
   if (isSeller) {
+    links.push({
+      to: "/seller/store",
+      label: "My store",
+      icon: Store,
+      style: "bg-[#4F8A5B] text-white hover:bg-[#3F7148]",
+    });
+    links.push({
+      to: "/seller/products/new",
+      label: "Add product",
+      icon: PackagePlus,
+      style: "border border-[#4F8A5B] bg-white text-[#4F8A5B] hover:bg-[#F2F8F3]",
+    });
     links.push({
       to: "/seller-request",
       label: "Seller status",
       icon: ShieldCheck,
-      style: "border border-[#4F8A5B] bg-white text-[#4F8A5B] hover:bg-[#F2F8F3]",
+      style: "border border-slate-200 bg-white text-slate-700 hover:border-[#4F8A5B] hover:text-[#4F8A5B]",
     });
   }
 

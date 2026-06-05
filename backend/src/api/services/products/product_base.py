@@ -237,3 +237,19 @@ class ProductBaseService:
         product.rejection_reason = None
         product.moderated_at = None
         product.moderator_id = None
+
+
+    @staticmethod
+    def _send_product_to_moderation(
+        product: ProductModel,
+    ) -> None:
+        """
+        Sends a seller product back to moderation after public-facing changes.
+        Quantity and description changes are applied without moderation.
+        """
+
+        product.moderation_status = ProductModerationStatus.pending
+        product.enabled = False
+        product.rejection_reason = None
+        product.moderated_at = None
+        product.moderator_id = None

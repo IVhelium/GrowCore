@@ -4,8 +4,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.core.constants import ProductModerationStatus
-from src.models import CartItemModel, CartModel, ProductModel, UserModel
+from src.core.constants import OrderStatus, ProductModerationStatus
+from src.models import CartItemModel, CartModel, OrderItemModel, OrderModel, ProductModel, UserModel
 from src.schemas import AddCartItemDTO, UpdateCartItemDTO
 
 
@@ -410,6 +410,77 @@ class CartService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not clear cart",
+            ) from exc
+
+        return await self.get_my_cart(current_user)
+
+
+    async def checkout(
+        self,
+        current_user: UserModel,
+    ) -> CartModel:
+        """
+        Completes a purchase from the current cart.
+        Stock is decreased only here, not when products are added to cart.
+        """
+
+        try:
+            cart = await self._get_cart(current_user)
+
+            if not cart or not cart.items:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Cart is empty",
+                )
+
+            total_price = 0
+
+            for item in cart.items:
+                product = await self._get_available_product(item.product_id)
+
+                if item.quantity > product.quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=f"Not enough quantity for {product.title}",
+                    )
+
+                total_price += product.price * item.quantity
+
+            order = OrderModel(
+                user_id=current_user.id,
+                status=OrderStatus.inTransit,
+                total_price=total_price,
+            )
+            self.db.add(order)
+            await self.db.flush()
+
+            for item in list(cart.items):
+                product = await self._get_available_product(item.product_id)
+                product.quantity -= item.quantity
+
+                self.db.add(
+                    OrderItemModel(
+                        order_id=order.id,
+                        product_id=product.id,
+                        price=product.price,
+                        quantity=item.quantity,
+                    )
+                )
+
+                await self.db.delete(item)
+
+            await self.db.commit()
+
+        except HTTPException:
+            await self._safe_rollback()
+            raise
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not complete checkout",
             ) from exc
 
         return await self.get_my_cart(current_user)

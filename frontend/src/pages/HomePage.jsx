@@ -11,7 +11,6 @@ import Benefits from "../components/home/Benefits";
 
 const HOME_PAGE_SIZE = 12;
 
-// Home page product feed with catalog sidebar and paginated product section.
 export default function HomePage({
   products = [],
   categories = [],
@@ -20,7 +19,7 @@ export default function HomePage({
   favoriteProductIds = [],
 }) {
   const productsSectionRef = useRef(null);
-  // Randomized product order for a less static home feed.
+
   const randomProducts = useMemo(() => randomArray(products), [products]);
   const {
     currentPage,
@@ -30,7 +29,6 @@ export default function HomePage({
     changePage,
   } = usePagination(randomProducts, HOME_PAGE_SIZE);
 
-  // Product section scroll restoration after pagination changes.
   function handlePageChange(page) {
     changePage(page);
     productsSectionRef.current?.scrollIntoView({

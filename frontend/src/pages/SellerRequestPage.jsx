@@ -17,17 +17,17 @@ const benefits = [
   {
     icon: Building2,
     title: "Create your store",
-    text: "Publish components, sensors and replacement parts under your own seller profile.",
+    text: "Publish components, sensors and replacement parts under your own seller profile",
   },
   {
     icon: ShieldCheck,
     title: "Verified seller status",
-    text: "After moderation, your products can be listed in the GrowCore catalog.",
+    text: "After moderation, your products can be listed in the GrowCore catalog",
   },
   {
     icon: FileText,
     title: "Simple moderation",
-    text: "Submit your business details and wait for administrator approval.",
+    text: "Submit your business details and wait for administrator approval",
   },
 ];
 
@@ -141,7 +141,7 @@ export default function SellerRequestPage() {
         <PageHeader
           pretitle="Seller request"
           title="Become a GrowCore seller"
-          text="Apply to sell garden automation parts, sensors, controllers and replacement components."
+          text="Apply to sell garden automation parts, sensors, controllers and replacement components"
         />
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
@@ -155,7 +155,7 @@ export default function SellerRequestPage() {
               </h2>
               <p className="mt-2 text-sm text-slate-500">
                 Fill in the seller details. The administrator will review your
-                application.
+                application
               </p>
             </div>
 
@@ -257,7 +257,7 @@ export default function SellerRequestPage() {
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Contact support if you are not sure how to prepare a seller
-                request.
+                request
               </p>
             </article>
           </aside>

@@ -1,6 +1,6 @@
 from decimal import Decimal
 import uuid
-from sqlalchemy import ForeignKey, Numeric
+from sqlalchemy import Enum as SQLAlchemyEnum, ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.constants import OrderStatus
 from src.core.custom_types import intPk, createdAt
@@ -12,7 +12,10 @@ class OrderModel(Base):
     __tablename__ = "orders"
     
     id: Mapped[intPk]
-    status: Mapped[OrderStatus]
+    status: Mapped[OrderStatus] = mapped_column(
+        SQLAlchemyEnum(OrderStatus, name="orderstatus"),
+        default=OrderStatus.inTransit,
+    )
     total_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     
     created_at: Mapped[createdAt]

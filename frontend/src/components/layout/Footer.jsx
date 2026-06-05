@@ -4,6 +4,8 @@ import Container from "../common/Container";
 import RoleQuickLinks from "../user/RoleQuickLinks";
 
 
+const FOOTER_CATEGORY_LIMIT = 6;
+
 // Site footer with backend category links and static informational links.
 export default function Footer({ categories = [], user = null }) {
     return (
@@ -29,7 +31,7 @@ export default function Footer({ categories = [], user = null }) {
           <div>
             <h3 className="mb-4 font-bold text-slate-950">Catalog</h3>
             <nav className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-500">
-              {categories.slice(0, 10).map((category) => (
+              {categories.slice(0, FOOTER_CATEGORY_LIMIT).map((category) => (
                 <Link
                   key={category.id}
                   to={`/catalog?category=${category.id}`}

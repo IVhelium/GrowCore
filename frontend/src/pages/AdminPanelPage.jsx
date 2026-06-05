@@ -5,8 +5,6 @@ import {
   PackageCheck,
   ShieldAlert,
   Store,
-  Ticket,
-  UserCheck,
   XCircle,
 } from "lucide-react";
 import {
@@ -19,7 +17,6 @@ import {
   getSellerRequests,
   rejectSellerRequest,
 } from "../api/sellerRequestApi";
-import { assignSupportTicket, getSupportTickets } from "../api/supportApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
@@ -76,8 +73,6 @@ export default function AdminPanelPage() {
   const [productTotal, setProductTotal] = useState(0);
   const [sellerRequests, setSellerRequests] = useState([]);
   const [sellerRequestTotal, setSellerRequestTotal] = useState(0);
-  const [tickets, setTickets] = useState([]);
-  const [ticketTotal, setTicketTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [busyKey, setBusyKey] = useState("");
@@ -86,10 +81,9 @@ export default function AdminPanelPage() {
     setIsLoading(true);
     setErrorMessage("");
 
-    const [productResult, requestResult, ticketResult] = await Promise.allSettled([
+    const [productResult, requestResult] = await Promise.allSettled([
       getPendingProducts(),
       getSellerRequests({ status: "pending" }),
-      getSupportTickets({ status: "open" }),
     ]);
 
     if (productResult.status === "fulfilled") {
@@ -110,19 +104,9 @@ export default function AdminPanelPage() {
       setSellerRequestTotal(0);
     }
 
-    if (ticketResult.status === "fulfilled") {
-      const ticketPage = ticketResult.value;
-      setTickets(ticketPage.items);
-      setTicketTotal(ticketPage.total);
-    } else {
-      setTickets([]);
-      setTicketTotal(0);
-    }
-
     const failedResults = [
       productResult,
       requestResult,
-      ticketResult,
     ].filter((result) => result.status === "rejected");
 
     if (failedResults.length > 0) {
@@ -157,14 +141,14 @@ export default function AdminPanelPage() {
         text: "New seller applications",
       },
       {
-        title: "Support tickets",
-        value: ticketTotal,
-        icon: Ticket,
-        text: "Open user requests",
+        title: "Admin queues",
+        value: productTotal + sellerRequestTotal,
+        icon: ShieldAlert,
+        text: "Items awaiting administrator review",
       },
       {
         title: "Visible queues",
-        value: products.length + sellerRequests.length + tickets.length,
+        value: products.length + sellerRequests.length,
         icon: ShieldAlert,
         text: "Items loaded on this dashboard",
       },
@@ -174,8 +158,6 @@ export default function AdminPanelPage() {
       products.length,
       sellerRequestTotal,
       sellerRequests.length,
-      ticketTotal,
-      tickets.length,
     ],
   );
 
@@ -212,7 +194,7 @@ export default function AdminPanelPage() {
         <PageHeader
           pretitle="Admin"
           title="Admin panel"
-          text="Moderate seller requests, products and support tickets from one dashboard."
+          text="Moderate seller requests, products and support tickets from one dashboard"
         />
 
         {errorMessage && (
@@ -233,7 +215,7 @@ export default function AdminPanelPage() {
           ))}
         </section>
 
-        <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
+        <div className="mt-8 grid gap-6">
           <div className="grid gap-6">
             <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
@@ -242,7 +224,7 @@ export default function AdminPanelPage() {
                     Product moderation
                   </h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Review products before they appear in the catalog.
+                    Review products before they appear in the catalog
                   </p>
                 </div>
                 <Clock className="text-slate-400" size={22} />
@@ -320,14 +302,14 @@ export default function AdminPanelPage() {
                   Seller requests
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Approve or reject seller applications.
+                  Approve or reject seller applications
                 </p>
               </div>
 
               <div className="divide-y divide-slate-100">
                 {sellerRequests.length === 0 && (
                   <p className="p-5 text-sm text-slate-500">
-                    No seller requests waiting for review.
+                    No seller requests waiting for review
                   </p>
                 )}
 
@@ -387,56 +369,6 @@ export default function AdminPanelPage() {
               </div>
             </section>
           </div>
-
-          <aside className="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-5 py-4">
-              <h2 className="text-xl font-bold text-slate-950">
-                Support queue
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Recent user tickets.
-              </p>
-            </div>
-
-            <div className="divide-y divide-slate-100">
-              {tickets.length === 0 && (
-                <p className="p-5 text-sm text-slate-500">
-                  No open support tickets.
-                </p>
-              )}
-
-              {tickets.map((ticket) => (
-                <article key={ticket.id} className="p-5">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="font-bold text-slate-950">#{ticket.id}</h3>
-                    <StatusBadge status={ticket.status} />
-                  </div>
-                  <p className="text-sm font-semibold text-slate-700">
-                    {ticket.subject}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {ticket.user?.username || "GrowCore user"}
-                  </p>
-                  <Button
-                    style="secondary"
-                    size="sm"
-                    className="mt-4 w-full"
-                    disabled={busyKey === `ticket-${ticket.id}`}
-                    onClick={() =>
-                      runAction(
-                        `ticket-${ticket.id}`,
-                        () => assignSupportTicket(ticket.id),
-                        "Ticket assigned",
-                      )
-                    }
-                  >
-                    <UserCheck size={16} />
-                    Assign to me
-                  </Button>
-                </article>
-              ))}
-            </div>
-          </aside>
         </div>
       </Container>
     </main>

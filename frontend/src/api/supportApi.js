@@ -30,7 +30,36 @@ export async function getSupportTickets({ limit = 12, offset = 0, status } = {})
   };
 }
 
+export async function getMySupportTickets({ limit = 20, offset = 0 } = {}) {
+  const { data } = await apiClient.get("/support/tickets/me", {
+    params: getPaginationParams({ limit, offset }),
+  });
+
+  return {
+    ...data,
+    items: (data.items || []).map(normalizeSupportTicket),
+  };
+}
+
+export async function createSupportTicket(payload) {
+  const { data } = await apiClient.post("/support/tickets", {
+    subject: payload.subject,
+    message: payload.message,
+  });
+
+  return normalizeSupportTicket(data);
+}
+
 export async function assignSupportTicket(ticketId) {
   const { data } = await apiClient.patch(`/support/tickets/${ticketId}/assign`);
+  return normalizeSupportTicket(data);
+}
+
+export async function updateSupportTicket(ticketId, payload) {
+  const { data } = await apiClient.patch(`/support/tickets/${ticketId}`, {
+    response: payload.response || undefined,
+    status: payload.status || undefined,
+  });
+
   return normalizeSupportTicket(data);
 }

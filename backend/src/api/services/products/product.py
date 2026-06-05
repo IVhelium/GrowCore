@@ -123,16 +123,15 @@ class ProductService(ProductBaseService):
         schema: UpdateProductDTO,
     ) -> ProductModel:
         """
-        Updates a draft or rejected item
-        If an item was rejected, it is returned to draft status after being modified
+        Updates any seller product.
+        Quantity and description changes are applied immediately.
+        Public-facing changes are sent to moderation.
         """
 
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
         )
-
-        self._ensure_product_editable(product)
 
         data = schema.model_dump(exclude_unset=True)
 
@@ -160,11 +159,21 @@ class ProductService(ProductBaseService):
                     detail="Product description cannot be empty",
                 )
 
+        moderation_fields = {
+            "title",
+            "price",
+            "category_id",
+        }
+        needs_moderation = False
+
         for field, value in data.items():
+            if field in moderation_fields and getattr(product, field) != value:
+                needs_moderation = True
+
             setattr(product, field, value)
 
-        # If an item has been rejected, any edit will revert it to draft status
-        self._reset_rejected_product_to_draft(product)
+        if needs_moderation:
+            self._send_product_to_moderation(product)
 
         try:
             await self.db.commit()

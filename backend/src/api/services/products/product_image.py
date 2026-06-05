@@ -41,8 +41,6 @@ class ProductImageService(ProductBaseService):
             product_id=product_id,
         )
 
-        self._ensure_product_editable(product)
-
         if not product.image_storage_prefix:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -76,8 +74,7 @@ class ProductImageService(ProductBaseService):
 
         self.db.add(product_image)
 
-        # If an item has been rejected, changing the image is considered a correction
-        self._reset_rejected_product_to_draft(product)
+        self._send_product_to_moderation(product)
 
         try:
             await self.db.commit()
@@ -114,8 +111,6 @@ class ProductImageService(ProductBaseService):
             product_id=product_id,
         )
 
-        self._ensure_product_editable(product)
-
         product_image = next(
             (
                 image
@@ -135,7 +130,7 @@ class ProductImageService(ProductBaseService):
 
         await self.db.delete(product_image)
 
-        self._reset_rejected_product_to_draft(product)
+        self._send_product_to_moderation(product)
 
         try:
             await self.db.commit()

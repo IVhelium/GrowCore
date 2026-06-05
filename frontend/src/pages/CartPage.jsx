@@ -6,13 +6,13 @@ import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
 import CartSummary from './../components/cart/CartSummary';
 
-// Cart page with empty state, quantity controls, and order summary.
+
 export default function CartPage({
   items = [],
   onQuantityChange,
   onRemove,
+  onCheckout,
 }) {
-  // Empty cart route state.
   if (!items.length) {
     return (
       <main>
@@ -51,7 +51,7 @@ export default function CartPage({
               />
             ))}
           </div>
-          <CartSummary items={items}/>
+          <CartSummary items={items} onCheckout={onCheckout} />
         </div>
       </Container>
     </main>

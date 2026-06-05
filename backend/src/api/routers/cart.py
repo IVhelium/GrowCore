@@ -107,3 +107,18 @@ async def clear_cart(
     await cart_service.clear_cart(current_user)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/checkout",
+    response_model=ReadCartDTO,
+)
+async def checkout_cart(
+    current_user: CurrentUserDependency,
+    cart_service: CartServiceDependency,
+):
+    """
+    Completes purchase and decreases product stock.
+    """
+
+    return await cart_service.checkout(current_user)
