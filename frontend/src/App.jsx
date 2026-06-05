@@ -20,6 +20,8 @@ import AuthLayout from "./layout/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import FavoritesPage from "./pages/FavoritesPage";
+import AdminPanelPage from "./pages/AdminPanelPage";
+import SellerRequestPage from "./pages/SellerRequestPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -27,10 +29,9 @@ export default function App() {
     products: backendProducts,
     productsError,
   } = useProducts();
-  // Backend category catalog shared across catalog navigation UI.
+
   const { categories } = useCategories();
   
-  // Demo product fallback for unauthenticated empty backend catalog.
   const visibleProducts =
     (productsError || backendProducts.length === 0) && !isAuthenticated
       ? products
@@ -67,7 +68,6 @@ export default function App() {
     categories,
   });
 
-  // Stock-limit validation for favorite-to-cart movement.
   function canMoveFavoriteToCart(product, currentCart) {
     const cartItem = currentCart.find(
       (item) => String(item.productId) === String(product.id),
@@ -212,6 +212,10 @@ export default function App() {
         />
 
         <Route path="/users" element={<UsersSearchPage />} />
+
+        <Route path="/admin" element={<AdminPanelPage/>}/>
+
+        <Route path="/seller-request" element={<SellerRequestPage/>}/>
 
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<ProfilePage />} />

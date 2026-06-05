@@ -84,6 +84,16 @@ export function useProductCatalog({
         });
 
         if (isActive) {
+          const maxPage = Math.max(
+            1,
+            Math.ceil(productPage.total / CATALOG_PAGE_SIZE),
+          );
+
+          if (currentPage > maxPage) {
+            setCurrentPage(maxPage);
+            return;
+          }
+
           setBackendCatalogPage({
             items: productPage.items,
             total: productPage.total,

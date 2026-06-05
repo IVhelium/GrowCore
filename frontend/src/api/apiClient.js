@@ -187,3 +187,13 @@ export function resolvestorageUrl(path) {
 
   return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
+
+export function getPaginationParams({ limit = 20, offset = 0 } = {}) {
+  const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+
+  return {
+    limit: safeLimit,
+    offset: safeOffset,
+  };
+}

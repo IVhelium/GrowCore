@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { Leaf } from "lucide-react";
 import Container from "../common/Container";
+import RoleQuickLinks from "../user/RoleQuickLinks";
 
 
 // Site footer with backend category links and static informational links.
-export default function Footer({ categories = [] }) {
+export default function Footer({ categories = [], user = null }) {
     return (
       <footer className="mt-10 border-t border-slate-200 bg-white pb-20 md:pb-0">
         <Container className="grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
@@ -80,6 +81,12 @@ export default function Footer({ categories = [] }) {
             </div>
           </div>
         </Container>
+
+        {user && (
+          <Container className="border-t border-slate-100 py-6">
+            <RoleQuickLinks user={user} compact />
+          </Container>
+        )}
 
         <div className="border-t border-slate-100 px-4 py-5 text-center text-sm text-slate-400">
           © GrowCore

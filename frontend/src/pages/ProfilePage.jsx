@@ -6,6 +6,7 @@ import PageHeader from './../components/common/PageHader';
 import UserProfileCard from '../components/user/UserProfileCard';
 import AvatarEditor from '../components/user/AvatarEditor';
 import ProfileForm from '../components/user/ProfileForm';
+import RoleQuickLinks from '../components/user/RoleQuickLinks';
 
 export default function ProfilePage() {
     const { user, logout, updateProfile, uploadAvatar, deleteAvatar, reloadUser } = useAuth();
@@ -55,6 +56,10 @@ export default function ProfilePage() {
                             onSave={saveProfileChanges}
                             hasPendingAvatar={Boolean(pendingAvatarFile)}
                         />
+
+                        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <RoleQuickLinks user={user} />
+                        </section>
                     </div>
                 </div>
             </Container>

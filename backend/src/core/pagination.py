@@ -37,6 +37,28 @@ PaginationDependency = Annotated[
 
 class PaginationService:
     @staticmethod
+    def _count_query_source(query: Select) -> Select:
+        """
+        Builds a count-safe version of an ORM select.
+
+        List queries often include eager-load options such as selectinload().
+        Those options are valid for fetching model rows, but can break when the
+        same select is wrapped as a count subquery. Clearing them keeps count
+        pagination generic without changing how page items are loaded.
+        """
+
+        count_source = (
+            query
+            .order_by(None)
+            .limit(None)
+            .offset(None)
+            ._generate()
+        )
+        count_source._with_options = ()
+
+        return count_source
+
+    @staticmethod
     async def paginate(
         *,
         db: AsyncSession,
@@ -56,11 +78,7 @@ class PaginationService:
             then wrap the query in a subquery
             """
             count_query = select(func.count()).select_from(
-                query
-                .order_by(None)
-                .limit(None)
-                .offset(None)
-                .subquery()
+                PaginationService._count_query_source(query).subquery()
             )
 
             total = await db.scalar(count_query)

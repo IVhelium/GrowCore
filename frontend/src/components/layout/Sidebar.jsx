@@ -13,6 +13,7 @@ function CatalogLink({ item }) {
       to={`/catalog?category=${item.id}`}
       className="group flex min-h-11 items-center gap-3 border-b border-slate-100 px-4 py-2.5 text-sm text-slate-700 transition last:border-b-0 hover:bg-[#F2F8F3] hover:text-[#4F8A5B]"
     >
+      {/* eslint-disable-next-line react-hooks/static-components */}
       <Icon
         size={18}
         strokeWidth={1.8}

@@ -1,4 +1,4 @@
-import { apiClient, resolvestorageUrl } from "./apiClient";
+import { apiClient, getPaginationParams, resolvestorageUrl } from "./apiClient";
 import { normalizeCart } from "./cartApi";
 
 const FAVORITES_LIST_LIMIT = 100;
@@ -31,10 +31,7 @@ export async function getFavorites({
   offset = 0,
 } = {}) {
   const { data } = await apiClient.get("/favorites", {
-    params: {
-      limit,
-      offset,
-    },
+    params: getPaginationParams({ limit, offset }),
   });
 
   return {

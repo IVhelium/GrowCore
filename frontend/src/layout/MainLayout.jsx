@@ -3,6 +3,7 @@ import Header from "../components/layout/Header";
 import TopBar from "../components/layout/TopBar"
 import Footer from "../components/layout/Footer";
 import MobileBottomNav from "../components/layout/MobileBottomNav";
+import { useAuth } from "../hooks/useAuth";
 
 
 // Main application shell for public and protected content routes.
@@ -12,6 +13,7 @@ export default function MainLayout({
   categories = [],
 }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Header search navigation into catalog query params.
   function handleSearch(query) {
@@ -28,7 +30,7 @@ export default function MainLayout({
         onSearch={handleSearch}
       />
       <Outlet />          {/* Nested page route outlet below the shared shell */}
-      <Footer categories={categories} />
+      <Footer categories={categories} user={user} />
       <MobileBottomNav />
     </div>
   );

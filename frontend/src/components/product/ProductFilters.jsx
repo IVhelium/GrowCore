@@ -12,6 +12,7 @@ export default function ProductFilters({ categories = [], onChange }) {
     return (
       <form
         onSubmit={handleSubmit}
+        onReset={() => onChange?.({})}
         className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24 lg:self-start"
       >
         <div className="mb-5 flex items-center justify-between">
