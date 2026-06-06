@@ -37,6 +37,7 @@ class CreateProductDTO(BaseModel):
     price: Decimal = Field(ge=0)
     quantity: int = Field(ge=0)
     category_id: int
+    attributes: dict[str, str] = Field(default_factory=dict)
 
     model_config = ConfigDict(extra="forbid")
     
@@ -49,6 +50,7 @@ class UpdateProductDTO(BaseModel):
     quantity: int | None = None
     enabled: bool | None = None
     category_id: int | None = None
+    attributes: dict[str, str] | None = None
     
     model_config = ConfigDict(extra="forbid")
     
@@ -83,6 +85,7 @@ class ReadProductDTO(BaseModel):
     
     price: Decimal
     quantity: int
+    attributes: dict[str, str] = Field(default_factory=dict)
     
     enabled: bool
     moderation_status: ProductModerationStatus

@@ -49,9 +49,40 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function ProductTabs({ product }) {
+function ProductTabs({ product, onReviewSubmit }) {
   const [activeTab, setActiveTab] = useState("description");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewError, setReviewError] = useState("");
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
   const reviews = product.reviews || [];
+
+  async function handleReviewSubmit(event) {
+    event.preventDefault();
+
+    if (!onReviewSubmit) {
+      return;
+    }
+
+    if (!reviewComment.trim()) {
+      setReviewError("Review cannot be empty.");
+      return;
+    }
+
+    setIsReviewSubmitting(true);
+    setReviewError("");
+
+    try {
+      await onReviewSubmit({
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+      });
+      setReviewRating(5);
+      setReviewComment("");
+    } finally {
+      setIsReviewSubmitting(false);
+    }
+  }
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -133,6 +164,69 @@ function ProductTabs({ product }) {
             </div>
 
             <div className="mt-6 grid gap-4">
+              <form
+                onSubmit={handleReviewSubmit}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-5"
+              >
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                  <div>
+                    <h4 className="font-bold text-slate-950">
+                      Leave a review
+                    </h4>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Rate the product and share your experience.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const value = index + 1;
+
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setReviewRating(value)}
+                          aria-label={`Rate ${value} stars`}
+                          className="grid h-9 w-9 place-items-center rounded-md text-amber-500 transition hover:bg-white"
+                        >
+                          <Star
+                            size={20}
+                            fill={value <= reviewRating ? "currentColor" : "none"}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <textarea
+                  value={reviewComment}
+                  onChange={(event) => {
+                    setReviewComment(event.target.value);
+                    if (reviewError) {
+                      setReviewError("");
+                    }
+                  }}
+                  placeholder="Write your review..."
+                  required
+                  rows={4}
+                  className={`mt-4 w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B] ${
+                    reviewError ? "border-red-300" : "border-slate-200"
+                  }`}
+                />
+                {reviewError && (
+                  <p className="mt-2 text-sm font-semibold text-red-600">
+                    {reviewError}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  disabled={isReviewSubmitting}
+                  className="mt-4"
+                >
+                  {isReviewSubmitting ? "Sending..." : "Submit review"}
+                </Button>
+              </form>
+
               {reviews.length === 0 && (
                 <p className="rounded-xl border border-slate-200 p-5 text-sm text-slate-500">
                   No reviews yet.
@@ -176,6 +270,7 @@ export default function ProductPage({
   error = null,
   onAddToCart,
   onToggleFavorite,
+  onReviewSubmit,
 }) {
   const images = useMemo(
     () => (product ? [product.image, ...(product.images || [])] : []),
@@ -349,7 +444,7 @@ export default function ProductPage({
         </div>
 
         <div className="mt-8">
-          <ProductTabs product={product} />
+          <ProductTabs product={product} onReviewSubmit={onReviewSubmit} />
         </div>
 
         {relatedProducts.length > 0 && (

@@ -147,6 +147,9 @@ export function useProductCatalog({
     filters.minPrice ||
     filters.maxPrice ||
     filters.label ||
+    filters.seller ||
+    filters.availability ||
+    filters.attributes ||
     sortValue !== "random";
 
   const shouldUseFallbackCatalog = catalogError || hasClientOnlyFilters;

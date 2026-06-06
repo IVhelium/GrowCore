@@ -3,7 +3,7 @@ from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
 from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
 from .Store.carts import ReadCartDTO, AddCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO, ReadCartProductDTO, ReadCartProductImageDTO
 from .Store.categories import CreateCategoryDTO, ReadCategoryDTO
-from .Store.orders import ReadOrderDTO, ReadOrderItemDTO
+from .Store.orders import ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO
 from .Store.products import (
     CreateProductDTO,
     ReadProductDTO,
@@ -41,6 +41,8 @@ ReadCartProductImageDTO.model_rebuild()
 ReadCategoryDTO.model_rebuild()
 ReadOrderDTO.model_rebuild()
 ReadOrderItemDTO.model_rebuild()
+ReadOrderProductDTO.model_rebuild()
+ReadOrderProductImageDTO.model_rebuild()
 ReadProductDTO.model_rebuild()
 ShortProductDTO.model_rebuild()
 ReadProductImageDTO.model_rebuild()

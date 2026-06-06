@@ -10,10 +10,6 @@ from src.schemas import AddCartItemDTO, UpdateCartItemDTO
 
 
 class CartService:
-    """
-    Сервис корзины пользователя
-    """
-
     def __init__(
         self,
         db: AsyncSession,
@@ -227,18 +223,7 @@ class CartService:
                 None,
             )
 
-            if existing_item:
-                new_quantity = existing_item.quantity + quantity
-
-                if new_quantity > product.quantity:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail="Not enough product quantity in stock",
-                    )
-
-                existing_item.quantity = new_quantity
-
-            else:
+            if not existing_item:
                 if quantity > product.quantity:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,

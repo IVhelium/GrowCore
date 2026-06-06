@@ -1,29 +1,28 @@
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 
 export default function CatalogPopoverCard({ 
   category,
   onClose 
 }) {
+    const Icon = getCategoryIcon(category.name);
+
     return (
       <Link
         to={`/catalog?category=${category.id}`}
         onClick={onClose}
-        className="group block overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-[#4F8A5B] hover:shadow-md"
+        className="group flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 transition hover:border-[#4F8A5B] hover:bg-[#4F8A5B]/5"
       >
-        <div className="aspect-4/3 overflow-hidden bg-slate-100">
-          <img
-            src={category.image}
-            alt={category.name}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
-        </div>
-        <div className="flex items-center justify-between gap-3 p-4">
-          <h3 className="text-sm font-bold text-slate-950 group-hover:text-[#4F8A5B]">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 group-hover:bg-[#4F8A5B] group-hover:text-white">
+            <Icon size={18} />
+          </span>
+          <h3 className="truncate text-sm font-bold text-slate-950 group-hover:text-[#4F8A5B]">
             {category.name}
           </h3>
-          <ChevronRight size={17} className="text-[#4F8A5B]"/>
         </div>
+        <ChevronRight size={17} className="shrink-0 text-[#4F8A5B]"/>
       </Link>
     );
 }

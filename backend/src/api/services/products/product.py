@@ -8,8 +8,8 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.files.file_storage import FileStorageService
 from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
-from src.models import ProductModel, UserModel
-from src.schemas import CreateProductDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
+from src.models import ProductModel, ReviewModel, UserModel
+from src.schemas import CreateProductDTO, CreateReviewDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
 
@@ -28,6 +28,22 @@ class ProductService(ProductBaseService):
     ):
         super().__init__(db)    # Passes the DB variable to the derived class
         self.file_storage_service = file_storage_service
+
+    @staticmethod
+    def _clean_attributes(attributes: dict | None) -> dict[str, str]:
+        if not attributes:
+            return {}
+
+        cleaned_attributes = {}
+
+        for key, value in attributes.items():
+            clean_key = str(key).strip()
+            clean_value = str(value).strip()
+
+            if clean_key and clean_value:
+                cleaned_attributes[clean_key] = clean_value
+
+        return cleaned_attributes
 
     async def create_draft(
         self,
@@ -48,6 +64,7 @@ class ProductService(ProductBaseService):
             description=schema.description.strip(),
             price=schema.price,
             quantity=schema.quantity,
+            attributes=self._clean_attributes(schema.attributes),
             category_id=schema.category_id,
             store_id=store.id,
             enabled=False,
@@ -159,10 +176,14 @@ class ProductService(ProductBaseService):
                     detail="Product description cannot be empty",
                 )
 
+        if "attributes" in data:
+            data["attributes"] = self._clean_attributes(data["attributes"])
+
         moderation_fields = {
             "title",
             "price",
             "category_id",
+            "attributes",
         }
         needs_moderation = False
 
@@ -394,3 +415,36 @@ class ProductService(ProductBaseService):
             )
 
         return product
+
+    async def create_review(
+        self,
+        current_user: UserModel,
+        product_id: int,
+        schema: CreateReviewDTO,
+    ) -> ProductModel:
+        product = await self.get_public_product(product_id)
+
+        review = ReviewModel(
+            user_id=current_user.id,
+            product_id=product.id,
+            rating=schema.rating,
+            comment=schema.comment.strip() or None,
+        )
+
+        total_rating = product.rating_avg * product.rating_count + schema.rating
+        product.rating_count += 1
+        product.rating_avg = total_rating / product.rating_count
+
+        try:
+            self.db.add(review)
+            await self.db.commit()
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not create review",
+            ) from exc
+
+        return await self._get_product(product.id)

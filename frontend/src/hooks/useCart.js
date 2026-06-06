@@ -68,6 +68,14 @@ export function useCart(initialItems = EMPTY_CART) {
 
   async function addToCart(product, quantity = 1) {
     const safeQuantity = Math.max(1, Number(quantity) || 1);
+    const existingItem = cart.find(
+      (item) => String(item.productId) === String(product.id),
+    );
+
+    if (existingItem) {
+      showToast("Product is already in cart");
+      return { items: cart };
+    }
 
     if (isAuthenticated) {
       try {
@@ -83,28 +91,7 @@ export function useCart(initialItems = EMPTY_CART) {
     }
 
     setCart((currentCart) => {
-      const existingItem = currentCart.find(
-        (item) => item.productId === product.id,
-      );
       const maxQuantity = product.quantity || product.maxQuantity || Infinity;
-
-      if (existingItem) {
-        const nextQuantity = Math.min(
-          maxQuantity,
-          existingItem.quantity + safeQuantity,
-        );
-
-        if (nextQuantity === existingItem.quantity) {
-          showToast("No more items in stock");
-          return currentCart;
-        }
-
-        return currentCart.map((item) =>
-          item.productId === product.id
-            ? { ...item, quantity: nextQuantity }
-            : item,
-        );
-      }
 
       if (safeQuantity > maxQuantity) {
         showToast("Not enough product quantity in stock");
@@ -209,7 +196,7 @@ export function useCart(initialItems = EMPTY_CART) {
   }
 
   const cartCount = useMemo(
-    () => cart.reduce((sum, item) => sum + item.quantity, 0),
+    () => cart.length,
     [cart],
   );
 

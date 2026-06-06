@@ -5,6 +5,22 @@ from uuid import UUID
 from pydantic import ConfigDict, BaseModel, Field
 
 from src.core.constants import OrderStatus
+
+
+class ReadOrderProductImageDTO(BaseModel):
+    id: int
+    image: str
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+
+class ReadOrderProductDTO(BaseModel):
+    id: int
+    title: str
+    price: Decimal
+    images: list[ReadOrderProductImageDTO] = []
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
     
     
 # Order Item Read Schema
@@ -12,7 +28,7 @@ class ReadOrderItemDTO(BaseModel):
     id: int
     price: Decimal
     quantity: int
-    product_id: "ReadProductDTO"
+    product: ReadOrderProductDTO
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
 
@@ -22,7 +38,7 @@ class ReadOrderDTO(BaseModel):
     id: int
     status: OrderStatus
     total_price: Decimal
-    created_id: datetime
+    created_at: datetime
     user_id: UUID
     items: list["ReadOrderItemDTO"] = []
     

@@ -7,7 +7,7 @@ export default function CartSummary({
     onCheckout
 }) {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const count = items.reduce((sum, item) => sum + item.quantity, 0);
+    const count = items.length;
 
     return (
         <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 lg:self-start">

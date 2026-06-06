@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ImagePlus, Save, Send } from "lucide-react";
+import { ImagePlus, Plus, Save, Send, X } from "lucide-react";
 import {
   getMySellerProduct,
   submitSellerProduct,
@@ -26,6 +26,9 @@ export default function SellerProductEditPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [attributeRows, setAttributeRows] = useState([
+    { id: crypto.randomUUID(), name: "", value: "" },
+  ]);
 
   useEffect(() => {
     let isActive = true;
@@ -40,6 +43,18 @@ export default function SellerProductEditPage() {
         if (isActive) {
           setProduct(loadedProduct);
           setPreviewUrl(loadedProduct.image);
+          const loadedAttributes = Object.entries(
+            loadedProduct.attributes || {},
+          ).map(([name, value]) => ({
+            id: crypto.randomUUID(),
+            name,
+            value,
+          }));
+          setAttributeRows(
+            loadedAttributes.length
+              ? loadedAttributes
+              : [{ id: crypto.randomUUID(), name: "", value: "" }],
+          );
         }
       } catch (error) {
         if (isActive) {
@@ -68,6 +83,7 @@ export default function SellerProductEditPage() {
   async function saveProduct(event) {
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.currentTarget));
+    payload.attributes = getAttributes();
 
     setIsSaving(true);
     setErrorMessage("");
@@ -98,6 +114,38 @@ export default function SellerProductEditPage() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  function getAttributes() {
+    return attributeRows.reduce((attributes, row) => {
+      const name = row.name.trim();
+      const value = String(row.value).trim();
+
+      if (name && value) {
+        attributes[name] = value;
+      }
+
+      return attributes;
+    }, {});
+  }
+
+  function updateAttributeRow(rowId, field, value) {
+    setAttributeRows((rows) =>
+      rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
+    );
+  }
+
+  function addAttributeRow() {
+    setAttributeRows((rows) => [
+      ...rows,
+      { id: crypto.randomUUID(), name: "", value: "" },
+    ]);
+  }
+
+  function removeAttributeRow(rowId) {
+    setAttributeRows((rows) =>
+      rows.length === 1 ? rows : rows.filter((row) => row.id !== rowId),
+    );
   }
 
   if (isLoading) {
@@ -195,6 +243,54 @@ export default function SellerProductEditPage() {
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                 />
               </label>
+
+              <div className="grid gap-3 md:col-span-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700">
+                    Catalog filter attributes
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Values here become dynamic filters in the catalog.
+                  </p>
+                </div>
+
+                {attributeRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                  >
+                    <input
+                      value={row.name}
+                      onChange={(event) =>
+                        updateAttributeRow(row.id, "name", event.target.value)
+                      }
+                      placeholder="Filter name, e.g. Brand"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                    />
+                    <input
+                      value={row.value}
+                      onChange={(event) =>
+                        updateAttributeRow(row.id, "value", event.target.value)
+                      }
+                      placeholder="Value, e.g. BigCompany"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeAttributeRow(row.id)}
+                      aria-label="Remove attribute"
+                      className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <X size={17} />
+                    </button>
+                  </div>
+                ))}
+
+                <Button type="button" style="secondary" onClick={addAttributeRow}>
+                  <Plus size={17} />
+                  Add attribute
+                </Button>
+              </div>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">

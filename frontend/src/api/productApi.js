@@ -24,6 +24,7 @@ export function normalizeProduct(product) {
     rating: Number(product.rating_avg ?? 0),
     ratingCount: product.rating_count ?? 0,
     quantity: product.quantity,
+    attributes: product.attributes || {},
     enabled: product.enabled,
     moderationStatus: product.moderation_status,
     rejectionReason: product.rejection_reason,
@@ -61,6 +62,15 @@ export async function getProducts({
 
 export async function getProduct(productId) {
   const { data } = await apiClient.get(`/products/${productId}`);
+  return normalizeProduct(data);
+}
+
+export async function createProductReview(productId, payload) {
+  const { data } = await apiClient.post(`/products/${productId}/reviews`, {
+    rating: Number(payload.rating),
+    comment: payload.comment || "",
+  });
+
   return normalizeProduct(data);
 }
 
@@ -115,6 +125,7 @@ export async function createSellerProduct(payload) {
     price: Number(payload.price),
     quantity: Number(payload.quantity),
     category_id: Number(payload.categoryId),
+    attributes: payload.attributes || {},
   });
 
   return normalizeProduct(data);
@@ -127,6 +138,7 @@ export async function updateSellerProduct(productId, payload) {
     price: payload.price === "" ? undefined : Number(payload.price),
     quantity: payload.quantity === "" ? undefined : Number(payload.quantity),
     category_id: payload.categoryId ? Number(payload.categoryId) : undefined,
+    attributes: payload.attributes,
   };
 
   const { data } = await apiClient.patch(`/seller/products/${productId}`, body);

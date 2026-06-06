@@ -26,6 +26,7 @@ import SellerProductRequestPage from "./pages/SellerProductRequestPage";
 import SupportPanelPage from "./pages/SupportPanelPage";
 import SellerProductEditPage from "./pages/SellerProductEditPage";
 import SupportPage from "./pages/SupportPage";
+import OrderPage from "./pages/OrderPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -60,8 +61,6 @@ export default function App() {
     catalogTotal,
     catalogPageSize,
     currentPage,
-    searchValue,
-    searchCatalog,
     changeCatalogFilters,
     changeCatalogSort,
     setCurrentPage,
@@ -165,8 +164,7 @@ export default function App() {
               total={catalogTotal}
               currentPage={currentPage}
               pageSize={catalogPageSize}
-              searchValue={searchValue}
-              onSearch={searchCatalog}
+              filterProducts={visibleProducts}
               onFilterChange={changeCatalogFilters}
               onSortChange={changeCatalogSort}
               onPageChange={setCurrentPage}
@@ -213,6 +211,10 @@ export default function App() {
             />
           }
         />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/orders" element={<OrderPage />} />
+        </Route>
 
         <Route path="/users" element={<UsersSearchPage />} />
 

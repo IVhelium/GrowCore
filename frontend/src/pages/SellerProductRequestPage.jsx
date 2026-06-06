@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ImagePlus, Send } from "lucide-react";
+import { ImagePlus, Plus, Send, X } from "lucide-react";
 import {
   createSellerProduct,
   submitSellerProduct,
@@ -21,6 +21,9 @@ export default function SellerProductRequestPage() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [attributeRows, setAttributeRows] = useState([
+    { id: crypto.randomUUID(), name: "", value: "" },
+  ]);
 
   function handleImageChange(event) {
     const file = event.target.files?.[0] || null;
@@ -38,6 +41,7 @@ export default function SellerProductRequestPage() {
     }
 
     const payload = Object.fromEntries(new FormData(event.currentTarget));
+    payload.attributes = getAttributes();
 
     setIsSubmitting(true);
     setErrorMessage("");
@@ -57,6 +61,38 @@ export default function SellerProductRequestPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function getAttributes() {
+    return attributeRows.reduce((attributes, row) => {
+      const name = row.name.trim();
+      const value = row.value.trim();
+
+      if (name && value) {
+        attributes[name] = value;
+      }
+
+      return attributes;
+    }, {});
+  }
+
+  function updateAttributeRow(rowId, field, value) {
+    setAttributeRows((rows) =>
+      rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
+    );
+  }
+
+  function addAttributeRow() {
+    setAttributeRows((rows) => [
+      ...rows,
+      { id: crypto.randomUUID(), name: "", value: "" },
+    ]);
+  }
+
+  function removeAttributeRow(rowId) {
+    setAttributeRows((rows) =>
+      rows.length === 1 ? rows : rows.filter((row) => row.id !== rowId),
+    );
   }
 
   return (
@@ -141,6 +177,54 @@ export default function SellerProductRequestPage() {
                   placeholder="Describe product compatibility, materials, use case and package details..."
                 />
               </label>
+
+              <div className="grid gap-3 md:col-span-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700">
+                    Catalog filter attributes
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Add product characteristics that should appear in catalog filters.
+                  </p>
+                </div>
+
+                {attributeRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                  >
+                    <input
+                      value={row.name}
+                      onChange={(event) =>
+                        updateAttributeRow(row.id, "name", event.target.value)
+                      }
+                      placeholder="Filter name, e.g. Brand"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                    />
+                    <input
+                      value={row.value}
+                      onChange={(event) =>
+                        updateAttributeRow(row.id, "value", event.target.value)
+                      }
+                      placeholder="Value, e.g. BigCompany"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeAttributeRow(row.id)}
+                      aria-label="Remove attribute"
+                      className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <X size={17} />
+                    </button>
+                  </div>
+                ))}
+
+                <Button type="button" style="secondary" onClick={addAttributeRow}>
+                  <Plus size={17} />
+                  Add attribute
+                </Button>
+              </div>
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="mt-6">

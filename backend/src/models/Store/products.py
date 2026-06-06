@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 from decimal import Decimal
-from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy import ForeignKey, JSON, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.constants import ProductModerationStatus
 from src.core.custom_types import intPk, createdAt
@@ -16,6 +16,7 @@ class ProductModel(Base):
     price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     quantity: Mapped[int]
     enabled: Mapped[bool] = mapped_column(default=True)
+    attributes: Mapped[dict] = mapped_column(JSON, default=dict)
     
     rating_avg: Mapped[Decimal] = mapped_column(Numeric(precision=3, scale=1), default=0)
     rating_count: Mapped[int] = mapped_column(default=0)

@@ -38,6 +38,17 @@ export function filterProducts({
     : filters.label
       ? [filters.label]
       : [];
+  const sellers = Array.isArray(filters.seller)
+    ? filters.seller
+    : filters.seller
+      ? [filters.seller]
+      : [];
+  const availability = Array.isArray(filters.availability)
+    ? filters.availability
+    : filters.availability
+      ? [filters.availability]
+      : [];
+  const attributeFilters = filters.attributes || {};
 
   return products.filter((product) => {
     const query = searchValue.trim().toLowerCase();
@@ -50,7 +61,28 @@ export function filterProducts({
     const matchesCategory = !categoryName || product.category === categoryName;
     const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
     const matchesLabel = labels.length === 0 || labels.includes(product.label);
+    const matchesSeller =
+      sellers.length === 0 || sellers.includes(product.store?.name || "");
+    const matchesAvailability =
+      availability.length === 0 ||
+      availability.some((value) =>
+        value === "ready" ? product.quantity > 0 : product.quantity <= 0,
+      );
+    const matchesAttributes = Object.entries(attributeFilters).every(
+      ([name, values]) => {
+        const selectedValues = Array.isArray(values) ? values : [values];
+        return selectedValues.includes(product.attributes?.[name]);
+      },
+    );
 
-    return matchesSearch && matchesCategory && matchesPrice && matchesLabel;
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesPrice &&
+      matchesLabel &&
+      matchesSeller &&
+      matchesAvailability &&
+      matchesAttributes
+    );
   });
 }

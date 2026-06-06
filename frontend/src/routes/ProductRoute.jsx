@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProduct } from "../api/productApi";
+import { createProductReview, getProduct } from "../api/productApi";
 import ProductPage from "../pages/ProductPage";
+import { showToast } from "../utils/showToast";
 
 export default function ProductRoute({
   products = [],
@@ -55,6 +56,13 @@ export default function ProductRoute({
     [product?.id, productId, products],
   );
 
+  async function handleReviewSubmit(payload) {
+    const updatedProduct = await createProductReview(productId, payload);
+    setProduct(updatedProduct);
+    showToast("Review added", "success");
+    return updatedProduct;
+  }
+
   return (
     <ProductPage
       product={product}
@@ -63,6 +71,7 @@ export default function ProductRoute({
       error={productError}
       onAddToCart={onAddToCart}
       onToggleFavorite={onToggleFavorite}
+      onReviewSubmit={handleReviewSubmit}
       favoriteProductIds={favoriteProductIds}
     />
   );

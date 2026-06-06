@@ -4,6 +4,7 @@ from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from src.core.dependencies import (
     AdminDependency,
+    CurrentUserDependency,
     ProductImageServiceDependency,
     ProductModerationServiceDependency,
     ProductServiceDependency,
@@ -12,6 +13,7 @@ from src.core.dependencies import (
 from src.core.pagination import PaginationDependency
 from src.schemas import (
     CreateProductDTO,
+    CreateReviewDTO,
     PaginationDTO,
     ReadProductDTO,
     RejectProductDTO,
@@ -59,6 +61,28 @@ async def get_public_product(
     """
 
     return await product_service.get_public_product(product_id)
+
+
+@router.post(
+    "/products/{product_id}/reviews",
+    response_model=ReadProductDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_product_review(
+    product_id: int,
+    dto: CreateReviewDTO,
+    current_user: CurrentUserDependency,
+    product_service: ProductServiceDependency,
+):
+    """
+    Adds a buyer review with rating to a public product
+    """
+
+    return await product_service.create_review(
+        current_user=current_user,
+        product_id=product_id,
+        schema=dto,
+    )
 
 
 @router.post(

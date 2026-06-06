@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CartItem from "../components/cart/CartItem";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
@@ -13,6 +13,16 @@ export default function CartPage({
   onRemove,
   onCheckout,
 }) {
+  const navigate = useNavigate();
+
+  async function handleCheckout() {
+    const result = await onCheckout?.();
+
+    if (result) {
+      navigate("/orders");
+    }
+  }
+
   if (!items.length) {
     return (
       <main>
@@ -51,7 +61,7 @@ export default function CartPage({
               />
             ))}
           </div>
-          <CartSummary items={items} onCheckout={onCheckout} />
+          <CartSummary items={items} onCheckout={handleCheckout} />
         </div>
       </Container>
     </main>

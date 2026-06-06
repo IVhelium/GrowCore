@@ -76,7 +76,7 @@ export default function Footer({ categories = [], user = null }) {
                 +351 930 050 384
               </a>
               <span>Parts dispatch from 8:00 to 23:00</span>
-              <span>Adress</span>
+              <span>R. Dr. Domingos Rosado, 7005-469 Évora, Portugal</span>
               <button className="mt-2 rounded-lg bg-[#4F8A5B] px-5 py-3 font-semibold text-white transition hover:bg-[#3F7148]">
                 Request a callback
               </button>

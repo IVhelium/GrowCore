@@ -22,6 +22,7 @@ from src.api.services.support_ticket import SupportTicketService
 from src.api.services.cart import CartService
 from src.api.services.favorite import FavoriteService
 from src.api.services.category import CategoryService
+from src.api.services.order import OrderService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -195,3 +196,12 @@ async def get_favorite_service(
     )
 
 FavoriteServiceDependency = Annotated[FavoriteService, Depends(get_favorite_service)]
+
+
+# Get Order Service
+async def get_order_service(
+    db: SessionDependency,
+) -> OrderService:
+    return OrderService(db=db)
+
+OrderServiceDependency = Annotated[OrderService, Depends(get_order_service)]
