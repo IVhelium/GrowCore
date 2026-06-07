@@ -110,7 +110,6 @@ function notifyApiError(error) {
   );
 }
 
-// Access-token refresh eligibility check.
 function shouldRefreshToken(error) {
   const status = error?.response?.status;
   const request = error?.config;
@@ -142,7 +141,6 @@ async function refreshAccessToken() {
   return refreshRequest;
 }
 
-// Global response interceptor for auth refresh and API notices.
 apiClient.interceptors.response.use(
   (resp) => resp,
   async (error) => {
@@ -180,7 +178,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Backend storage path to browser-accessible media URL.
+// Backend storage path to browser-accessible media URL
 export function resolvestorageUrl(path) {
   if (!path) return null;
   if (/^https?:\/\//i.test(path)) return path;
