@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.services.files.file_storage import FileStorageService
+from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
 from src.models import ProductImageModel, ProductModel, UserModel
 
@@ -74,7 +75,10 @@ class ProductImageService(ProductBaseService):
 
         self.db.add(product_image)
 
-        self._send_product_to_moderation(product)
+        if product.moderation_status == ProductModerationStatus.approved:
+            self._send_product_to_moderation(product)
+        else:
+            self._reset_rejected_product_to_draft(product)
 
         try:
             await self.db.commit()
@@ -130,7 +134,10 @@ class ProductImageService(ProductBaseService):
 
         await self.db.delete(product_image)
 
-        self._send_product_to_moderation(product)
+        if product.moderation_status == ProductModerationStatus.approved:
+            self._send_product_to_moderation(product)
+        else:
+            self._reset_rejected_product_to_draft(product)
 
         try:
             await self.db.commit()

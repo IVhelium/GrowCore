@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import {
   createSupportTicket,
@@ -8,8 +8,11 @@ import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
+import PaginationBar from "../components/common/PaginationBar";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+
+const TICKETS_PAGE_SIZE = 8;
 
 function StatusBadge({ status }) {
   const styles = {
@@ -32,29 +35,40 @@ function StatusBadge({ status }) {
 
 export default function SupportPage() {
   const [tickets, setTickets] = useState([]);
+  const [ticketTotal, setTicketTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  async function loadTickets() {
+  const loadTickets = useCallback(async (page) => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const ticketPage = await getMySupportTickets();
+      const ticketPage = await getMySupportTickets({
+        limit: TICKETS_PAGE_SIZE,
+        offset: (page - 1) * TICKETS_PAGE_SIZE,
+      });
       setTickets(ticketPage.items);
+      setTicketTotal(ticketPage.total);
+
+      if (ticketPage.items.length === 0 && ticketPage.has_previous) {
+        setCurrentPage(page - 1);
+      }
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not load support tickets"));
       setTickets([]);
+      setTicketTotal(0);
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTickets();
-  }, []);
+    loadTickets(currentPage);
+  }, [currentPage, loadTickets]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -68,7 +82,8 @@ export default function SupportPage() {
       await createSupportTicket(payload);
       form.reset();
       showToast("Support ticket created", "success");
-      await loadTickets();
+      setCurrentPage(1);
+      await loadTickets(1);
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not create support ticket"));
     } finally {
@@ -130,6 +145,12 @@ export default function SupportPage() {
                     )}
                   </article>
                 ))}
+                <PaginationBar
+                  current={currentPage}
+                  total={ticketTotal}
+                  pageSize={TICKETS_PAGE_SIZE}
+                  onChange={setCurrentPage}
+                />
               </div>
             )}
           </section>

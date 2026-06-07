@@ -8,8 +8,11 @@ import {
 import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
+import PaginationBar from "../components/common/PaginationBar";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+
+const TICKETS_PAGE_SIZE = 8;
 
 const statusFilters = [
   { label: "Open", value: "open" },
@@ -41,18 +44,27 @@ export default function SupportPanelPage() {
   const [tickets, setTickets] = useState([]);
   const [ticketTotal, setTicketTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState("open");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [busyKey, setBusyKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const loadTickets = useCallback(async (nextStatus) => {
+  const loadTickets = useCallback(async (nextStatus, page) => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const ticketPage = await getSupportTickets({ status: nextStatus });
+      const ticketPage = await getSupportTickets({
+        status: nextStatus,
+        limit: TICKETS_PAGE_SIZE,
+        offset: (page - 1) * TICKETS_PAGE_SIZE,
+      });
       setTickets(ticketPage.items);
       setTicketTotal(ticketPage.total);
+
+      if (ticketPage.items.length === 0 && ticketPage.has_previous) {
+        setCurrentPage(page - 1);
+      }
     } catch (error) {
       setTickets([]);
       setTicketTotal(0);
@@ -64,8 +76,8 @@ export default function SupportPanelPage() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadTickets(statusFilter);
-  }, [loadTickets, statusFilter]);
+    loadTickets(statusFilter, currentPage);
+  }, [currentPage, loadTickets, statusFilter]);
 
   const metricText = useMemo(
     () => `${ticketTotal} ${statusFilter.replace("_", " ")} tickets`,
@@ -79,7 +91,7 @@ export default function SupportPanelPage() {
     try {
       await action();
       showToast(successMessage, "success");
-      await loadTickets(statusFilter);
+      await loadTickets(statusFilter, currentPage);
     } catch (error) {
       setErrorMessage(getApiError(error, "Ticket action failed"));
     } finally {
@@ -136,7 +148,10 @@ export default function SupportPanelPage() {
                 <button
                   key={filter.value}
                   type="button"
-                  onClick={() => setStatusFilter(filter.value)}
+                  onClick={() => {
+                    setStatusFilter(filter.value);
+                    setCurrentPage(1);
+                  }}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                     statusFilter === filter.value
                       ? "bg-[#4F8A5B] text-white"
@@ -233,6 +248,17 @@ export default function SupportPanelPage() {
               </article>
             ))}
           </div>
+
+          {!isLoading && tickets.length > 0 && (
+            <div className="px-5 pb-5">
+              <PaginationBar
+                current={currentPage}
+                total={ticketTotal}
+                pageSize={TICKETS_PAGE_SIZE}
+                onChange={setCurrentPage}
+              />
+            </div>
+          )}
         </section>
       </Container>
     </main>
