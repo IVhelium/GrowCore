@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     
     # Seed
     RUN_STAFF_SEED: bool = False
+    RUN_CATALOG_SEED: bool = True
 
     SEED_ADMIN_USERNAME: str | None = None
     SEED_ADMIN_EMAIL: str | None = None

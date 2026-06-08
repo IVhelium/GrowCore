@@ -81,13 +81,19 @@ class PaginationService:
                 PaginationService._count_query_source(query).subquery()
             )
 
-            total = await db.scalar(count_query)
+            total = await db.scalar(count_query) or 0
+            offset = pagination.offset
+
+            if total == 0:
+                offset = 0
+            elif offset >= total:
+                offset = ((total - 1) // pagination.limit) * pagination.limit
 
             # The main request retrieves only the current page
             result = await db.execute(
                 query
                 .limit(pagination.limit)
-                .offset(pagination.offset)
+                .offset(offset)
             )
 
             items = list(result.scalars().unique().all())
@@ -100,7 +106,7 @@ class PaginationService:
 
         return PaginationDTO.create(
             items=items,
-            total=total or 0,
+            total=total,
             limit=pagination.limit,
-            offset=pagination.offset,
+            offset=offset,
         )

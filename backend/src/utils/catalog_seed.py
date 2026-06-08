@@ -16,6 +16,7 @@ from src.models import (
     UserRoleModel,
 )
 from src.utils.staff_seed.roles import ensure_all_roles
+from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 
 
 @dataclass(frozen=True)
@@ -234,8 +235,11 @@ async def _ensure_categories(db) -> dict[str, CategoryModel]:
 async def _ensure_products(
     db,
     store: StoreModel,
+    seller: UserModel,
     categories: dict[str, CategoryModel],
 ) -> None:
+    seller_directory_key = seller_products_directory_key(seller)
+
     for seed in PRODUCTS:
         result = await db.execute(
             select(ProductModel).where(ProductModel.title == seed.title)
@@ -254,13 +258,30 @@ async def _ensure_products(
                 moderation_status=ProductModerationStatus.approved,
                 store_id=store.id,
                 category_id=categories[seed.category_name].id,
+                attributes={},
             )
             db.add(product)
             await db.flush()
 
+        if not product.image_storage_prefix:
+            product.image_storage_prefix = product_images_directory_key(
+                seller_directory_key=seller_directory_key,
+                product_id=product.id,
+            )
+
+        product.description = seed.description
+        product.price = Decimal(seed.price)
         product.enabled = True
-        product.quantity = max(product.quantity, seed.quantity)
+        product.quantity = max(product.quantity or 0, seed.quantity)
+        product.rating_avg = Decimal(seed.rating_avg)
+        product.rating_count = seed.rating_count
+        product.attributes = product.attributes or {}
         product.moderation_status = ProductModerationStatus.approved
+        product.rejection_reason = None
+        product.moderated_at = None
+        product.moderator_id = None
+        product.store_id = store.id
+        product.category_id = categories[seed.category_name].id
 
         image_result = await db.execute(
             select(ProductImageModel).where(
@@ -289,4 +310,4 @@ async def run_catalog_seed(
             seller = await _ensure_seller_user(db, roles)
             store = await _ensure_store(db, seller)
             categories = await _ensure_categories(db)
-            await _ensure_products(db, store, categories)
+            await _ensure_products(db, store, seller, categories)
