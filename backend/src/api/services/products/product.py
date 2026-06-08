@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,8 +10,8 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.files.file_storage import FileStorageService
 from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
-from src.models import ProductModel, ReviewModel, UserModel
-from src.schemas import CreateProductDTO, CreateReviewDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
+from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, UserModel
+from src.schemas import CreateProductDTO, DeleteProductDTO, CreateReviewDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
 
@@ -149,6 +151,15 @@ class ProductService(ProductBaseService):
             seller=seller,
             product_id=product_id,
         )
+
+        if product.moderation_status in {
+            ProductModerationStatus.blocked,
+            ProductModerationStatus.deleted,
+        }:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Blocked or deleted products cannot be edited",
+            )
 
         data = schema.model_dump(exclude_unset=True)
 
@@ -301,34 +312,41 @@ class ProductService(ProductBaseService):
         self,
         seller: UserModel,
         product_id: int,
+        schema: DeleteProductDTO | None = None,
     ) -> None:
         """
-        Deletes the seller's unpublished product
-        Only draft or rejected products can be deleted
-        Image files are deleted from the database after successful delet
+        Safely removes a seller product from the public catalog.
+        Published products are soft-deleted so historical orders stay intact.
         """
 
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
         )
-        
-        if product.moderation_status in {
-            ProductModerationStatus.pending,
-            ProductModerationStatus.approved,
-        }:
+
+        reason = (schema.reason if schema else "Removed by seller").strip()
+
+        if len(reason) < 10:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Pending or approved product cannot be deleted",
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Deletion reason must be at least 10 characters",
             )
 
-        image_urls = [
-            image.image
-            for image in product.images
-        ]
+        product.enabled = False
+        product.moderation_status = ProductModerationStatus.deleted
+        product.deletion_reason = reason
+        product.deleted_at = datetime.utcnow()
+        product.deleted_by_id = seller.id
 
         try:
-            await self.db.delete(product)
+            await self.db.execute(
+                delete(CartItemModel)
+                .where(CartItemModel.product_id == product.id)
+            )
+            await self.db.execute(
+                delete(FavoriteItemModel)
+                .where(FavoriteItemModel.product_id == product.id)
+            )
             await self.db.commit()
 
         except SQLAlchemyError as exc:
@@ -338,13 +356,6 @@ class ProductService(ProductBaseService):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not delete product",
             ) from exc
-
-        # Delete files only after they have been successfully saved
-        for image_url in image_urls:
-            self.file_storage_service.delete_by_public_url(
-                public_url=image_url,
-                policy=PRODUCT_IMAGE_POLICY,
-            )
 
     async def list_public_products(
         self,

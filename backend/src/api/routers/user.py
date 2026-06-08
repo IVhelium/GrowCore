@@ -6,7 +6,7 @@ from src.core.dependencies import (
     CurrentUserDependency,
     UserServiceDependency,
 )
-from src.schemas import ReadUserDTO, UpdateUserDTO, ShortUserDTO
+from src.schemas import PublicUserDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
 
 
 router = APIRouter(
@@ -85,5 +85,16 @@ async def get_user_by_public_id(
             pattern=PUBLIC_ID_RE
         )
     ]
+):
+    return await user_service.get_user_by_public_id(public_id=public_id)
+
+
+@router.get(
+    "/{public_id}",
+    response_model=PublicUserDTO,
+)
+async def get_public_user_profile(
+    user_service: UserServiceDependency,
+    public_id: str,
 ):
     return await user_service.get_user_by_public_id(public_id=public_id)

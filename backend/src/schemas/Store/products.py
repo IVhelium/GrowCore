@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.core.constants import ProductModerationStatus
 
@@ -39,6 +39,15 @@ class CreateProductDTO(BaseModel):
     category_id: int
     attributes: dict[str, str] = Field(default_factory=dict)
 
+    @field_validator("title", "description", mode="before")
+    @classmethod
+    def trim_required_text(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Field cannot be empty")
+        return value
+
     model_config = ConfigDict(extra="forbid")
     
 
@@ -51,6 +60,15 @@ class UpdateProductDTO(BaseModel):
     enabled: bool | None = None
     category_id: int | None = None
     attributes: dict[str, str] | None = None
+
+    @field_validator("title", "description", mode="before")
+    @classmethod
+    def trim_optional_text(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Field cannot be empty")
+        return value
     
     model_config = ConfigDict(extra="forbid")
     
@@ -63,8 +81,28 @@ class UpdateProductAvailabilityDTO(BaseModel):
  
 class RejectProductDTO(BaseModel):
     reason: str = Field(min_length=10)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+        return value
     
     model_config = ConfigDict(extra="forbid") 
+
+
+class DeleteProductDTO(BaseModel):
+    reason: str = Field(min_length=10, max_length=400)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+        return value
+
+    model_config = ConfigDict(extra="forbid")
     
     
 # Product Short Schema
@@ -90,12 +128,14 @@ class ReadProductDTO(BaseModel):
     enabled: bool
     moderation_status: ProductModerationStatus
     rejection_reason: str | None = None
+    deletion_reason: str | None = None
     
     rating_avg: Decimal
     rating_count: int
     
     created_at: datetime
     moderated_at: datetime | None = None
+    deleted_at: datetime | None = None
     
     store: "ReadProductStoreDTO"
     category: "ReadProductCategoryDTO"

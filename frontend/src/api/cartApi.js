@@ -55,7 +55,9 @@ export async function removeCartItem(itemId) {
   return normalizeCart(data);
 }
 
-export async function checkoutCart() {
-  const { data } = await apiClient.post("/cart/checkout");
+export async function checkoutCart(deliveryAddress) {
+  const { data } = await apiClient.post("/cart/checkout", {
+    delivery_address: deliveryAddress,
+  });
   return normalizeCart(data);
 }

@@ -22,6 +22,14 @@ export function normalizeOrder(order) {
     id: order.id,
     status: order.status,
     total: Number(order.total_price ?? 0),
+    paymentStatus: order.payment_status,
+    deliveryStatus: order.delivery_status,
+    returnStatus: order.return_status,
+    transactionId: order.payment_transaction_id,
+    paymentDocument: order.payment_document,
+    deliveryAddress: order.delivery_address,
+    trackingNumber: order.tracking_number,
+    returnReason: order.return_reason,
     date: order.created_at,
     items: (order.items || []).map(normalizeOrderItem),
   };
@@ -30,4 +38,12 @@ export function normalizeOrder(order) {
 export async function getOrders() {
   const { data } = await apiClient.get("/orders");
   return (data || []).map(normalizeOrder);
+}
+
+export async function requestOrderReturn(orderId, reason) {
+  const { data } = await apiClient.post(`/orders/${orderId}/returns`, {
+    reason,
+  });
+
+  return normalizeOrder(data);
 }

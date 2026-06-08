@@ -1,11 +1,13 @@
 import { formatPrice } from "../../utils/formatPrice";
 import Button from "../common/Button";
+import { useState } from "react";
 
 
 export default function CartSummary({
     items = [],
     onCheckout
 }) {
+    const [deliveryAddress, setDeliveryAddress] = useState("");
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const count = items.length;
 
@@ -26,13 +28,25 @@ export default function CartSummary({
 
             <div className="my-5 h-px bg-slate-100"/>
 
+            <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                Delivery address
+                <textarea
+                    value={deliveryAddress}
+                    onChange={(event) => setDeliveryAddress(event.target.value)}
+                    rows={3}
+                    required
+                    placeholder="Street, city, ZIP"
+                    className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-normal outline-none transition focus:border-[#4F8A5B]"
+                />
+            </label>
+
             <div className="flex items-center justify-between gap-4">
                 <span className="font-bold text-slate-950">Total</span>
                 <span className="text-2xl font-black text-slate-950">{formatPrice(total)}</span>
             </div>
 
             <Button
-                onClick={onCheckout}
+                onClick={() => onCheckout?.(deliveryAddress)}
                 size="lg"
                 className="mt-6 w-full"
             >

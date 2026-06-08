@@ -6,6 +6,7 @@ from src.core.dependencies import (
 )
 from src.schemas import (
     AddCartItemDTO,
+    CheckoutDTO,
     ReadCartDTO,
     UpdateCartItemDTO,
 )
@@ -114,6 +115,7 @@ async def clear_cart(
     response_model=ReadCartDTO,
 )
 async def checkout_cart(
+    schema: CheckoutDTO,
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
@@ -121,4 +123,7 @@ async def checkout_cart(
     Completes purchase and decreases product stock.
     """
 
-    return await cart_service.checkout(current_user)
+    return await cart_service.checkout(
+        current_user=current_user,
+        schema=schema,
+    )

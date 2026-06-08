@@ -19,6 +19,12 @@ export default function ProfileForm({ user, onSave, hasPendingAvatar = false }) 
     setMessage("");
     setIsLoading(true);
 
+    if (!form.username.trim()) {
+      setError("Fill in all required fields. Spaces only are not allowed.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await onSave?.({
         username: form.username.trim(),

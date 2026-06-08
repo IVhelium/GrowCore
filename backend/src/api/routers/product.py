@@ -13,6 +13,7 @@ from src.core.dependencies import (
 from src.core.pagination import PaginationDependency
 from src.schemas import (
     CreateProductDTO,
+    DeleteProductDTO,
     CreateReviewDTO,
     PaginationDTO,
     ReadProductDTO,
@@ -210,6 +211,7 @@ async def update_product_availability(
 )
 async def delete_unpublished_product(
     product_id: int,
+    dto: DeleteProductDTO,
     seller: SellerDependency,
     product_service: ProductServiceDependency,
 ):
@@ -220,9 +222,24 @@ async def delete_unpublished_product(
     await product_service.delete_unpublished_product(
         seller=seller,
         product_id=product_id,
+        schema=dto,
     )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/admin/products",
+    response_model=PaginationDTO[ReadProductDTO],
+)
+async def list_admin_products(
+    admin: AdminDependency,
+    product_moderation_service: ProductModerationServiceDependency,
+    pagination: PaginationDependency,
+):
+    return await product_moderation_service.list_admin_products(
+        pagination=pagination,
+    )
 
 
 @router.post(
@@ -319,6 +336,40 @@ async def reject_product(
     """
 
     return await product_moderation_service.reject_product(
+        admin=admin,
+        product_id=product_id,
+        schema=dto,
+    )
+
+
+@router.patch(
+    "/admin/products/{product_id}/block",
+    response_model=ReadProductDTO,
+)
+async def block_product(
+    product_id: int,
+    dto: DeleteProductDTO,
+    admin: AdminDependency,
+    product_moderation_service: ProductModerationServiceDependency,
+):
+    return await product_moderation_service.block_product(
+        admin=admin,
+        product_id=product_id,
+        schema=dto,
+    )
+
+
+@router.delete(
+    "/admin/products/{product_id}",
+    response_model=ReadProductDTO,
+)
+async def delete_product(
+    product_id: int,
+    dto: DeleteProductDTO,
+    admin: AdminDependency,
+    product_moderation_service: ProductModerationServiceDependency,
+):
+    return await product_moderation_service.delete_product(
         admin=admin,
         product_id=product_id,
         schema=dto,

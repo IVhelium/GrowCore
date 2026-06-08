@@ -20,6 +20,9 @@ class SellerRequestModel(Base):
     country: Mapped[str]
     
     message: Mapped[str]
+    document_storage_key: Mapped[str | None] = mapped_column(String, nullable=True)
+    document_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    document_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[SellerRequestStatus] = mapped_column(default=SellerRequestStatus.pending, index=True)
     rejection_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
     

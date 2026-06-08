@@ -16,6 +16,29 @@ class OrderStatus(enum.Enum):
     inTransit = "in Transit"
     delivered = "delivered"
     delayed = "delayed"
+    returned = "returned"
+
+
+class PaymentStatus(enum.Enum):
+    pending = "pending"
+    paid = "paid"
+    refunded = "refunded"
+    failed = "failed"
+
+
+class DeliveryStatus(enum.Enum):
+    preparing = "preparing"
+    in_transit = "in_transit"
+    delivered = "delivered"
+    delayed = "delayed"
+
+
+class ReturnStatus(enum.Enum):
+    none = "none"
+    requested = "requested"
+    approved = "approved"
+    rejected = "rejected"
+    refunded = "refunded"
     
 
 # Role Status Enum
@@ -39,6 +62,8 @@ class ProductModerationStatus(enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
+    blocked = "blocked"
+    deleted = "deleted"
     
     
 # Support Request Status

@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import SellerRequestStatus
 from src.schemas.User.users import ShortUserDTO
 
@@ -11,6 +11,15 @@ class CreateSellerRequestDTO(BaseModel):
     phone_number: str
     country: str
     message: str
+
+    @field_validator("passport_id", "full_name", "phone_number", "country", "message", mode="before")
+    @classmethod
+    def trim_required_text(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Field cannot be empty")
+        return value
     
     model_config = ConfigDict(extra="forbid")
     
@@ -23,6 +32,8 @@ class ReadSellerRequestDTO(BaseModel):
     phone_number: str
     country: str
     message: str
+    document_name: str | None = None
+    document_content_type: str | None = None
     
     status: SellerRequestStatus
     rejection_reason: str | None = None
@@ -42,6 +53,15 @@ class ResubmitSellerRequestDTO(BaseModel):
     phone_number: str | None = None
     country: str | None = None
     message: str | None = None
+
+    @field_validator("passport_id", "full_name", "phone_number", "country", "message", mode="before")
+    @classmethod
+    def trim_optional_text(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Field cannot be empty")
+        return value
     
     model_config = ConfigDict(extra="forbid")
     
@@ -49,5 +69,12 @@ class ResubmitSellerRequestDTO(BaseModel):
 # Reject Seller Request Schema
 class RejectSellerRequestDTO(BaseModel):
     reason: str = Field(min_length=10)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+        return value
     
     model_config = ConfigDict(extra="forbid")

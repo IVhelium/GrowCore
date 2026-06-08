@@ -11,6 +11,11 @@ import Button from "../components/common/Button";
 import FormField from "../components/common/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { getApiError } from "../utils/getApiError";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
 
 const benefits = [
@@ -114,7 +119,21 @@ export default function SellerRequestPage() {
       return;
     }
 
-    const data = Object.fromEntries(new FormData(event.currentTarget));
+    const data = getTrimmedFormData(event.currentTarget);
+
+    if (
+      hasEmptyRequiredFields(data, [
+        "fullName",
+        "passportId",
+        "phoneNumber",
+        "country",
+        "message",
+        "document",
+      ])
+    ) {
+      setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage("");
@@ -220,6 +239,24 @@ export default function SellerRequestPage() {
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                   placeholder="Describe what products you want to sell, your experience and store details..."
                 />
+              </label>
+
+              <label className="grid gap-2 md:col-span-2">
+                <span className="text-sm font-semibold text-slate-700">
+                  PDF documents
+                </span>
+                <input
+                  name="document"
+                  type="file"
+                  accept="application/pdf"
+                  required
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#4F8A5B] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-[#4F8A5B]"
+                />
+                {request?.documentName && (
+                  <span className="text-xs text-slate-500">
+                    Last uploaded: {request.documentName}
+                  </span>
+                )}
               </label>
             </fieldset>
 

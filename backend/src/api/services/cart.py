@@ -1,12 +1,15 @@
+from datetime import datetime
+import uuid
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.core.constants import OrderStatus, ProductModerationStatus
+from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, ProductModerationStatus, ReturnStatus
 from src.models import CartItemModel, CartModel, OrderItemModel, OrderModel, ProductModel, UserModel
-from src.schemas import AddCartItemDTO, UpdateCartItemDTO
+from src.schemas import AddCartItemDTO, CheckoutDTO, UpdateCartItemDTO
 
 
 class CartService:
@@ -403,6 +406,7 @@ class CartService:
     async def checkout(
         self,
         current_user: UserModel,
+        schema: CheckoutDTO,
     ) -> CartModel:
         """
         Completes a purchase from the current cart.
@@ -418,6 +422,14 @@ class CartService:
                     detail="Cart is empty",
                 )
 
+            delivery_address = schema.delivery_address.strip()
+
+            if not delivery_address:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Delivery address cannot be empty",
+                )
+
             total_price = 0
 
             for item in cart.items:
@@ -431,13 +443,31 @@ class CartService:
 
                 total_price += product.price * item.quantity
 
+            transaction_id = f"SIM-{uuid.uuid4().hex[:12].upper()}"
+
             order = OrderModel(
                 user_id=current_user.id,
                 status=OrderStatus.inTransit,
+                payment_status=PaymentStatus.paid,
+                delivery_status=DeliveryStatus.preparing,
+                return_status=ReturnStatus.none,
                 total_price=total_price,
+                payment_transaction_id=transaction_id,
+                delivery_address=delivery_address,
+                tracking_number=f"GC-{uuid.uuid4().hex[:10].upper()}",
             )
             self.db.add(order)
             await self.db.flush()
+
+            order.payment_document = (
+                f"GrowCore payment document\n"
+                f"Order: #{order.id}\n"
+                f"Transaction: {transaction_id}\n"
+                f"Paid at: {datetime.utcnow().isoformat()}Z\n"
+                f"Buyer: {current_user.username}\n"
+                f"Delivery address: {delivery_address}\n"
+                f"Amount: {total_price}"
+            )
 
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)

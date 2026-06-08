@@ -55,7 +55,7 @@ export default function Toast() {
 
   return (
     <div
-      className={`fixed top-29 right-11 z-100 w-[calc(100%-2rem)] max-w-md -translate-x-10 rounded-lg border px-4 py-3 shadow-lg ${toastClassName}`}
+      className={`fixed top-4 right-11 z-100 w-[calc(100%-2rem)] max-w-md -translate-x-10 rounded-lg border px-4 py-3 shadow-lg ${toastClassName}`}
     >
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 shrink-0 ${iconClassName}`} size={20} />

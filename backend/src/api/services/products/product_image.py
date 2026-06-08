@@ -42,6 +42,15 @@ class ProductImageService(ProductBaseService):
             product_id=product_id,
         )
 
+        if product.moderation_status in {
+            ProductModerationStatus.blocked,
+            ProductModerationStatus.deleted,
+        }:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Blocked or deleted products cannot be changed",
+            )
+
         if not product.image_storage_prefix:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -114,6 +123,15 @@ class ProductImageService(ProductBaseService):
             seller=seller,
             product_id=product_id,
         )
+
+        if product.moderation_status in {
+            ProductModerationStatus.blocked,
+            ProductModerationStatus.deleted,
+        }:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Blocked or deleted products cannot be changed",
+            )
 
         product_image = next(
             (

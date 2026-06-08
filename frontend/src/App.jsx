@@ -27,6 +27,7 @@ import SupportPanelPage from "./pages/SupportPanelPage";
 import SellerProductEditPage from "./pages/SellerProductEditPage";
 import SupportPage from "./pages/SupportPage";
 import OrderPage from "./pages/OrderPage";
+import PublicUserProfilePage from "./pages/PublicUserProfilePage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -217,6 +218,7 @@ export default function App() {
         </Route>
 
         <Route path="/users" element={<UsersSearchPage />} />
+        <Route path="/users/:publicId" element={<PublicUserProfilePage />} />
 
         <Route path="/seller-request" element={<SellerRequestPage/>}/>
 

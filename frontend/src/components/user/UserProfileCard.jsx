@@ -68,9 +68,11 @@ export default function UserProfileCard({
           </div>
         </div>
 
-        <Button style="dark" onClick={onLogout} className="mt-6 w-full">
-          <LogOut size={18} /> Logout
-        </Button>
+        {onLogout && (
+          <Button style="dark" onClick={onLogout} className="mt-6 w-full">
+            <LogOut size={18} /> Logout
+          </Button>
+        )}
       </aside>
     );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { searchUserByPublicId } from "../api/userApi";
 import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
 import { getApiError } from "./../utils/getApiError";
@@ -67,13 +68,16 @@ export default function UsersSearchPage() {
         )}
 
         {result && (
-          <article className="mt-6 flex max-w-xl items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <Link
+            to={`/users/${encodeURIComponent(result.public_id)}`}
+            className="mt-6 flex max-w-xl items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#4F8A5B]"
+          >
             <UserAvatar user={result} size="md" />
             <div>
               <h2 className="font-bold text-slate-950">{result.username}</h2>
               <p className="mt-1 text-sm text-slate-500">{result.public_id}</p>
             </div>
-          </article>
+          </Link>
         )}
       </Container>
     </main>

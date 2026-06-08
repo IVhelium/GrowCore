@@ -13,6 +13,11 @@ import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
 import { useCategories } from "../hooks/useCategories";
 import { getApiError } from "../utils/getApiError";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
 
 export default function SellerProductEditPage() {
@@ -82,7 +87,21 @@ export default function SellerProductEditPage() {
 
   async function saveProduct(event) {
     event.preventDefault();
-    const payload = Object.fromEntries(new FormData(event.currentTarget));
+    const payload = getTrimmedFormData(event.currentTarget);
+
+    if (
+      hasEmptyRequiredFields(payload, [
+        "title",
+        "categoryId",
+        "price",
+        "quantity",
+        "description",
+      ])
+    ) {
+      setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
+
     payload.attributes = getAttributes();
 
     setIsSaving(true);

@@ -1,4 +1,9 @@
 import { useAutoDismissMessage } from "../../hooks/useAutoDismissMessage";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../../utils/formSpaceValidation";
 import Button from "../common/Button";
 import FormField from "../common/FormField";
 
@@ -13,11 +18,16 @@ export default function RegisterForm({
     event.preventDefault();
     setClientError("");
 
-    const data = Object.fromEntries(new FormData(event.currentTarget));
+    const data = getTrimmedFormData(event.currentTarget);
+
+    if (hasEmptyRequiredFields(data, ["username", "email", "password"])) {
+      setClientError(getEmptyFieldMessage());
+      return;
+    }
 
     onSubmit?.({
-      username: data.username.trim(),
-      email: data.email.trim(),
+      username: data.username,
+      email: data.email,
       password: data.password,
     });
   }

@@ -25,13 +25,16 @@ class ProductModel(Base):
     
     moderation_status: Mapped[ProductModerationStatus] = mapped_column(default=ProductModerationStatus.draft, index=True)
     rejection_reason: Mapped[str | None] = mapped_column(String(400), nullable=True)
+    deletion_reason: Mapped[str | None] = mapped_column(String(400), nullable=True)
     moderated_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     
     image_storage_prefix: Mapped[str | None] = mapped_column(String(300), unique=True, nullable=True)
     
     store_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"))
     category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id", ondelete="SET NULL"))
     moderator_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    deleted_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     
     # Relationships
     images: Mapped[list["ProductImageModel"]] = relationship(
@@ -66,6 +69,10 @@ class ProductModel(Base):
     
     moderator: Mapped["UserModel | None"] = relationship(
         foreign_keys=[moderator_id]
+    )
+
+    deleted_by: Mapped["UserModel | None"] = relationship(
+        foreign_keys=[deleted_by_id]
     )
     
     

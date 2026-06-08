@@ -10,6 +10,11 @@ import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
 import PaginationBar from "../components/common/PaginationBar";
 import { getApiError } from "../utils/getApiError";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
 
 const TICKETS_PAGE_SIZE = 8;
@@ -73,7 +78,12 @@ export default function SupportPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const payload = Object.fromEntries(new FormData(form));
+    const payload = getTrimmedFormData(form);
+
+    if (hasEmptyRequiredFields(payload, ["subject", "message"])) {
+      setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
 
     setIsSubmitting(true);
     setErrorMessage("");

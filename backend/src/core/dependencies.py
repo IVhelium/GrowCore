@@ -149,8 +149,14 @@ ProductModerationServiceDependency = Annotated[ProductModerationService, Depends
 
 
 # Get Seller Request Service
-async def get_seller_request_service(db: SessionDependency) -> SellerRequestService:
-    return SellerRequestService(db=db)
+async def get_seller_request_service(
+    db: SessionDependency,
+    file_storage_service: FileStorageServiceDependency,
+) -> SellerRequestService:
+    return SellerRequestService(
+        db=db,
+        file_storage_service=file_storage_service,
+    )
 
 SellerRequestServiceDependency = Annotated[SellerRequestService, Depends(get_seller_request_service)]
 

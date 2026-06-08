@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock,
+  Ban,
+  Trash2,
   PackageCheck,
   ShieldAlert,
   Store,
@@ -9,6 +11,9 @@ import {
 } from "lucide-react";
 import {
   approveProduct,
+  blockProduct,
+  deleteAdminProduct,
+  getAdminProducts,
   getPendingProducts,
   rejectProduct,
 } from "../api/productApi";
@@ -32,6 +37,8 @@ function StatusBadge({ status }) {
     assigned: "bg-indigo-50 text-indigo-700",
     approved: "bg-green-50 text-green-700",
     rejected: "bg-red-50 text-red-700",
+    blocked: "bg-orange-50 text-orange-700",
+    deleted: "bg-slate-200 text-slate-700",
     resolved: "bg-green-50 text-green-700",
     closed: "bg-slate-100 text-slate-600",
   };
@@ -72,6 +79,7 @@ export default function AdminPanelPage() {
   const [products, setProducts] = useState([]);
   const [productTotal, setProductTotal] = useState(0);
   const [sellerRequests, setSellerRequests] = useState([]);
+  const [adminProducts, setAdminProducts] = useState([]);
   const [sellerRequestTotal, setSellerRequestTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -81,9 +89,10 @@ export default function AdminPanelPage() {
     setIsLoading(true);
     setErrorMessage("");
 
-    const [productResult, requestResult] = await Promise.allSettled([
+    const [productResult, requestResult, adminProductResult] = await Promise.allSettled([
       getPendingProducts(),
       getSellerRequests({ status: "pending" }),
+      getAdminProducts({ limit: 10 }),
     ]);
 
     if (productResult.status === "fulfilled") {
@@ -104,9 +113,16 @@ export default function AdminPanelPage() {
       setSellerRequestTotal(0);
     }
 
+    if (adminProductResult.status === "fulfilled") {
+      setAdminProducts(adminProductResult.value.items);
+    } else {
+      setAdminProducts([]);
+    }
+
     const failedResults = [
       productResult,
       requestResult,
+      adminProductResult,
     ].filter((result) => result.status === "rejected");
 
     if (failedResults.length > 0) {
@@ -148,7 +164,7 @@ export default function AdminPanelPage() {
       },
       {
         title: "Visible queues",
-        value: products.length + sellerRequests.length,
+        value: products.length + sellerRequests.length + adminProducts.length,
         icon: ShieldAlert,
         text: "Items loaded on this dashboard",
       },
@@ -156,6 +172,7 @@ export default function AdminPanelPage() {
     [
       productTotal,
       products.length,
+      adminProducts.length,
       sellerRequestTotal,
       sellerRequests.length,
     ],
@@ -182,6 +199,18 @@ export default function AdminPanelPage() {
 
     if (trimmedReason && trimmedReason.length < 10) {
       showToast("Reject reason must be at least 10 characters");
+      return "";
+    }
+
+    return trimmedReason;
+  }
+
+  function getAdminReason(action, entityName) {
+    const reason = window.prompt(`Reason for ${action} ${entityName}`);
+    const trimmedReason = reason?.trim();
+
+    if (trimmedReason && trimmedReason.length < 10) {
+      showToast("Reason must be at least 10 characters");
       return "";
     }
 
@@ -288,6 +317,89 @@ export default function AdminPanelPage() {
                         >
                           <XCircle size={16} />
                           Reject
+                        </Button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="border-b border-slate-200 px-5 py-4">
+                <h2 className="text-xl font-bold text-slate-950">
+                  Product controls
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Block or safely delete products with a recorded reason
+                </p>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {adminProducts.length === 0 && (
+                  <p className="p-5 text-sm text-slate-500">
+                    No products loaded.
+                  </p>
+                )}
+
+                {adminProducts.map((product) => (
+                  <article key={product.id} className="p-5">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="font-bold text-slate-950">
+                            {product.title}
+                          </h3>
+                          <StatusBadge status={product.moderationStatus} />
+                        </div>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {product.store?.name || "Unknown"} В·{" "}
+                          {formatPrice(product.price)} В·{" "}
+                          {product.enabled ? "enabled" : "disabled"}
+                        </p>
+                        {(product.deletionReason || product.rejectionReason) && (
+                          <p className="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+                            {product.deletionReason || product.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          style="secondary"
+                          disabled={busyKey === `admin-product-${product.id}`}
+                          onClick={() => {
+                            const reason = getAdminReason("blocking", product.title);
+                            if (!reason) return;
+
+                            runAction(
+                              `admin-product-${product.id}`,
+                              () => blockProduct(product.id, reason),
+                              "Product blocked",
+                            );
+                          }}
+                        >
+                          <Ban size={16} />
+                          Block
+                        </Button>
+                        <Button
+                          size="sm"
+                          style="danger"
+                          disabled={busyKey === `admin-product-${product.id}`}
+                          onClick={() => {
+                            const reason = getAdminReason("deleting", product.title);
+                            if (!reason) return;
+
+                            runAction(
+                              `admin-product-${product.id}`,
+                              () => deleteAdminProduct(product.id, reason),
+                              "Product deleted",
+                            );
+                          }}
+                        >
+                          <Trash2 size={16} />
+                          Delete
                         </Button>
                       </div>
                     </div>

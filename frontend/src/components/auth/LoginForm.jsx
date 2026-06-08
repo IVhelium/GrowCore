@@ -1,10 +1,25 @@
+import { useState } from "react";
 import Button from "../common/Button";
 import FormField from "../common/FormField";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../../utils/formSpaceValidation";
 
 export default function LoginForm({ onSubmit, isLoading = false, error = "" }) {
+  const [clientError, setClientError] = useState("");
+
   function handleSubmit(event) {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget));
+    setClientError("");
+    const data = getTrimmedFormData(event.currentTarget);
+
+    if (hasEmptyRequiredFields(data, ["email", "password"])) {
+      setClientError(getEmptyFieldMessage());
+      return;
+    }
+
     onSubmit?.(data);
   }
 
@@ -25,9 +40,9 @@ export default function LoginForm({ onSubmit, isLoading = false, error = "" }) {
         placeholder="Enter password"
       />
 
-      {error && (
+      {(clientError || error) && (
         <p className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+          {clientError || error}
         </p>
       )}
 

@@ -8,6 +8,8 @@ export function normalizeSellerRequest(request) {
     phoneNumber: request.phone_number,
     country: request.country,
     message: request.message,
+    documentName: request.document_name,
+    documentContentType: request.document_content_type,
     status: request.status,
     rejectionReason: request.rejection_reason,
     createdAt: request.created_at,
@@ -18,13 +20,16 @@ export function normalizeSellerRequest(request) {
 }
 
 function toSellerRequestPayload(payload) {
-  return {
-    passport_id: payload.passportId,
-    full_name: payload.fullName,
-    phone_number: payload.phoneNumber,
-    country: payload.country,
-    message: payload.message,
-  };
+  const formData = new FormData();
+
+  formData.append("passport_id", payload.passportId);
+  formData.append("full_name", payload.fullName);
+  formData.append("phone_number", payload.phoneNumber);
+  formData.append("country", payload.country);
+  formData.append("message", payload.message);
+  formData.append("document", payload.document);
+
+  return formData;
 }
 
 export async function createSellerRequest(payload) {

@@ -92,6 +92,10 @@ class UserService:
         
         query = (
             select(UserModel)
+            .options(
+                selectinload(UserModel.roles)
+                .selectinload(UserRoleModel.role)
+            )
             .where(UserModel.public_id == normalize_public_id)
         )
         

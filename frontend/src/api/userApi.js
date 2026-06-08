@@ -36,3 +36,8 @@ export async function searchUserByPublicId(publicId) {
 
     return data;
 }
+
+export async function getPublicUserProfile(publicId) {
+    const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}`);
+    return data;
+}

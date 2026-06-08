@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Edit, Plus, Save, Store } from "lucide-react";
-import { getMySellerProducts } from "../api/productApi";
+import { Edit, Plus, Save, Store, Trash2 } from "lucide-react";
+import { deleteSellerProduct, getMySellerProducts } from "../api/productApi";
 import { getMyStore, updateMyStore } from "../api/storeApi";
 import Button from "../components/common/Button";
 import Container from "../components/common/Container";
@@ -10,6 +10,11 @@ import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
 import { formatPrice } from "../utils/formatPrice";
 import { getApiError } from "../utils/getApiError";
+import {
+  getEmptyFieldMessage,
+  getTrimmedFormData,
+  hasEmptyRequiredFields,
+} from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
 
 function StatusBadge({ status }) {
@@ -65,7 +70,12 @@ export default function SellerStorePage() {
 
   async function handleStoreSubmit(event) {
     event.preventDefault();
-    const payload = Object.fromEntries(new FormData(event.currentTarget));
+    const payload = getTrimmedFormData(event.currentTarget);
+
+    if (hasEmptyRequiredFields(payload, ["name"])) {
+      setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
 
     setIsSaving(true);
     setErrorMessage("");
@@ -78,6 +88,30 @@ export default function SellerStorePage() {
       setErrorMessage(getApiError(error, "Could not update store"));
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteProduct(product) {
+    const reason = window.prompt(`Reason for deleting ${product.title}`);
+    const trimmedReason = reason?.trim();
+
+    if (!trimmedReason) {
+      return;
+    }
+
+    if (trimmedReason.length < 10) {
+      showToast("Deletion reason must be at least 10 characters");
+      return;
+    }
+
+    setErrorMessage("");
+
+    try {
+      await deleteSellerProduct(product.id, trimmedReason);
+      showToast("Product deleted", "success");
+      await loadStoreData();
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not delete product"));
     }
   }
 
@@ -210,13 +244,23 @@ export default function SellerStorePage() {
                           )}
                         </div>
 
-                        <Link
-                          to={`/seller/products/${product.id}/edit`}
-                          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
-                        >
-                          <Edit size={16} />
-                          Edit
-                        </Link>
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          <Link
+                            to={`/seller/products/${product.id}/edit`}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                          >
+                            <Edit size={16} />
+                            Edit
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProduct(product)}
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                          >
+                            <Trash2 size={16} />
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}

@@ -1,15 +1,15 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.core.pagination import PaginationParams, PaginationService
 from src.schemas.pagination import PaginationDTO
 from src.core.constants import ProductModerationStatus
-from src.models import ProductModel, UserModel
-from src.schemas import RejectProductDTO
+from src.models import CartItemModel, FavoriteItemModel, ProductModel, UserModel
+from src.schemas import DeleteProductDTO, RejectProductDTO
 
 from .product_base import ProductBaseService
 
@@ -45,6 +45,23 @@ class ProductModerationService(ProductBaseService):
                 == ProductModerationStatus.pending,
             )
             .order_by(ProductModel.created_at.asc())
+        )
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )
+
+
+    async def list_admin_products(
+        self,
+        pagination: PaginationParams,
+    ) -> PaginationDTO:
+        query = (
+            select(ProductModel)
+            .options(*self._product_options())
+            .order_by(ProductModel.created_at.desc())
         )
 
         return await PaginationService.paginate(
@@ -136,6 +153,76 @@ class ProductModerationService(ProductBaseService):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not reject product",
+            ) from exc
+
+        return await self._get_product(product.id)
+
+
+    async def block_product(
+        self,
+        admin: UserModel,
+        product_id: int,
+        schema: DeleteProductDTO,
+    ) -> ProductModel:
+        product = await self._get_product(product_id)
+        reason = schema.reason.strip()
+
+        product.enabled = False
+        product.moderation_status = ProductModerationStatus.blocked
+        product.deletion_reason = reason
+        product.moderated_at = datetime.utcnow()
+        product.moderator_id = admin.id
+
+        try:
+            await self.db.execute(
+                delete(CartItemModel)
+                .where(CartItemModel.product_id == product.id)
+            )
+            await self.db.commit()
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not block product",
+            ) from exc
+
+        return await self._get_product(product.id)
+
+
+    async def delete_product(
+        self,
+        admin: UserModel,
+        product_id: int,
+        schema: DeleteProductDTO,
+    ) -> ProductModel:
+        product = await self._get_product(product_id)
+        reason = schema.reason.strip()
+
+        product.enabled = False
+        product.moderation_status = ProductModerationStatus.deleted
+        product.deletion_reason = reason
+        product.deleted_at = datetime.utcnow()
+        product.deleted_by_id = admin.id
+
+        try:
+            await self.db.execute(
+                delete(CartItemModel)
+                .where(CartItemModel.product_id == product.id)
+            )
+            await self.db.execute(
+                delete(FavoriteItemModel)
+                .where(FavoriteItemModel.product_id == product.id)
+            )
+            await self.db.commit()
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not delete product",
             ) from exc
 
         return await self._get_product(product.id)

@@ -28,6 +28,8 @@ export function normalizeProduct(product) {
     enabled: product.enabled,
     moderationStatus: product.moderation_status,
     rejectionReason: product.rejection_reason,
+    deletionReason: product.deletion_reason,
+    deletedAt: product.deleted_at,
     store: product.store || null,
     reviews: (product.reviews || []).map((review) => ({
       id: review.id,
@@ -85,6 +87,17 @@ export async function getPendingProducts({ limit = 20, offset = 0 } = {}) {
   };
 }
 
+export async function getAdminProducts({ limit = 20, offset = 0 } = {}) {
+  const { data } = await apiClient.get("/admin/products", {
+    params: getPaginationParams({ limit, offset }),
+  });
+
+  return {
+    ...data,
+    items: (data.items || []).map(normalizeProduct),
+  };
+}
+
 export async function approveProduct(productId) {
   const { data } = await apiClient.patch(
     `/admin/products/moderation/${productId}/approve`,
@@ -98,6 +111,22 @@ export async function rejectProduct(productId, reason) {
     `/admin/products/moderation/${productId}/reject`,
     { reason },
   );
+
+  return normalizeProduct(data);
+}
+
+export async function blockProduct(productId, reason) {
+  const { data } = await apiClient.patch(`/admin/products/${productId}/block`, {
+    reason,
+  });
+
+  return normalizeProduct(data);
+}
+
+export async function deleteAdminProduct(productId, reason) {
+  const { data } = await apiClient.delete(`/admin/products/${productId}`, {
+    data: { reason },
+  });
 
   return normalizeProduct(data);
 }
@@ -160,4 +189,10 @@ export async function uploadSellerProductImage(productId, file) {
 export async function submitSellerProduct(productId) {
   const { data } = await apiClient.post(`/seller/products/${productId}/submit`);
   return normalizeProduct(data);
+}
+
+export async function deleteSellerProduct(productId, reason) {
+  await apiClient.delete(`/seller/products/${productId}`, {
+    data: { reason },
+  });
 }

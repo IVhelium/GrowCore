@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # Store Create Schema
@@ -16,6 +16,15 @@ class CreateStoreDTO(BaseModel):
 class UpdateStoreDTO(BaseModel):
     name: str | None = Field(default=None, min_length=3, max_length=100)
     description: str | None = Field(default=None, max_length=300)
+
+    @field_validator("name", "description", mode="before")
+    @classmethod
+    def trim_text(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+        return value
     
     model_config = ConfigDict(extra="forbid")
     
