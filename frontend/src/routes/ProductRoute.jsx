@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { createProductReview, getProduct } from "../api/productApi";
+import {
+  createProductReview,
+  createProductReviewReply,
+  getProduct,
+} from "../api/productApi";
 import ProductPage from "../pages/ProductPage";
+import { useAuth } from "../hooks/useAuth";
 import { showToast } from "../utils/showToast";
 
 export default function ProductRoute({
@@ -11,6 +16,7 @@ export default function ProductRoute({
   favoriteProductIds = [],
 }) {
   const { productId } = useParams();
+  const { user } = useAuth();
   const fallbackProduct = products.find((item) => String(item.id) === productId);
   const [product, setProduct] = useState(fallbackProduct || null);
   const [isProductLoading, setIsProductLoading] = useState(true);
@@ -63,6 +69,17 @@ export default function ProductRoute({
     return updatedProduct;
   }
 
+  async function handleReviewReply(reviewId, payload) {
+    const updatedProduct = await createProductReviewReply(
+      productId,
+      reviewId,
+      payload,
+    );
+    setProduct(updatedProduct);
+    showToast("Reply added", "success");
+    return updatedProduct;
+  }
+
   return (
     <ProductPage
       product={product}
@@ -72,6 +89,8 @@ export default function ProductRoute({
       onAddToCart={onAddToCart}
       onToggleFavorite={onToggleFavorite}
       onReviewSubmit={handleReviewSubmit}
+      onReviewReply={handleReviewReply}
+      currentUser={user}
       favoriteProductIds={favoriteProductIds}
     />
   );

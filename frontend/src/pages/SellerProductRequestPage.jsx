@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ImagePlus, Plus, Send, X } from "lucide-react";
+import { ImagePlus, Send } from "lucide-react";
 import {
   createSellerProduct,
   submitSellerProduct,
@@ -10,6 +10,8 @@ import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
+import ProductAttributeEditor from "../components/product/ProductAttributeEditor";
+import ProductDescriptionEditor from "../components/product/ProductDescriptionEditor";
 import { useCategories } from "../hooks/useCategories";
 import { getApiError } from "../utils/getApiError";
 import {
@@ -17,6 +19,10 @@ import {
   getTrimmedFormData,
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
+import {
+  hasFilledCharacteristics,
+} from "../utils/productDescriptionTemplate";
+import { createRequiredAttributeRows } from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
 
 export default function SellerProductRequestPage() {
@@ -26,9 +32,8 @@ export default function SellerProductRequestPage() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [attributeRows, setAttributeRows] = useState([
-    { id: crypto.randomUUID(), name: "", value: "" },
-  ]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [attributeRows, setAttributeRows] = useState(createRequiredAttributeRows);
 
   function handleImageChange(event) {
     const file = event.target.files?.[0] || null;
@@ -57,6 +62,11 @@ export default function SellerProductRequestPage() {
       ])
     ) {
       setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
+
+    if (!hasFilledCharacteristics(payload.description)) {
+      setErrorMessage("Fill Brand and Warranty in the Characteristics section");
       return;
     }
 
@@ -93,25 +103,6 @@ export default function SellerProductRequestPage() {
 
       return attributes;
     }, {});
-  }
-
-  function updateAttributeRow(rowId, field, value) {
-    setAttributeRows((rows) =>
-      rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
-    );
-  }
-
-  function addAttributeRow() {
-    setAttributeRows((rows) => [
-      ...rows,
-      { id: crypto.randomUUID(), name: "", value: "" },
-    ]);
-  }
-
-  function removeAttributeRow(rowId) {
-    setAttributeRows((rows) =>
-      rows.length === 1 ? rows : rows.filter((row) => row.id !== rowId),
-    );
   }
 
   return (
@@ -152,6 +143,8 @@ export default function SellerProductRequestPage() {
                   name="categoryId"
                   required
                   disabled={isCategoriesLoading}
+                  value={selectedCategoryId}
+                  onChange={(event) => setSelectedCategoryId(event.target.value)}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                 >
                   <option value="">Select category</option>
@@ -183,67 +176,14 @@ export default function SellerProductRequestPage() {
                 placeholder="10"
               />
 
-              <label className="grid gap-2 md:col-span-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Description
-                </span>
-                <textarea
-                  name="description"
-                  required
-                  minLength={20}
-                  rows={7}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                  placeholder="Describe product compatibility, materials, use case and package details..."
-                />
-              </label>
+              <ProductDescriptionEditor />
 
-              <div className="grid gap-3 md:col-span-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700">
-                    Catalog filter attributes
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Add product characteristics that should appear in catalog filters.
-                  </p>
-                </div>
-
-                {attributeRows.map((row) => (
-                  <div
-                    key={row.id}
-                    className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                  >
-                    <input
-                      value={row.name}
-                      onChange={(event) =>
-                        updateAttributeRow(row.id, "name", event.target.value)
-                      }
-                      placeholder="Filter name, e.g. Brand"
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                    />
-                    <input
-                      value={row.value}
-                      onChange={(event) =>
-                        updateAttributeRow(row.id, "value", event.target.value)
-                      }
-                      placeholder="Value, e.g. BigCompany"
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeAttributeRow(row.id)}
-                      aria-label="Remove attribute"
-                      className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <X size={17} />
-                    </button>
-                  </div>
-                ))}
-
-                <Button type="button" style="secondary" onClick={addAttributeRow}>
-                  <Plus size={17} />
-                  Add attribute
-                </Button>
-              </div>
+              <ProductAttributeEditor
+                rows={attributeRows}
+                categories={categories}
+                categoryId={selectedCategoryId}
+                onChange={setAttributeRows}
+              />
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="mt-6">

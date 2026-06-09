@@ -14,7 +14,7 @@ import {
   getTrimmedFormData,
   getEmptyFieldMessage,
   hasEmptyRequiredFields,
-} from "../utils/formUtils";
+} from "../utils/formSpaceValidation";
 
 export default function PaymentPage({ items = [], onPaid }) {
   const { user } = useAuth();
@@ -149,7 +149,7 @@ export default function PaymentPage({ items = [], onPaid }) {
               {receipt && (
                 <Button
                   type="button"
-                  variant="secondary"
+                  style="secondary"
                   onClick={handleDownload}
                 >
                   <FileText size={17} />

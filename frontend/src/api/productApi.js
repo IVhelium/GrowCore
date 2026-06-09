@@ -33,10 +33,13 @@ export function normalizeProduct(product) {
     store: product.store || null,
     reviews: (product.reviews || []).map((review) => ({
       id: review.id,
-      rating: Number(review.rating ?? 0),
+      rating: review.rating === null || review.rating === undefined
+        ? null
+        : Number(review.rating),
       text: review.comment || "",
       date: review.created_at,
-      user: review.user?.username || "GrowCore user",
+      parentId: review.parent_id,
+      user: review.user || null,
     })),
     raw: product,
   };
@@ -72,6 +75,17 @@ export async function createProductReview(productId, payload) {
     rating: Number(payload.rating),
     comment: payload.comment || "",
   });
+
+  return normalizeProduct(data);
+}
+
+export async function createProductReviewReply(productId, reviewId, payload) {
+  const { data } = await apiClient.post(
+    `/products/${productId}/reviews/${reviewId}/replies`,
+    {
+      comment: payload.comment || "",
+    },
+  );
 
   return normalizeProduct(data);
 }

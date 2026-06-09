@@ -23,7 +23,7 @@ from .Store.favorites import (
     ReadFavoriteProductDTO,
     ReadFavoriteProductImageDTO,
 )
-from .Store.reviews import CreateReviewDTO, ReadReviewDTO
+from .Store.reviews import CreateReviewDTO, CreateReviewReplyDTO, ReadReviewDTO
 from .User.roles import ReadRoleDTO
 from .User.user_roles import ReadUserRoleDTO
 from .User.users import CreateUserDTO, PublicUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO

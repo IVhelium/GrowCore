@@ -2,11 +2,8 @@ import { Link } from "react-router-dom";
 import UserAvatar from "./UserAvatar";
 
 export default function UserMiniCard({ user }) {
-  return (
-    <Link
-      to={`/users/${encodeURIComponent(user?.public_id || "")}`}
-      className="flex items-center gap-3 rounded-lg p-1 transition hover:bg-slate-50"
-    >
+  const content = (
+    <>
       <UserAvatar user={user} size="sm" />
 
       <div className="min-w-0">
@@ -18,6 +15,19 @@ export default function UserMiniCard({ user }) {
           <p className="truncate text-xs text-slate-400">{user.public_id}</p>
         )}
       </div>
+    </>
+  );
+
+  if (!user?.public_id) {
+    return <div className="flex items-center gap-3 p-1">{content}</div>;
+  }
+
+  return (
+    <Link
+      to={`/users/${encodeURIComponent(user?.public_id || "")}`}
+      className="flex items-center gap-3 rounded-lg p-1 transition hover:bg-slate-50"
+    >
+      {content}
     </Link>
   );
 }

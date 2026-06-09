@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { getProducts } from "../api/productApi";
 import { filterProducts, sortProducts } from "../utils/productCatalog";
 
-const CATALOG_PAGE_SIZE = 12;
+const CATALOG_PAGE_SIZE = 32;
 
 export function useProducts() {
   const [products, setProducts] = useState([]);

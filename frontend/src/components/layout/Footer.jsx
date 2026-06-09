@@ -77,9 +77,12 @@ export default function Footer({ categories = [], user = null }) {
               </a>
               <span>Parts dispatch from 8:00 to 23:00</span>
               <span>R. Dr. Domingos Rosado, 7005-469 Évora, Portugal</span>
-              <button className="mt-2 rounded-lg bg-[#4F8A5B] px-5 py-3 font-semibold text-white transition hover:bg-[#3F7148]">
+              <a
+                href="mailto:support@growcore.dev?subject=Request%20a%20callback&body=Hello%20GrowCore%20team,%0A%0APlease%20call%20me%20back%20about:"
+                className="mt-2 inline-flex rounded-lg bg-[#4F8A5B] px-5 py-3 font-semibold text-white transition hover:bg-[#3F7148]"
+              >
                 Request a callback
-              </button>
+              </a>
             </div>
           </div>
         </Container>

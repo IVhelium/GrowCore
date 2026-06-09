@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, MessageSquare, UserCheck } from "lucide-react";
 import {
   assignSupportTicket,
@@ -9,6 +10,7 @@ import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import PaginationBar from "../components/common/PaginationBar";
+import UserMiniCard from "../components/user/UserMiniCard";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
 
@@ -20,6 +22,12 @@ const statusFilters = [
   { label: "Resolved", value: "resolved" },
   { label: "Closed", value: "closed" },
 ];
+
+const statusFilterValues = statusFilters.map((filter) => filter.value);
+
+function getSafePage(value) {
+  return Math.max(1, Number(value) || 1);
+}
 
 function StatusBadge({ status }) {
   const styles = {
@@ -41,13 +49,59 @@ function StatusBadge({ status }) {
 }
 
 export default function SupportPanelPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [ticketTotal, setTicketTotal] = useState(0);
-  const [statusFilter, setStatusFilter] = useState("open");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [busyKey, setBusyKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const queryStatus = searchParams.get("status") || "open";
+  const statusFilter = statusFilterValues.includes(queryStatus)
+    ? queryStatus
+    : "open";
+  const currentPage = getSafePage(searchParams.get("page"));
+
+  const setCurrentPage = useCallback(
+    (page) => {
+      const safePage = getSafePage(page);
+      setSearchParams((currentParams) => {
+        const nextParams = new URLSearchParams(currentParams);
+
+        if (safePage > 1) {
+          nextParams.set("page", String(safePage));
+        } else {
+          nextParams.delete("page");
+        }
+
+        if (statusFilter !== "open") {
+          nextParams.set("status", statusFilter);
+        } else {
+          nextParams.delete("status");
+        }
+
+        return nextParams;
+      });
+    },
+    [setSearchParams, statusFilter],
+  );
+
+  const setStatusFilterQuery = useCallback(
+    (nextStatus) => {
+      setSearchParams((currentParams) => {
+        const nextParams = new URLSearchParams(currentParams);
+
+        if (nextStatus !== "open") {
+          nextParams.set("status", nextStatus);
+        } else {
+          nextParams.delete("status");
+        }
+
+        nextParams.delete("page");
+        return nextParams;
+      });
+    },
+    [setSearchParams],
+  );
 
   const loadTickets = useCallback(async (nextStatus, page) => {
     setIsLoading(true);
@@ -62,8 +116,10 @@ export default function SupportPanelPage() {
       setTickets(ticketPage.items);
       setTicketTotal(ticketPage.total);
 
-      if (ticketPage.items.length === 0 && ticketPage.has_previous) {
-        setCurrentPage(page - 1);
+      const backendPage = Math.floor((ticketPage.offset || 0) / TICKETS_PAGE_SIZE) + 1;
+
+      if (backendPage !== page) {
+        setCurrentPage(backendPage);
       }
     } catch (error) {
       setTickets([]);
@@ -72,7 +128,7 @@ export default function SupportPanelPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [setCurrentPage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -149,8 +205,7 @@ export default function SupportPanelPage() {
                   key={filter.value}
                   type="button"
                   onClick={() => {
-                    setStatusFilter(filter.value);
-                    setCurrentPage(1);
+                    setStatusFilterQuery(filter.value);
                   }}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                     statusFilter === filter.value
@@ -190,9 +245,17 @@ export default function SupportPanelPage() {
                       <StatusBadge status={ticket.status} />
                     </div>
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      User: {ticket.user?.username || "GrowCore user"}
-                    </p>
+                    <div className="mt-2">
+                      <UserMiniCard user={ticket.user} />
+                    </div>
+                    {ticket.assignedSupport && (
+                      <div className="mt-2 rounded-lg bg-slate-50 p-2">
+                        <p className="mb-1 text-xs font-bold uppercase text-slate-400">
+                          Assigned support
+                        </p>
+                        <UserMiniCard user={ticket.assignedSupport} />
+                      </div>
+                    )}
 
                     <p className="mt-3 text-sm leading-6 text-slate-600">
                       {ticket.message}

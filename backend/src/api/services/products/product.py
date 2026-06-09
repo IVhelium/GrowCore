@@ -11,7 +11,7 @@ from src.api.services.files.file_storage import FileStorageService
 from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
 from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, UserModel
-from src.schemas import CreateProductDTO, DeleteProductDTO, CreateReviewDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
+from src.schemas import CreateProductDTO, CreateReviewDTO, CreateReviewReplyDTO, DeleteProductDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
 
@@ -435,6 +435,34 @@ class ProductService(ProductBaseService):
     ) -> ProductModel:
         product = await self.get_public_product(product_id)
 
+        existing_review_query = (
+            select(ReviewModel)
+            .where(
+                ReviewModel.product_id == product.id,
+                ReviewModel.user_id == current_user.id,
+                ReviewModel.parent_id.is_(None),
+                ReviewModel.rating.is_not(None),
+            )
+        )
+
+        try:
+            existing_review = (
+                await self.db.execute(existing_review_query)
+            ).scalar_one_or_none()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not check review",
+            ) from exc
+
+        if existing_review:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You have already reviewed this product",
+            )
+
         review = ReviewModel(
             user_id=current_user.id,
             product_id=product.id,
@@ -456,6 +484,69 @@ class ProductService(ProductBaseService):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not create review",
+            ) from exc
+
+        return await self._get_product(product.id)
+
+    async def create_review_reply(
+        self,
+        current_user: UserModel,
+        product_id: int,
+        review_id: int,
+        schema: CreateReviewReplyDTO,
+    ) -> ProductModel:
+        product = await self.get_public_product(product_id)
+
+        parent_review_query = (
+            select(ReviewModel)
+            .where(
+                ReviewModel.id == review_id,
+                ReviewModel.product_id == product.id,
+            )
+        )
+
+        try:
+            parent_review = (
+                await self.db.execute(parent_review_query)
+            ).scalar_one_or_none()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load review",
+            ) from exc
+
+        if not parent_review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+
+        if parent_review.parent_id is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Replies can only be added to rated reviews",
+            )
+
+        reply = ReviewModel(
+            user_id=current_user.id,
+            product_id=product.id,
+            parent_id=parent_review.id,
+            rating=None,
+            comment=schema.comment.strip(),
+        )
+
+        try:
+            self.db.add(reply)
+            await self.db.commit()
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not create reply",
             ) from exc
 
         return await self._get_product(product.id)

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Clock,
@@ -25,6 +25,7 @@ import {
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
+import UserMiniCard from "../components/user/UserMiniCard";
 import { formatPrice } from "../utils/formatPrice";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
@@ -72,6 +73,25 @@ function MetricCard({ item }) {
         </div>
       </div>
     </article>
+  );
+}
+
+function AttributeChips({ attributes = {} }) {
+  const entries = Object.entries(attributes).filter(([, value]) => value);
+
+  if (!entries.length) return null;
+
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {entries.map(([name, value]) => (
+        <span
+          key={name}
+          className="rounded-lg bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+        >
+          {name}: {value}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -283,6 +303,7 @@ export default function AdminPanelPage() {
                         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
                           {product.description}
                         </p>
+                        <AttributeChips attributes={product.attributes} />
                       </div>
 
                       <div className="flex shrink-0 flex-wrap gap-2">
@@ -353,8 +374,8 @@ export default function AdminPanelPage() {
                           <StatusBadge status={product.moderationStatus} />
                         </div>
                         <p className="mt-1 text-sm text-slate-500">
-                          {product.store?.name || "Unknown"} В·{" "}
-                          {formatPrice(product.price)} В·{" "}
+                          {product.store?.name || "Unknown"} ·{" "}
+                          {formatPrice(product.price)} ·{" "}
                           {product.enabled ? "enabled" : "disabled"}
                         </p>
                         {(product.deletionReason || product.rejectionReason) && (
@@ -362,6 +383,7 @@ export default function AdminPanelPage() {
                             {product.deletionReason || product.rejectionReason}
                           </p>
                         )}
+                        <AttributeChips attributes={product.attributes} />
                       </div>
 
                       <div className="flex shrink-0 flex-wrap gap-2">
@@ -435,7 +457,10 @@ export default function AdminPanelPage() {
                           </h3>
                           <StatusBadge status={request.status} />
                         </div>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <div className="mt-2">
+                          <UserMiniCard user={request.user} />
+                        </div>
+                        <p className="mt-2 text-sm text-slate-500">
                           {request.country} · {request.phoneNumber}
                         </p>
                         <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -486,3 +511,5 @@ export default function AdminPanelPage() {
     </main>
   );
 }
+
+

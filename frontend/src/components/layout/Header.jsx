@@ -1,4 +1,4 @@
-import { Menu, Heart, User, ShoppingBag, Leaf, X } from "lucide-react";
+import { Menu, Heart, User, ShoppingBag, Leaf, X, Users } from "lucide-react";
 import { Popover } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -35,6 +35,12 @@ function AccountPopover({
         className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
       >
         Orders
+      </Link>
+      <Link
+        to="/users"
+        className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+      >
+        Find members
       </Link>
       <button
         type="button"
@@ -163,6 +169,14 @@ export default function Header({
             />
 
             <div className="flex items-center gap-2">
+              <Link
+                to="/users"
+                aria-label="Find members"
+                className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+              >
+                <Users size={20} />
+              </Link>
+
               <Link
                 to="/favorites"
                 className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"

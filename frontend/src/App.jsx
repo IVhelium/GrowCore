@@ -28,6 +28,9 @@ import SellerProductEditPage from "./pages/SellerProductEditPage";
 import SupportPage from "./pages/SupportPage";
 import OrderPage from "./pages/OrderPage";
 import PublicUserProfilePage from "./pages/PublicUserProfilePage";
+import PaymentPage from "./pages/PaymentPage";
+import DeliveryPage from "./pages/DeliveryPage";
+import ReturnsPage from "./pages/ReturnsPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -219,6 +222,9 @@ export default function App() {
 
         <Route path="/users" element={<UsersSearchPage />} />
         <Route path="/users/:publicId" element={<PublicUserProfilePage />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/delivery" element={<DeliveryPage />} />
+        <Route path="/returns" element={<ReturnsPage />} />
 
         <Route path="/seller-request" element={<SellerRequestPage/>}/>
 

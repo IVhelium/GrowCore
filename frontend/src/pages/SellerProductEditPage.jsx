@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ImagePlus, Plus, Save, Send, X } from "lucide-react";
+import { ImagePlus, Save, Send } from "lucide-react";
 import {
   getMySellerProduct,
   submitSellerProduct,
@@ -11,6 +11,8 @@ import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import FormField from "../components/common/FormField";
 import PageHeader from "../components/common/PageHader";
+import ProductAttributeEditor from "../components/product/ProductAttributeEditor";
+import ProductDescriptionEditor from "../components/product/ProductDescriptionEditor";
 import { useCategories } from "../hooks/useCategories";
 import { getApiError } from "../utils/getApiError";
 import {
@@ -18,6 +20,14 @@ import {
   getTrimmedFormData,
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
+import {
+  hasFilledCharacteristics,
+} from "../utils/productDescriptionTemplate";
+import {
+  createAttributeRow,
+  createRequiredAttributeRows,
+  REQUIRED_ATTRIBUTE_NAMES,
+} from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
 
 export default function SellerProductEditPage() {
@@ -31,9 +41,8 @@ export default function SellerProductEditPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [attributeRows, setAttributeRows] = useState([
-    { id: crypto.randomUUID(), name: "", value: "" },
-  ]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [attributeRows, setAttributeRows] = useState(createRequiredAttributeRows);
 
   useEffect(() => {
     let isActive = true;
@@ -50,15 +59,31 @@ export default function SellerProductEditPage() {
           setPreviewUrl(loadedProduct.image);
           const loadedAttributes = Object.entries(
             loadedProduct.attributes || {},
-          ).map(([name, value]) => ({
-            id: crypto.randomUUID(),
-            name,
-            value,
-          }));
+          );
+          const loadedAttributeNames = loadedAttributes.map(([name]) => name);
+          const requiredRows = REQUIRED_ATTRIBUTE_NAMES.map((name) => {
+            const [, value = ""] =
+              loadedAttributes.find(([attributeName]) => attributeName === name) || [];
+
+            return createAttributeRow(name, { value });
+          });
+          const optionalRows = loadedAttributes
+            .filter(([name]) => !REQUIRED_ATTRIBUTE_NAMES.includes(name))
+            .map(([name, value]) =>
+              createAttributeRow(name, {
+                value,
+                isCustom: false,
+              }),
+            );
+
+          setSelectedCategoryId(loadedProduct.categoryId || "");
           setAttributeRows(
-            loadedAttributes.length
-              ? loadedAttributes
-              : [{ id: crypto.randomUUID(), name: "", value: "" }],
+            [...requiredRows, ...optionalRows].filter(
+              (row, index, rows) =>
+                loadedAttributeNames.includes(row.name) ||
+                row.isRequired ||
+                rows.findIndex((item) => item.name === row.name) === index,
+            ),
           );
         }
       } catch (error) {
@@ -99,6 +124,11 @@ export default function SellerProductEditPage() {
       ])
     ) {
       setErrorMessage(getEmptyFieldMessage());
+      return;
+    }
+
+    if (!hasFilledCharacteristics(payload.description)) {
+      setErrorMessage("Fill Brand and Warranty in the Characteristics section");
       return;
     }
 
@@ -146,25 +176,6 @@ export default function SellerProductEditPage() {
 
       return attributes;
     }, {});
-  }
-
-  function updateAttributeRow(rowId, field, value) {
-    setAttributeRows((rows) =>
-      rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
-    );
-  }
-
-  function addAttributeRow() {
-    setAttributeRows((rows) => [
-      ...rows,
-      { id: crypto.randomUUID(), name: "", value: "" },
-    ]);
-  }
-
-  function removeAttributeRow(rowId) {
-    setAttributeRows((rows) =>
-      rows.length === 1 ? rows : rows.filter((row) => row.id !== rowId),
-    );
   }
 
   if (isLoading) {
@@ -217,7 +228,8 @@ export default function SellerProductEditPage() {
                   name="categoryId"
                   required
                   disabled={isCategoriesLoading}
-                  defaultValue={product?.categoryId || ""}
+                  value={selectedCategoryId}
+                  onChange={(event) => setSelectedCategoryId(event.target.value)}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                 >
                   <option value="">Select category</option>
@@ -249,67 +261,14 @@ export default function SellerProductEditPage() {
                 defaultValue={product?.quantity || 0}
               />
 
-              <label className="grid gap-2 md:col-span-2">
-                <span className="text-sm font-semibold text-slate-700">
-                  Description
-                </span>
-                <textarea
-                  name="description"
-                  required
-                  minLength={20}
-                  rows={7}
-                  defaultValue={product?.description || ""}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                />
-              </label>
+              <ProductDescriptionEditor defaultValue={product?.description} />
 
-              <div className="grid gap-3 md:col-span-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-700">
-                    Catalog filter attributes
-                  </h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Values here become dynamic filters in the catalog.
-                  </p>
-                </div>
-
-                {attributeRows.map((row) => (
-                  <div
-                    key={row.id}
-                    className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                  >
-                    <input
-                      value={row.name}
-                      onChange={(event) =>
-                        updateAttributeRow(row.id, "name", event.target.value)
-                      }
-                      placeholder="Filter name, e.g. Brand"
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                    />
-                    <input
-                      value={row.value}
-                      onChange={(event) =>
-                        updateAttributeRow(row.id, "value", event.target.value)
-                      }
-                      placeholder="Value, e.g. BigCompany"
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeAttributeRow(row.id)}
-                      aria-label="Remove attribute"
-                      className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <X size={17} />
-                    </button>
-                  </div>
-                ))}
-
-                <Button type="button" style="secondary" onClick={addAttributeRow}>
-                  <Plus size={17} />
-                  Add attribute
-                </Button>
-              </div>
+              <ProductAttributeEditor
+                rows={attributeRows}
+                categories={categories}
+                categoryId={selectedCategoryId}
+                onChange={setAttributeRows}
+              />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">

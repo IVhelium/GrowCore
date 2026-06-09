@@ -6,7 +6,7 @@ import {
   getTrimmedFormData,
   getEmptyFieldMessage,
   hasEmptyRequiredFields,
-} from "../../utils/formUtils";
+} from "../../utils/formSpaceValidation";
 
 const demoComments = [
   {

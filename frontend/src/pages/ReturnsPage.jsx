@@ -7,7 +7,7 @@ import {
   getTrimmedFormData,
   getEmptyFieldMessage,
   hasEmptyRequiredFields,
-} from "../utils/formUtils";
+} from "../utils/formSpaceValidation";
 import { useState } from "react";
 
 export default function ReturnsPage({ onSubmit }) {

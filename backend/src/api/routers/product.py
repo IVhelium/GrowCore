@@ -15,6 +15,7 @@ from src.schemas import (
     CreateProductDTO,
     DeleteProductDTO,
     CreateReviewDTO,
+    CreateReviewReplyDTO,
     PaginationDTO,
     ReadProductDTO,
     RejectProductDTO,
@@ -82,6 +83,30 @@ async def create_product_review(
     return await product_service.create_review(
         current_user=current_user,
         product_id=product_id,
+        schema=dto,
+    )
+
+
+@router.post(
+    "/products/{product_id}/reviews/{review_id}/replies",
+    response_model=ReadProductDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_product_review_reply(
+    product_id: int,
+    review_id: int,
+    dto: CreateReviewReplyDTO,
+    current_user: CurrentUserDependency,
+    product_service: ProductServiceDependency,
+):
+    """
+    Adds a text reply to an existing product review without changing rating
+    """
+
+    return await product_service.create_review_reply(
+        current_user=current_user,
+        product_id=product_id,
+        review_id=review_id,
         schema=dto,
     )
 

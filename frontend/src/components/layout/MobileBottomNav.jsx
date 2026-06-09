@@ -1,4 +1,4 @@
-import { Heart, Home, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Home, Search, ShoppingBag, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const navItems = [
@@ -6,7 +6,7 @@ const navItems = [
   { label: "Catalog", href: "/catalog", icon: Search },
   { label: "Cart", href: "/cart", icon: ShoppingBag },
   { label: "Saved", href: "/favorites", icon: Heart },
-  { label: "Profile", href: "/profile", icon: User },
+  { label: "Users", href: "/users", icon: Users },
 ];
 
 export default function MobileBottomNav() {

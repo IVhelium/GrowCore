@@ -1,22 +1,86 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PackageCheck } from "lucide-react";
+import { CheckCircle2, Clock, PackageCheck, Truck } from "lucide-react";
 import { getOrders, requestOrderReturn } from "../api/orderApi";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
 import { formatPrice } from "../utils/formatPrice";
+import { formatDateTime } from "../utils/formatDateTime";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
 
-function formatDate(value) {
-  if (!value) return "";
+function humanizeStatus(value) {
+  return value?.replaceAll("_", " ") || "-";
+}
 
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
+function OrderProgress({ order }) {
+  const steps = [
+    {
+      label: "Order placed",
+      active: true,
+      done: true,
+      icon: CheckCircle2,
+    },
+    {
+      label: "Payment",
+      value: humanizeStatus(order.paymentStatus),
+      active: order.paymentStatus !== "pending",
+      done: order.paymentStatus === "paid",
+      icon: CheckCircle2,
+    },
+    {
+      label: "Delivery",
+      value: humanizeStatus(order.deliveryStatus),
+      active: order.deliveryStatus !== "pending",
+      done: order.deliveryStatus === "delivered",
+      icon: Truck,
+    },
+    {
+      label: "Return",
+      value: humanizeStatus(order.returnStatus),
+      active: order.returnStatus !== "none",
+      done: order.returnStatus === "approved",
+      icon: Clock,
+    },
+  ];
+
+  return (
+    <div className="grid gap-3 rounded-lg bg-slate-50 p-4 sm:grid-cols-4">
+      {steps.map((step) => {
+        const Icon = step.icon;
+
+        return (
+          <div
+            key={step.label}
+            className={`rounded-lg border bg-white p-3 ${
+              step.active ? "border-[#4F8A5B]/30" : "border-slate-100"
+            }`}
+          >
+            <div
+              className={`mb-2 grid h-8 w-8 place-items-center rounded-lg ${
+                step.done
+                  ? "bg-[#4F8A5B] text-white"
+                  : step.active
+                    ? "bg-[#4F8A5B]/10 text-[#4F8A5B]"
+                    : "bg-slate-100 text-slate-400"
+              }`}
+            >
+              <Icon size={16} />
+            </div>
+            <p className="text-xs font-bold uppercase text-slate-500">
+              {step.label}
+            </p>
+            {step.value && (
+              <p className="mt-1 text-sm font-semibold capitalize text-slate-800">
+                {step.value}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function OrderPage() {
@@ -117,12 +181,12 @@ export default function OrderPage() {
                         Order #{order.id}
                       </h2>
                       <p className="text-sm text-slate-500">
-                        {formatDate(order.date)} - {order.status}
+                        {formatDateTime(order.date)} · {humanizeStatus(order.status)}
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
-                        Payment: {order.paymentStatus || "-"} - Delivery:{" "}
-                        {order.deliveryStatus || "-"} - Return:{" "}
-                        {order.returnStatus || "-"}
+                        Payment: {humanizeStatus(order.paymentStatus)} · Delivery:{" "}
+                        {humanizeStatus(order.deliveryStatus)} · Return:{" "}
+                        {humanizeStatus(order.returnStatus)}
                       </p>
                     </div>
                   </div>
@@ -136,6 +200,10 @@ export default function OrderPage() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <OrderProgress order={order} />
                 </div>
 
                 <div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">

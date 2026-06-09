@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   Heart,
+  MessageSquare,
   Minus,
   Plus,
   ShieldCheck,
@@ -14,7 +15,10 @@ import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
 import ProductGrid from "../components/product/ProductGrid";
 import SectionTitle from "../components/common/SectionTitle";
+import UserMiniCard from "../components/user/UserMiniCard";
 import { formatPrice } from "../utils/formatPrice";
+import { formatDate } from "../utils/formatDateTime";
+import { getApiError } from "../utils/getApiError";
 
 const fallbackImage =
   "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=900&auto=format&fit=crop";
@@ -39,23 +43,40 @@ function RatingStars({ value = 0 }) {
   );
 }
 
-function formatDate(value) {
-  if (!value) return "";
+function getReviewThreads(reviews) {
+  const repliesByParent = reviews.reduce((groups, review) => {
+    if (!review.parentId) return groups;
 
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
+    groups[review.parentId] = [...(groups[review.parentId] || []), review];
+    return groups;
+  }, {});
+
+  return reviews
+    .filter((review) => !review.parentId && review.rating !== null)
+    .map((review) => ({
+      ...review,
+      replies: repliesByParent[review.id] || [],
+    }));
 }
 
-function ProductTabs({ product, onReviewSubmit }) {
+function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
   const [activeTab, setActiveTab] = useState("description");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [isReviewSubmitting, setIsReviewSubmitting] = useState(false);
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyComment, setReplyComment] = useState("");
+  const [replyError, setReplyError] = useState("");
+  const [replyBusyId, setReplyBusyId] = useState(null);
   const reviews = product.reviews || [];
+  const reviewThreads = getReviewThreads(reviews);
+  const hasOwnReview = Boolean(
+    currentUser?.public_id &&
+      reviewThreads.some(
+        (review) => review.user?.public_id === currentUser.public_id,
+      ),
+  );
 
   async function handleReviewSubmit(event) {
     event.preventDefault();
@@ -79,8 +100,34 @@ function ProductTabs({ product, onReviewSubmit }) {
       });
       setReviewRating(5);
       setReviewComment("");
+    } catch (error) {
+      setReviewError(getApiError(error, "Could not add review"));
     } finally {
       setIsReviewSubmitting(false);
+    }
+  }
+
+  async function handleReplySubmit(event, reviewId) {
+    event.preventDefault();
+
+    if (!replyComment.trim()) {
+      setReplyError("Reply cannot be empty.");
+      return;
+    }
+
+    setReplyBusyId(reviewId);
+    setReplyError("");
+
+    try {
+      await onReviewReply?.(reviewId, {
+        comment: replyComment.trim(),
+      });
+      setReplyingToId(null);
+      setReplyComment("");
+    } catch (error) {
+      setReplyError(getApiError(error, "Could not add reply"));
+    } finally {
+      setReplyBusyId(null);
     }
   }
 
@@ -164,86 +211,90 @@ function ProductTabs({ product, onReviewSubmit }) {
             </div>
 
             <div className="mt-6 grid gap-4">
-              <form
-                onSubmit={handleReviewSubmit}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-5"
-              >
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div>
-                    <h4 className="font-bold text-slate-950">
-                      Leave a review
-                    </h4>
-                    <p className="mt-1 text-sm text-slate-500">
-                      Rate the product and share your experience.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, index) => {
-                      const value = index + 1;
-
-                      return (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setReviewRating(value)}
-                          aria-label={`Rate ${value} stars`}
-                          className="grid h-9 w-9 place-items-center rounded-md text-amber-500 transition hover:bg-white"
-                        >
-                          <Star
-                            size={20}
-                            fill={value <= reviewRating ? "currentColor" : "none"}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <textarea
-                  value={reviewComment}
-                  onChange={(event) => {
-                    setReviewComment(event.target.value);
-                    if (reviewError) {
-                      setReviewError("");
-                    }
-                  }}
-                  placeholder="Write your review..."
-                  required
-                  rows={4}
-                  className={`mt-4 w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B] ${
-                    reviewError ? "border-red-300" : "border-slate-200"
-                  }`}
-                />
-                {reviewError && (
-                  <p className="mt-2 text-sm font-semibold text-red-600">
-                    {reviewError}
-                  </p>
-                )}
-                <Button
-                  type="submit"
-                  disabled={isReviewSubmitting}
-                  className="mt-4"
+              {!hasOwnReview ? (
+                <form
+                  onSubmit={handleReviewSubmit}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-5"
                 >
-                  {isReviewSubmitting ? "Sending..." : "Submit review"}
-                </Button>
-              </form>
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div>
+                      <h4 className="font-bold text-slate-950">
+                        Leave a review
+                      </h4>
+                      <p className="mt-1 text-sm text-slate-500">
+                        You can leave one rated review per product.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, index) => {
+                        const value = index + 1;
 
-              {reviews.length === 0 && (
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setReviewRating(value)}
+                            aria-label={`Rate ${value} stars`}
+                            className="grid h-9 w-9 place-items-center rounded-md text-amber-500 transition hover:bg-white"
+                          >
+                            <Star
+                              size={20}
+                              fill={value <= reviewRating ? "currentColor" : "none"}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(event) => {
+                      setReviewComment(event.target.value);
+                      if (reviewError) {
+                        setReviewError("");
+                      }
+                    }}
+                    placeholder="Write your review..."
+                    required
+                    rows={4}
+                    className={`mt-4 w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B] ${
+                      reviewError ? "border-red-300" : "border-slate-200"
+                    }`}
+                  />
+                  {reviewError && (
+                    <p className="mt-2 text-sm font-semibold text-red-600">
+                      {reviewError}
+                    </p>
+                  )}
+                  <Button
+                    type="submit"
+                    disabled={isReviewSubmitting}
+                    className="mt-4"
+                  >
+                    {isReviewSubmitting ? "Sending..." : "Submit review"}
+                  </Button>
+                </form>
+              ) : (
+                <div className="rounded-xl border border-[#4F8A5B]/20 bg-[#4F8A5B]/5 p-5 text-sm font-semibold text-[#3F7148]">
+                  You already left a rated review. You can still reply to other comments.
+                </div>
+              )}
+
+              {reviewThreads.length === 0 && (
                 <p className="rounded-xl border border-slate-200 p-5 text-sm text-slate-500">
                   No reviews yet.
                 </p>
               )}
 
-              {reviews.map((review) => (
+              {reviewThreads.map((review) => (
                 <article
                   key={review.id}
                   className="rounded-xl border border-slate-200 p-5"
                 >
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                    <div>
-                      <h4 className="font-bold text-slate-950">
-                        {review.user}
-                      </h4>
-                      <p className="mt-1 text-sm text-slate-400">
+                    <div className="min-w-0">
+                      <UserMiniCard user={review.user} />
+                      <p className="mt-1 pl-1 text-sm text-slate-400">
                         {formatDate(review.date)}
                       </p>
                     </div>
@@ -252,6 +303,79 @@ function ProductTabs({ product, onReviewSubmit }) {
                   <p className="mt-4 text-sm leading-6 text-slate-600">
                     {review.text || "No comment provided."}
                   </p>
+
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      style="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setReplyingToId((currentId) =>
+                          currentId === review.id ? null : review.id,
+                        );
+                        setReplyComment("");
+                        setReplyError("");
+                      }}
+                    >
+                      <MessageSquare size={16} />
+                      Reply
+                    </Button>
+                  </div>
+
+                  {replyingToId === review.id && (
+                    <form
+                      onSubmit={(event) => handleReplySubmit(event, review.id)}
+                      className="mt-4 rounded-lg bg-slate-50 p-4"
+                    >
+                      <textarea
+                        value={replyComment}
+                        onChange={(event) => {
+                          setReplyComment(event.target.value);
+                          if (replyError) {
+                            setReplyError("");
+                          }
+                        }}
+                        placeholder="Write a reply..."
+                        required
+                        rows={3}
+                        className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
+                      />
+                      {replyError && (
+                        <p className="mt-2 text-sm font-semibold text-red-600">
+                          {replyError}
+                        </p>
+                      )}
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={replyBusyId === review.id}
+                        className="mt-3"
+                      >
+                        {replyBusyId === review.id ? "Sending..." : "Send reply"}
+                      </Button>
+                    </form>
+                  )}
+
+                  {review.replies.length > 0 && (
+                    <div className="mt-5 grid gap-3 border-l-2 border-slate-100 pl-4">
+                      {review.replies.map((reply) => (
+                        <div
+                          key={reply.id}
+                          className="rounded-lg bg-slate-50 p-4"
+                        >
+                          <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                            <UserMiniCard user={reply.user} />
+                            <p className="pl-1 text-sm text-slate-400">
+                              {formatDate(reply.date)}
+                            </p>
+                          </div>
+                          <p className="mt-3 text-sm leading-6 text-slate-600">
+                            {reply.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
@@ -271,6 +395,8 @@ export default function ProductPage({
   onAddToCart,
   onToggleFavorite,
   onReviewSubmit,
+  onReviewReply,
+  currentUser,
 }) {
   const images = useMemo(
     () => (product ? [product.image, ...(product.images || [])] : []),
@@ -444,7 +570,12 @@ export default function ProductPage({
         </div>
 
         <div className="mt-8">
-          <ProductTabs product={product} onReviewSubmit={onReviewSubmit} />
+          <ProductTabs
+            product={product}
+            currentUser={currentUser}
+            onReviewSubmit={onReviewSubmit}
+            onReviewReply={onReviewReply}
+          />
         </div>
 
         {relatedProducts.length > 0 && (
