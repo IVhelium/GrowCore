@@ -19,7 +19,7 @@ export default function CartPage({
     const result = await onCheckout?.(deliveryAddress);
 
     if (result) {
-      navigate("/orders");
+      navigate("/payment");
     }
   }
 

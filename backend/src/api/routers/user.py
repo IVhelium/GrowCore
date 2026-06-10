@@ -1,18 +1,45 @@
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
+    AdminDependency,
     CurrentUserDependency,
     UserServiceDependency,
 )
-from src.schemas import PublicUserDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
+from src.core.pagination import PaginationDependency
+from src.schemas import PaginationDTO, PublicUserDTO, ReadNotificationDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
+
+
+class BlockUserDTO(BaseModel):
+    reason: str = Field(min_length=10, max_length=400)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+        return value
+
+    model_config = ConfigDict(extra="forbid")
 
 
 router = APIRouter(
     prefix="/users", 
     tags=["Users"]
 )
+
+
+@router.get(
+    "",
+    response_model=PaginationDTO[ShortUserDTO],
+)
+async def list_users(
+    user_service: UserServiceDependency,
+    pagination: PaginationDependency,
+):
+    return await user_service.list_users(pagination=pagination)
 
 
 @router.get(
@@ -71,6 +98,36 @@ async def delete_my_avatar(
 
 
 @router.get(
+    "/me/notifications",
+    response_model=PaginationDTO[ReadNotificationDTO],
+)
+async def list_my_notifications(
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+    pagination: PaginationDependency,
+):
+    return await user_service.list_notifications(
+        current_user=current_user,
+        pagination=pagination,
+    )
+
+
+@router.patch(
+    "/me/notifications/{notification_id}/read",
+    response_model=ReadNotificationDTO,
+)
+async def mark_my_notification_read(
+    notification_id: int,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.mark_notification_read(
+        current_user=current_user,
+        notification_id=notification_id,
+    )
+
+
+@router.get(
     "/search",
     response_model=ShortUserDTO
 )
@@ -87,6 +144,38 @@ async def get_user_by_public_id(
     ]
 ):
     return await user_service.get_user_by_public_id(public_id=public_id)
+
+
+@router.patch(
+    "/admin/{public_id}/block",
+    response_model=PublicUserDTO,
+)
+async def block_user(
+    public_id: str,
+    schema: BlockUserDTO,
+    admin: AdminDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.set_user_block(
+        public_id=public_id,
+        blocked=True,
+        reason=schema.reason,
+    )
+
+
+@router.patch(
+    "/admin/{public_id}/unblock",
+    response_model=PublicUserDTO,
+)
+async def unblock_user(
+    public_id: str,
+    admin: AdminDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.set_user_block(
+        public_id=public_id,
+        blocked=False,
+    )
 
 
 @router.get(

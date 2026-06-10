@@ -1,4 +1,5 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { formatPrice } from "../../utils/formatPrice";
 
 
@@ -12,16 +13,24 @@ export default function CartItem({
 
     return (
         <article className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[120px_1fr_auto] sm:items-center">
-            <div className="grid aspect-square place-items-center overflow-hidden rounded-xl bg-slate-50">
+            <Link
+                to={`/product/${item.productId || item.product?.id}`}
+                className="grid aspect-square place-items-center overflow-hidden rounded-xl bg-slate-50"
+            >
                 <img
                     src={item.image}
                     alt={item.title}
                     className="h-full w-full object-cover"
                 />
-            </div>
+            </Link>
 
             <div>
-                <h3 className="text-lg font-bold text-slate-950">{item.title}</h3>
+                <Link
+                    to={`/product/${item.productId || item.product?.id}`}
+                    className="text-lg font-bold text-slate-950 transition hover:text-[#4F8A5B]"
+                >
+                    {item.title}
+                </Link>
                 <p className="mt-1 text-sm text-slate-500">Unit price: {formatPrice(item.price)}</p>
 
                 <div className="mt-4 inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">

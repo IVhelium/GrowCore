@@ -1,9 +1,25 @@
 import { apiClient } from "./apiClient";
+import { getPaginationParams } from "./apiClient";
+
+
+export function normalizeUser(user) {
+    return {
+        ...user,
+        public_id: user.public_id,
+        publicId: user.public_id,
+        username: user.username,
+        email: user.email,
+        avatar_url: user.avatar_url,
+        avatarUrl: user.avatar_url,
+        isBlocked: Boolean(user.is_blocked),
+        blockReason: user.block_reason || null,
+    };
+}
 
 
 export async function getUserProfile() {
     const { data } = await apiClient.get("/users/me");
-    return data;
+    return normalizeUser(data);
 }
 
 export async function updateUserProfile(payload) {
@@ -13,7 +29,7 @@ export async function updateUserProfile(payload) {
     };
 
     const { data } = await apiClient.patch("/users/me", body);
-    return data;
+    return normalizeUser(data);
 }
 
 export async function uploadUserAvatar(file) {
@@ -21,12 +37,23 @@ export async function uploadUserAvatar(file) {
     formData.append("avatar", file);
 
     const { data } = await apiClient.patch("/users/me/avatar", formData);
-    return data;
+    return normalizeUser(data);
 }
 
 export async function deleteUserAvatar() {
     const { data } = await apiClient.delete("/users/me/avatar");
-    return data;
+    return normalizeUser(data);
+}
+
+export async function getUsers({ limit = 12, offset = 0 } = {}) {
+    const { data } = await apiClient.get("/users", {
+        params: getPaginationParams({ limit, offset }),
+    });
+
+    return {
+        ...data,
+        items: (data.items || []).map(normalizeUser),
+    };
 }
 
 export async function searchUserByPublicId(publicId) {
@@ -34,10 +61,41 @@ export async function searchUserByPublicId(publicId) {
         params: { public_id: publicId },
     });
 
-    return data;
+    return normalizeUser(data);
 }
 
 export async function getPublicUserProfile(publicId) {
     const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}`);
+    return normalizeUser(data);
+}
+
+export async function blockUser(publicId, reason) {
+    const { data } = await apiClient.patch(
+        `/users/admin/${encodeURIComponent(publicId)}/block`,
+        { reason },
+    );
+    return normalizeUser(data);
+}
+
+export async function unblockUser(publicId) {
+    const { data } = await apiClient.patch(
+        `/users/admin/${encodeURIComponent(publicId)}/unblock`,
+    );
+    return normalizeUser(data);
+}
+
+export async function getNotifications({ limit = 20, offset = 0 } = {}) {
+    const { data } = await apiClient.get("/users/me/notifications", {
+        params: getPaginationParams({ limit, offset }),
+    });
+
+    return data;
+}
+
+export async function markNotificationRead(notificationId) {
+    const { data } = await apiClient.patch(
+        `/users/me/notifications/${notificationId}/read`,
+    );
+
     return data;
 }

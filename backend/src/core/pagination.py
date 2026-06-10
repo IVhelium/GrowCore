@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Query, status
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, literal_column, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,6 +55,11 @@ class PaginationService:
             ._generate()
         )
         count_source._with_options = ()
+
+        count_source = count_source.with_only_columns(
+            literal_column("1"),
+            maintain_column_froms=True,
+        )
 
         return count_source
 

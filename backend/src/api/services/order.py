@@ -125,6 +125,36 @@ class OrderService:
 
         return await self._get_user_order(current_user, order.id)
 
+    async def pay_order(
+        self,
+        current_user: UserModel,
+        order_id: int,
+        transaction_id: str,
+        payment_document: str,
+    ) -> OrderModel:
+        order = await self._get_user_order(current_user, order_id)
+
+        if order.payment_status != PaymentStatus.pending:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Order is not awaiting payment",
+            )
+
+        order.payment_status = PaymentStatus.paid
+        order.payment_transaction_id = transaction_id
+        order.payment_document = payment_document
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not pay order",
+            ) from exc
+
+        return await self._get_user_order(current_user, order.id)
+
     async def approve_return(
         self,
         order_id: int,

@@ -167,6 +167,12 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
+
+        if user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=user.block_reason or "Your account is blocked"
+            )
         
         return user
     

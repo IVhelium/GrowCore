@@ -31,6 +31,7 @@ import PublicUserProfilePage from "./pages/PublicUserProfilePage";
 import PaymentPage from "./pages/PaymentPage";
 import DeliveryPage from "./pages/DeliveryPage";
 import ReturnsPage from "./pages/ReturnsPage";
+import NotificationsPage from "./pages/NotificationsPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -218,11 +219,12 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/orders" element={<OrderPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
         </Route>
 
         <Route path="/users" element={<UsersSearchPage />} />
         <Route path="/users/:publicId" element={<PublicUserProfilePage />} />
-        <Route path="/payment" element={<PaymentPage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
         <Route path="/returns" element={<ReturnsPage />} />
 

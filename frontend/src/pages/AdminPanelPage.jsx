@@ -9,6 +9,7 @@ import {
   Store,
   XCircle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   approveProduct,
   blockProduct,
@@ -22,13 +23,43 @@ import {
   getSellerRequests,
   rejectSellerRequest,
 } from "../api/sellerRequestApi";
+import { getUsers } from "../api/userApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
 import UserMiniCard from "../components/user/UserMiniCard";
+import UserAvatar from "../components/user/UserAvatar";
 import { formatPrice } from "../utils/formatPrice";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+
+const adminTabs = [
+  { id: "moderation", label: "Product moderation" },
+  { id: "controls", label: "Product controls" },
+  { id: "sellerRequests", label: "Seller requests" },
+  { id: "users", label: "Users" },
+];
+
+function AdminTabs({ activeTab, onChange }) {
+  return (
+    <div className="mt-8 flex overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+      {adminTabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => onChange(tab.id)}
+          className={`shrink-0 border-b-2 px-5 py-4 text-sm font-bold transition ${
+            activeTab === tab.id
+              ? "border-[#4F8A5B] text-[#4F8A5B]"
+              : "border-transparent text-slate-500 hover:text-slate-950"
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function StatusBadge({ status }) {
   const styles = {
@@ -100,19 +131,22 @@ export default function AdminPanelPage() {
   const [productTotal, setProductTotal] = useState(0);
   const [sellerRequests, setSellerRequests] = useState([]);
   const [adminProducts, setAdminProducts] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
   const [sellerRequestTotal, setSellerRequestTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [busyKey, setBusyKey] = useState("");
+  const [activeTab, setActiveTab] = useState("moderation");
 
   async function loadAdminData() {
     setIsLoading(true);
     setErrorMessage("");
 
-    const [productResult, requestResult, adminProductResult] = await Promise.allSettled([
+    const [productResult, requestResult, adminProductResult, usersResult] = await Promise.allSettled([
       getPendingProducts(),
       getSellerRequests({ status: "pending" }),
       getAdminProducts({ limit: 10 }),
+      getUsers({ limit: 12 }),
     ]);
 
     if (productResult.status === "fulfilled") {
@@ -139,10 +173,17 @@ export default function AdminPanelPage() {
       setAdminProducts([]);
     }
 
+    if (usersResult.status === "fulfilled") {
+      setAdminUsers(usersResult.value.items);
+    } else {
+      setAdminUsers([]);
+    }
+
     const failedResults = [
       productResult,
       requestResult,
       adminProductResult,
+      usersResult,
     ].filter((result) => result.status === "rejected");
 
     if (failedResults.length > 0) {
@@ -184,7 +225,7 @@ export default function AdminPanelPage() {
       },
       {
         title: "Visible queues",
-        value: products.length + sellerRequests.length + adminProducts.length,
+        value: products.length + sellerRequests.length + adminProducts.length + adminUsers.length,
         icon: ShieldAlert,
         text: "Items loaded on this dashboard",
       },
@@ -193,6 +234,7 @@ export default function AdminPanelPage() {
       productTotal,
       products.length,
       adminProducts.length,
+      adminUsers.length,
       sellerRequestTotal,
       sellerRequests.length,
     ],
@@ -264,9 +306,11 @@ export default function AdminPanelPage() {
           ))}
         </section>
 
-        <div className="mt-8 grid gap-6">
+        <AdminTabs activeTab={activeTab} onChange={setActiveTab} />
+
+        <div className="mt-6 grid gap-6">
           <div className="grid gap-6">
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "moderation" ? "" : "hidden"}`}>
               <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                 <div>
                   <h2 className="text-xl font-bold text-slate-950">
@@ -291,9 +335,12 @@ export default function AdminPanelPage() {
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="font-bold text-slate-950">
+                          <Link
+                            to={`/product/${product.id}`}
+                            className="font-bold text-slate-950 transition hover:text-[#4F8A5B]"
+                          >
                             {product.title}
-                          </h3>
+                          </Link>
                           <StatusBadge status={product.moderationStatus} />
                         </div>
                         <p className="mt-1 text-sm text-slate-500">
@@ -346,7 +393,7 @@ export default function AdminPanelPage() {
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "controls" ? "" : "hidden"}`}>
               <div className="border-b border-slate-200 px-5 py-4">
                 <h2 className="text-xl font-bold text-slate-950">
                   Product controls
@@ -368,9 +415,12 @@ export default function AdminPanelPage() {
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="font-bold text-slate-950">
+                          <Link
+                            to={`/product/${product.id}`}
+                            className="font-bold text-slate-950 transition hover:text-[#4F8A5B]"
+                          >
                             {product.title}
-                          </h3>
+                          </Link>
                           <StatusBadge status={product.moderationStatus} />
                         </div>
                         <p className="mt-1 text-sm text-slate-500">
@@ -430,7 +480,7 @@ export default function AdminPanelPage() {
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "sellerRequests" ? "" : "hidden"}`}>
               <div className="border-b border-slate-200 px-5 py-4">
                 <h2 className="text-xl font-bold text-slate-950">
                   Seller requests
@@ -460,6 +510,14 @@ export default function AdminPanelPage() {
                         <div className="mt-2">
                           <UserMiniCard user={request.user} />
                         </div>
+                        {request.user?.public_id && (
+                          <Link
+                            to={`/users/${encodeURIComponent(request.user.public_id)}`}
+                            className="mt-3 inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                          >
+                            Open user profile
+                          </Link>
+                        )}
                         <p className="mt-2 text-sm text-slate-500">
                           {request.country} · {request.phoneNumber}
                         </p>
@@ -502,6 +560,48 @@ export default function AdminPanelPage() {
                       </div>
                     </div>
                   </article>
+                ))}
+              </div>
+            </section>
+
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "users" ? "" : "hidden"}`}>
+              <div className="border-b border-slate-200 px-5 py-4">
+                <h2 className="text-xl font-bold text-slate-950">
+                  Users
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Open user profiles and use admin actions from the profile page
+                </p>
+              </div>
+
+              <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">
+                {adminUsers.length === 0 && (
+                  <p className="text-sm text-slate-500">
+                    No users loaded.
+                  </p>
+                )}
+
+                {adminUsers.map((user) => (
+                  <Link
+                    key={user.public_id}
+                    to={`/users/${encodeURIComponent(user.public_id)}`}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-[#4F8A5B]"
+                  >
+                    <UserAvatar user={user} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-950">
+                        {user.username}
+                      </p>
+                      <p className="truncate text-xs text-slate-400">
+                        {user.public_id}
+                      </p>
+                      {user.isBlocked && (
+                        <p className="mt-2 w-fit rounded-lg bg-red-50 px-2 py-1 text-xs font-bold uppercase text-red-600">
+                          blocked
+                        </p>
+                      )}
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>

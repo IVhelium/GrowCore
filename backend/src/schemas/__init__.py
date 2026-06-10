@@ -3,7 +3,7 @@ from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
 from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
 from .Store.carts import ReadCartDTO, AddCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO, ReadCartProductDTO, ReadCartProductImageDTO
 from .Store.categories import CreateCategoryDTO, ReadCategoryDTO
-from .Store.orders import CheckoutDTO, ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO, RequestReturnDTO, UpdateDeliveryDTO
+from .Store.orders import CheckoutDTO, PayOrderDTO, ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO, RequestReturnDTO, UpdateDeliveryDTO
 from .Store.products import (
     CreateProductDTO,
     ReadProductDTO,
@@ -27,6 +27,7 @@ from .Store.reviews import CreateReviewDTO, CreateReviewReplyDTO, ReadReviewDTO
 from .User.roles import ReadRoleDTO
 from .User.user_roles import ReadUserRoleDTO
 from .User.users import CreateUserDTO, PublicUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
+from .User.notifications import ReadNotificationDTO
 from .User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
 from .pagination import PaginationDTO
 from .Support.support_tickets import CreateSupportTicketDTO, ReadSupportTicketDTO, UpdateSupportTicketDTO
@@ -55,6 +56,7 @@ ReadUserRoleDTO.model_rebuild()
 ReadUserDTO.model_rebuild()
 ShortUserDTO.model_rebuild()
 PublicUserDTO.model_rebuild()
+ReadNotificationDTO.model_rebuild()
 ReadSupportTicketDTO.model_rebuild()
 ReadFavoriteItemDTO.model_rebuild()
 ReadFavoriteProductDTO.model_rebuild()

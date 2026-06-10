@@ -1,5 +1,5 @@
 import { Drawer } from "antd";
-import { Heart, Leaf, LogOut, ShoppingBag, User, Users } from "lucide-react";
+import { Bell, Heart, Leaf, LogOut, ShoppingBag, User, Users } from "lucide-react";
 import { Link } from "react-router-dom"
 import { getCategoryIcon } from "../../utils/categoryIcons";
 import UserAvatar from "../user/UserAvatar";
@@ -80,6 +80,16 @@ export default function MobileMenu({
         >
           <Users size={18} /> Find members
         </Link>
+
+        {user && (
+          <Link
+            to="/notifications"
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <Bell size={18} /> Notifications
+          </Link>
+        )}
 
         {user && (
           <button

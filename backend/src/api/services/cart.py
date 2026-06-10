@@ -1,4 +1,3 @@
-from datetime import datetime
 import uuid
 
 from fastapi import HTTPException, status
@@ -443,31 +442,18 @@ class CartService:
 
                 total_price += product.price * item.quantity
 
-            transaction_id = f"SIM-{uuid.uuid4().hex[:12].upper()}"
-
             order = OrderModel(
                 user_id=current_user.id,
                 status=OrderStatus.inTransit,
-                payment_status=PaymentStatus.paid,
+                payment_status=PaymentStatus.pending,
                 delivery_status=DeliveryStatus.preparing,
                 return_status=ReturnStatus.none,
                 total_price=total_price,
-                payment_transaction_id=transaction_id,
                 delivery_address=delivery_address,
                 tracking_number=f"GC-{uuid.uuid4().hex[:10].upper()}",
             )
             self.db.add(order)
             await self.db.flush()
-
-            order.payment_document = (
-                f"GrowCore payment document\n"
-                f"Order: #{order.id}\n"
-                f"Transaction: {transaction_id}\n"
-                f"Paid at: {datetime.utcnow().isoformat()}Z\n"
-                f"Buyer: {current_user.username}\n"
-                f"Delivery address: {delivery_address}\n"
-                f"Amount: {total_price}"
-            )
 
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)

@@ -1,4 +1,6 @@
 from fastapi import HTTPException, UploadFile, status
+from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +9,8 @@ from src.utils.storage_paths import avatar_directory_key
 from src.api.services.files.file_storage import FileStorageService
 from src.core.upload_policies import AVATAR_POLICY
 from src.core.constants import PUBLIC_ID_RE
-from src.models import UserModel, UserRoleModel
+from src.core.pagination import PaginationParams, PaginationService
+from src.models import NotificationModel, UserModel, UserRoleModel
 from src.schemas import UpdateUserDTO
 
 
@@ -119,6 +122,126 @@ class UserService:
             )
         
         return user
+
+    async def list_users(
+        self,
+        pagination: PaginationParams,
+    ):
+        query = (
+            select(UserModel)
+            .options(
+                selectinload(UserModel.roles)
+                .selectinload(UserRoleModel.role)
+            )
+            .order_by(UserModel.created_at.desc())
+        )
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )
+
+    async def set_user_block(
+        self,
+        public_id: str,
+        blocked: bool,
+        reason: str | None = None,
+    ) -> UserModel:
+        user = await self.get_user_by_public_id(public_id)
+        trimmed_reason = reason.strip() if reason else None
+
+        if blocked and not trimmed_reason:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail="Block reason is required",
+            )
+
+        user.is_blocked = blocked
+        user.block_reason = trimmed_reason if blocked else None
+
+        if blocked:
+            self.db.add(
+                NotificationModel(
+                    user_id=user.id,
+                    title="Account blocked",
+                    message=(
+                        "Your GrowCore account was blocked by an administrator. "
+                        f"Reason: {trimmed_reason}"
+                    ),
+                )
+            )
+        else:
+            self.db.add(
+                NotificationModel(
+                    user_id=user.id,
+                    title="Account restored",
+                    message="Your GrowCore account is active again.",
+                )
+            )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not update user status",
+            ) from exc
+
+        return await self.get_user_by_public_id(public_id)
+
+    async def list_notifications(
+        self,
+        current_user: UserModel,
+        pagination: PaginationParams,
+    ):
+        query = (
+            select(NotificationModel)
+            .where(NotificationModel.user_id == current_user.id)
+            .order_by(NotificationModel.created_at.desc())
+        )
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )
+
+    async def mark_notification_read(
+        self,
+        current_user: UserModel,
+        notification_id: int,
+    ) -> NotificationModel:
+        query = (
+            select(NotificationModel)
+            .where(
+                NotificationModel.id == notification_id,
+                NotificationModel.user_id == current_user.id,
+            )
+        )
+
+        result = await self.db.execute(query)
+        notification = result.scalar_one_or_none()
+
+        if not notification:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Notification not found",
+            )
+
+        notification.read_at = datetime.utcnow()
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not mark notification as read",
+            ) from exc
+
+        return notification
     
     
     # Method for updating current user

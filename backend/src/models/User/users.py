@@ -25,6 +25,8 @@ class UserModel(Base):
 
     avatar_url: Mapped[str | None] = mapped_column(nullable=True)
     description: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    is_blocked: Mapped[bool] = mapped_column(default=False)
+    block_reason: Mapped[str | None] = mapped_column(String(400), nullable=True)
 
     created_at: Mapped[createdAt]
 
@@ -74,4 +76,9 @@ class UserModel(Base):
     assigned_tickets: Mapped[list["SupportTicketModel"]] = relationship(
         foreign_keys="SupportTicketModel.assigned_support_id",
         back_populates="assigned_support",
+    )
+
+    notifications: Mapped[list["NotificationModel"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { CreditCard, FileText, ShieldCheck } from "lucide-react";
+import { getOrders, payOrder } from "../api/orderApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
+import EmptyState from "../components/common/EmptyState";
 import FormField from "../components/common/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { formatPrice } from "../utils/formatPrice";
@@ -18,18 +21,65 @@ import {
 
 export default function PaymentPage({ items = [], onPaid }) {
   const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [selectedOrderId, setSelectedOrderId] = useState("");
   const [error, setError] = useState("");
   const [receipt, setReceipt] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState(false);
 
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadOrders() {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const loadedOrders = await getOrders();
+        const pendingOrders = loadedOrders.filter(
+          (order) => order.paymentStatus === "pending",
+        );
+
+        if (isActive) {
+          setOrders(pendingOrders);
+          setSelectedOrderId(pendingOrders[0]?.id ? String(pendingOrders[0].id) : "");
+        }
+      } catch {
+        if (isActive) {
+          setError("Could not load orders for payment.");
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadOrders();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const selectedOrder = useMemo(
+    () => orders.find((order) => String(order.id) === selectedOrderId) || null,
+    [orders, selectedOrderId],
   );
+  const paymentItems = selectedOrder?.items || items;
+  const total = selectedOrder
+    ? selectedOrder.total
+    : items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-
     setError("");
+
+    if (!selectedOrder) {
+      setError("Choose an order before payment.");
+      return;
+    }
 
     const data = getTrimmedFormData(event.currentTarget);
 
@@ -46,23 +96,39 @@ export default function PaymentPage({ items = [], onPaid }) {
     const documentHtml = createPaymentDocument({
       paymentId,
       user,
-      items,
+      items: paymentItems,
       total,
       method: "Card simulation",
       paidAt,
     });
 
-    setReceipt({
-      paymentId,
-      paidAt,
-      documentHtml,
-    });
+    setIsPaying(true);
 
-    onPaid?.({
-      paymentId,
-      paidAt,
-      total,
-    });
+    try {
+      const updatedOrder = await payOrder(selectedOrder.id, {
+        transactionId: paymentId,
+        paymentDocument: documentHtml,
+      });
+
+      setReceipt({
+        paymentId,
+        paidAt,
+        documentHtml,
+      });
+      setOrders((currentOrders) =>
+        currentOrders.filter((order) => order.id !== updatedOrder.id),
+      );
+      setSelectedOrderId("");
+      onPaid?.({
+        paymentId,
+        paidAt,
+        total,
+      });
+    } catch {
+      setError("Could not complete payment.");
+    } finally {
+      setIsPaying(false);
+    }
   }
 
   function handleDownload() {
@@ -79,119 +145,138 @@ export default function PaymentPage({ items = [], onPaid }) {
       <Container className="py-8">
         <PageHeader
           pretitle="Payment"
-          title="Payment simulation"
-          text="This page simulates a payment and generates a payment document."
+          title="Pay an order"
+          text="Choose an unpaid order before entering demo card details."
         />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
-          >
-            <div className="mb-6 flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
-                <CreditCard size={24} />
+        {error && (
+          <p className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </p>
+        )}
+
+        {isLoading ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
+            Loading orders...
+          </div>
+        ) : orders.length === 0 && !receipt ? (
+          <EmptyState
+            title="No orders awaiting payment"
+            text="Create an order first, then unpaid orders will appear here."
+          />
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+            <form
+              onSubmit={handleSubmit}
+              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
+            >
+              <div className="mb-6">
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Order to pay
+                </label>
+                <select
+                  value={selectedOrderId}
+                  onChange={(event) => setSelectedOrderId(event.target.value)}
+                  required
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
+                >
+                  <option value="">Choose order</option>
+                  {orders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      Order #{order.id} - {formatPrice(order.total)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <h2 className="text-2xl font-bold text-slate-950">
-                  Card details
-                </h2>
+              <div className="mb-6 flex items-center gap-3">
+                <div className="grid h-12 w-12 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
+                  <CreditCard size={24} />
+                </div>
 
-                <p className="text-sm text-slate-500">
-                  Demo payment. No real money is charged.
-                </p>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-950">
+                    Card details
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    Demo payment. No real money is charged.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                label="Cardholder name"
-                name="cardName"
-                required
-                placeholder="Max Green"
-                wrapperClassName="md:col-span-2"
-              />
-
-              <FormField
-                label="Card number"
-                name="cardNumber"
-                required
-                placeholder="4242 4242 4242 4242"
-                wrapperClassName="md:col-span-2"
-              />
-
-              <FormField
-                label="Expiry"
-                name="expiry"
-                required
-                placeholder="12/28"
-              />
-
-              <FormField label="CVV" name="cvv" required placeholder="123" />
-            </div>
-
-            {error && (
-              <p className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </p>
-            )}
-
-            {receipt && (
-              <div className="mt-5 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
-                Payment simulated successfully. Receipt ID: {receipt.paymentId}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  label="Cardholder name"
+                  name="cardName"
+                  required
+                  placeholder="Max Green"
+                  wrapperClassName="md:col-span-2"
+                />
+                <FormField
+                  label="Card number"
+                  name="cardNumber"
+                  required
+                  placeholder="4242 4242 4242 4242"
+                  wrapperClassName="md:col-span-2"
+                />
+                <FormField label="Expiry" name="expiry" required placeholder="12/28" />
+                <FormField label="CVV" name="cvv" required placeholder="123" />
               </div>
-            )}
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Button type="submit">Pay {formatPrice(total)}</Button>
 
               {receipt && (
-                <Button
-                  type="button"
-                  style="secondary"
-                  onClick={handleDownload}
-                >
-                  <FileText size={17} />
-                  Download document
-                </Button>
-              )}
-            </div>
-          </form>
-
-          <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <ShieldCheck className="text-[#4F8A5B]" size={22} />
-              <h2 className="text-xl font-bold text-slate-950">
-                Order summary
-              </h2>
-            </div>
-
-            <div className="grid gap-3">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between gap-3 text-sm"
-                >
-                  <span className="text-slate-500">
-                    {item.title} × {item.quantity}
-                  </span>
-
-                  <span className="font-semibold text-slate-950">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
+                <div className="mt-5 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+                  Payment simulated successfully. Receipt ID: {receipt.paymentId}
                 </div>
-              ))}
-            </div>
+              )}
 
-            <div className="mt-5 border-t border-slate-100 pt-5">
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button type="submit" disabled={!selectedOrder || isPaying}>
+                  {isPaying ? "Paying..." : `Pay ${formatPrice(total)}`}
+                </Button>
+
+                {receipt && (
+                  <Button type="button" style="secondary" onClick={handleDownload}>
+                    <FileText size={17} />
+                    Download document
+                  </Button>
+                )}
               </div>
-            </div>
-          </aside>
-        </div>
+            </form>
+
+            <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-center gap-3">
+                <ShieldCheck className="text-[#4F8A5B]" size={22} />
+                <h2 className="text-xl font-bold text-slate-950">
+                  Order summary
+                </h2>
+              </div>
+
+              <div className="grid gap-3">
+                {paymentItems.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/product/${item.productId}`}
+                    className="flex justify-between gap-3 text-sm transition hover:text-[#4F8A5B]"
+                  >
+                    <span className="text-slate-500">
+                      {item.title} x {item.quantity}
+                    </span>
+                    <span className="font-semibold text-slate-950">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-5 border-t border-slate-100 pt-5">
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+              </div>
+            </aside>
+          </div>
+        )}
       </Container>
     </main>
   );

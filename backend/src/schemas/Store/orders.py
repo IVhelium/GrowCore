@@ -53,6 +53,13 @@ class UpdateDeliveryDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class PayOrderDTO(BaseModel):
+    transaction_id: str = Field(min_length=3, max_length=80)
+    payment_document: str = Field(min_length=10)
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class ReadOrderProductImageDTO(BaseModel):
     id: int
     image: str

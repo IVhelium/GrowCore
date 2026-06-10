@@ -18,6 +18,7 @@ class ShortUserDTO(BaseModel):
     public_id: str
     username: str = Field(max_length=32)
     avatar_url: str | None
+    is_blocked: bool = False
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
 
@@ -28,6 +29,7 @@ class PublicUserDTO(ShortUserDTO):
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
     created_at: datetime
+    block_reason: str | None = None
 
     model_config = ConfigDict(extra="forbid", from_attributes=True)
     
@@ -60,6 +62,8 @@ class ReadUserDTO(BaseModel):
     roles: list["ReadUserRoleDTO"] = Field(default_factory=list)
     avatar_url: str | None
     description: str | None
+    is_blocked: bool = False
+    block_reason: str | None = None
     followers_count: int = Field(default=0)
     following_count: int = Field(default=0)
     created_at: datetime
