@@ -197,68 +197,70 @@ export default function PublicUserProfilePage() {
                 )}
               </div>
             </div>
-            {user?.isBlocked && (
-              <p className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
-                Blocked: {user.blockReason || "No reason provided"}
-              </p>
-            )}
-            {isAdmin && currentUser?.public_id !== user?.public_id && (
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 className="font-bold text-slate-950">Admin actions</h2>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {user?.isBlocked ? (
-                    <Button
-                      type="button"
-                      style="secondary"
-                      disabled={isActionBusy}
-                      onClick={handleUnblock}
-                    >
-                      Unblock user
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      style="danger"
-                      disabled={isActionBusy}
-                      onClick={handleBlock}
-                    >
-                      Block user
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )}
-            {store && (
-              <aside className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-950">{store.name}</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  {store.description || "Seller store"}
+            <div className="grid min-w-0 gap-4">
+              {user?.isBlocked && (
+                <p className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                  Blocked: {user.blockReason || "No reason provided"}
                 </p>
-                <div className="mt-5 grid gap-3">
-                  {storeProducts.map((product) => (
-                    <Link
-                      key={product.id}
-                      to={`/product/${product.id}`}
-                      className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
-                    >
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="h-14 w-14 rounded-md object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-slate-950">
-                          {product.title}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {product.category || "Product"}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+              )}
+              {isAdmin && currentUser?.public_id !== user?.public_id && (
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <h2 className="font-bold text-slate-950">Admin actions</h2>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {user?.isBlocked ? (
+                      <Button
+                        type="button"
+                        style="secondary"
+                        disabled={isActionBusy}
+                        onClick={handleUnblock}
+                      >
+                        Unblock user
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        style="danger"
+                        disabled={isActionBusy}
+                        onClick={handleBlock}
+                      >
+                        Block user
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </aside>
-            )}
+              )}
+              {store && (
+                <aside className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <h2 className="text-xl font-bold text-slate-950">{store.name}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {store.description || "Seller store"}
+                  </p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {storeProducts.map((product) => (
+                      <Link
+                        key={product.id}
+                        to={`/product/${product.id}`}
+                        className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="h-14 w-14 shrink-0 rounded-md object-cover"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-slate-950">
+                            {product.title}
+                          </p>
+                          <p className="truncate text-xs text-slate-500">
+                            {product.category || "Product"}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </aside>
+              )}
+            </div>
           </div>
         )}
       </Container>

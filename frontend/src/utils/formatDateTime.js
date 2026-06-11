@@ -7,7 +7,7 @@ export function formatDateTime(value, options = {}) {
     return String(value);
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat("de-DE", {
     month: "short",
     day: "2-digit",
     year: "numeric",

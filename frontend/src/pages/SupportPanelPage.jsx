@@ -13,6 +13,7 @@ import PageHeader from "../components/common/PageHader";
 import PaginationBar from "../components/common/PaginationBar";
 import UserMiniCard from "../components/user/UserMiniCard";
 import { getApiError } from "../utils/getApiError";
+import { formatDateTime } from "../utils/formatDateTime";
 import { showToast } from "../utils/showToast";
 import { useAuth } from "../hooks/useAuth";
 
@@ -62,6 +63,7 @@ export default function SupportPanelPage() {
   const [busyKey, setBusyKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedTicketId, setExpandedTicketId] = useState(null);
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
   const queryStatus = searchParams.get("status") || "open";
@@ -353,13 +355,64 @@ export default function SupportPanelPage() {
                     <Button
                       size="sm"
                       style="ghost"
-                      disabled
+                      onClick={() => {
+                        setExpandedTicketId((current) =>
+                          current === ticket.id ? null : ticket.id,
+                        );
+                      }}
                     >
                       <MessageSquare size={16} />
-                      View
+                      {expandedTicketId === ticket.id ? "Hide" : "View"}
                     </Button>
                   </div>
                 </div>
+
+                {expandedTicketId === ticket.id && (
+                  <div className="mt-4 grid gap-4 rounded-lg border border-slate-100 bg-slate-50 p-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">
+                        Created
+                      </p>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {formatDateTime(ticket.createdAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">
+                        Updated
+                      </p>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {formatDateTime(ticket.updatedAt)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase text-slate-400">
+                        Resolved
+                      </p>
+                      <p className="mt-1 text-sm text-slate-700">
+                        {ticket.resolvedAt ? formatDateTime(ticket.resolvedAt) : "Not resolved"}
+                      </p>
+                    </div>
+                    <div className="md:col-span-3">
+                      <p className="text-xs font-bold uppercase text-slate-400">
+                        Full message
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                        {ticket.message}
+                      </p>
+                    </div>
+                    {ticket.response && (
+                      <div className="md:col-span-3">
+                        <p className="text-xs font-bold uppercase text-slate-400">
+                          Support response
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-green-700">
+                          {ticket.response}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </article>
             ))}
           </div>

@@ -6,8 +6,8 @@ const deliveryOptions = [
   {
     icon: Truck,
     title: "Standard delivery",
-    text: "Delivery for sensors, controllers and replacement parts within 3–5 business days.",
-    price: "From $6",
+    text: "Delivery for sensors, controllers and replacement parts within 3-5 business days.",
+    price: "From 6,00 €",
   },
   {
     icon: PackageCheck,
@@ -19,7 +19,7 @@ const deliveryOptions = [
     icon: MapPin,
     title: "Pickup point",
     text: "Use pickup points for small components and cable kits.",
-    price: "From $2",
+    price: "From 2,00 €",
   },
 ];
 

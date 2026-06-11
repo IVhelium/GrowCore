@@ -29,7 +29,7 @@ class SupportTicketModel(Base):
     )
 
     status: Mapped[SupportTicketStatus] = mapped_column(
-        SQLAlchemyEnum(SupportTicketStatus, name="SupportTicketStatus"),
+        SQLAlchemyEnum(SupportTicketStatus, name="ticketstatus"),
         default=SupportTicketStatus.open,
         index=True,
     )

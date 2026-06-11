@@ -114,7 +114,7 @@ export default function PaymentPage({ items = [], onPaid }) {
     ].join(", ");
 
     const paymentId = `GC-${Date.now()}`;
-    const paidAt = new Date().toLocaleString("en-US");
+    const paidAt = new Date().toLocaleString("de-DE");
 
     const documentHtml = createPaymentDocument({
       paymentId,
