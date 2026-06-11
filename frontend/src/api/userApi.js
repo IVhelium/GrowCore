@@ -69,6 +69,28 @@ export async function getPublicUserProfile(publicId) {
     return normalizeUser(data);
 }
 
+export async function getFollowingStatus(publicId) {
+    const { data } = await apiClient.get(
+        `/users/${encodeURIComponent(publicId)}/following`,
+        { _silent: true },
+    );
+    return Boolean(data?.is_following);
+}
+
+export async function followUser(publicId) {
+    const { data } = await apiClient.post(
+        `/users/${encodeURIComponent(publicId)}/follow`,
+    );
+    return normalizeUser(data);
+}
+
+export async function unfollowUser(publicId) {
+    const { data } = await apiClient.delete(
+        `/users/${encodeURIComponent(publicId)}/follow`,
+    );
+    return normalizeUser(data);
+}
+
 export async function blockUser(publicId, reason) {
     const { data } = await apiClient.patch(
         `/users/admin/${encodeURIComponent(publicId)}/block`,
@@ -89,6 +111,18 @@ export async function getNotifications({ limit = 20, offset = 0 } = {}) {
         params: getPaginationParams({ limit, offset }),
     });
 
+    return data;
+}
+
+export async function getUnreadNotificationCount() {
+    const { data } = await apiClient.get("/users/me/notifications/unread-count", {
+        _silent: true,
+    });
+    return Number(data.count || 0);
+}
+
+export async function markAllNotificationsRead() {
+    const { data } = await apiClient.patch("/users/me/notifications/read-all");
     return data;
 }
 

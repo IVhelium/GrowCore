@@ -10,7 +10,7 @@ import Button from "../components/common/Button";
 import PaginationBar from "../components/common/PaginationBar";
 import UserAvatar from "../components/user/UserAvatar";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 39;
 
 function UserResultCard({ user }) {
   return (

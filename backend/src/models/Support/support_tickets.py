@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import Enum as SQLAlchemyEnum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.constants import SupportTicketStatus
+from src.core.constants import SupportTicketStatus, SupportTicketType
 from src.core.custom_types import intPk, createdAt, updatedAt
 from src.core.database import Base
 
@@ -15,6 +15,11 @@ class SupportTicketModel(Base):
     id: Mapped[intPk]
 
     subject: Mapped[str] = mapped_column(String(150))
+    ticket_type: Mapped[SupportTicketType] = mapped_column(
+        SQLAlchemyEnum(SupportTicketType, name="supporttickettype"),
+        default=SupportTicketType.other,
+        index=True,
+    )
 
     message: Mapped[str] = mapped_column(String(2000))
 

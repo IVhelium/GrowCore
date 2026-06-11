@@ -4,7 +4,9 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models import StoreModel, UserModel, UserRoleModel
+from src.core.constants import ProductModerationStatus
+from src.core.pagination import PaginationParams, PaginationService
+from src.models import ProductModel, ReviewModel, StoreModel, UserModel, UserRoleModel
 from src.schemas import UpdateStoreDTO
 
 
@@ -124,3 +126,57 @@ class StoreService:
             ) from exc
 
         return await self.get_my_store(seller)
+
+    async def get_store_by_user_public_id(
+        self,
+        public_id: str,
+    ) -> StoreModel:
+        query = (
+            select(StoreModel)
+            .options(
+                selectinload(StoreModel.user)
+                .selectinload(UserModel.roles)
+                .selectinload(UserRoleModel.role)
+            )
+            .join(UserModel, UserModel.id == StoreModel.user_id)
+            .where(UserModel.public_id == public_id.strip().upper())
+        )
+
+        result = await self.db.execute(query)
+        store = result.scalar_one_or_none()
+
+        if not store:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Store not found",
+            )
+
+        return store
+
+    async def list_public_store_products(
+        self,
+        public_id: str,
+        pagination: PaginationParams,
+    ):
+        store = await self.get_store_by_user_public_id(public_id)
+        query = (
+            select(ProductModel)
+            .options(
+                selectinload(ProductModel.images),
+                selectinload(ProductModel.category),
+                selectinload(ProductModel.store),
+                selectinload(ProductModel.reviews).selectinload(ReviewModel.user),
+            )
+            .where(
+                ProductModel.store_id == store.id,
+                ProductModel.enabled == True,
+                ProductModel.moderation_status == ProductModerationStatus.approved,
+            )
+            .order_by(ProductModel.created_at.desc())
+        )
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )

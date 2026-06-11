@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Bell, CheckCircle2 } from "lucide-react";
-import { getNotifications, markNotificationRead } from "../api/userApi";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "../api/userApi";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
@@ -52,8 +56,28 @@ export default function NotificationsPage() {
           item.id === updatedNotification.id ? updatedNotification : item,
         ),
       );
+      window.dispatchEvent(new Event("growcore:notifications-updated"));
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not update notification"));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleMarkAllRead() {
+    setBusyId("all");
+
+    try {
+      await markAllNotificationsRead();
+      setNotifications((currentItems) =>
+        currentItems.map((item) => ({
+          ...item,
+          read_at: item.read_at || new Date().toISOString(),
+        })),
+      );
+      window.dispatchEvent(new Event("growcore:notifications-updated"));
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not update notifications"));
     } finally {
       setBusyId(null);
     }
@@ -66,6 +90,16 @@ export default function NotificationsPage() {
           pretitle="Account"
           title="Notifications"
           text="Important account and moderation updates appear here."
+          action={
+            <Button
+              type="button"
+              style="secondary"
+              disabled={busyId === "all" || notifications.every((item) => item.read_at)}
+              onClick={handleMarkAllRead}
+            >
+              Mark all read
+            </Button>
+          }
         />
 
         {errorMessage && (
@@ -85,7 +119,11 @@ export default function NotificationsPage() {
             {notifications.map((notification) => (
               <article
                 key={notification.id}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                className={`rounded-xl border p-5 shadow-sm ${
+                  notification.read_at
+                    ? "border-slate-200 bg-white opacity-75"
+                    : "border-[#4F8A5B]/30 bg-[#4F8A5B]/5"
+                }`}
               >
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="flex gap-4">

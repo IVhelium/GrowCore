@@ -8,13 +8,46 @@ import {
   getEmptyFieldMessage,
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getOrders, requestOrderReturn } from "../api/orderApi";
+import { formatPrice } from "../utils/formatPrice";
+import { getApiError } from "../utils/getApiError";
 
 export default function ReturnsPage({ onSubmit }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
-  function handleSubmit(event) {
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadOrders() {
+      try {
+        const loadedOrders = await getOrders();
+
+        if (isActive) {
+          setOrders(loadedOrders);
+        }
+      } catch {
+        if (isActive) {
+          setOrders([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingOrders(false);
+        }
+      }
+    }
+
+    loadOrders();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
     setError("");
@@ -27,10 +60,14 @@ export default function ReturnsPage({ onSubmit }) {
       return;
     }
 
-    onSubmit?.(data);
-
-    event.currentTarget.reset();
-    setSuccess("Return request created.");
+    try {
+      await requestOrderReturn(Number(data.orderId), data.reason);
+      onSubmit?.(data);
+      event.currentTarget.reset();
+      setSuccess("Return request created.");
+    } catch (requestError) {
+      setError(getApiError(requestError, "Could not create return request"));
+    }
   }
 
   return (
@@ -58,12 +95,26 @@ export default function ReturnsPage({ onSubmit }) {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                label="Order ID"
-                name="orderId"
-                required
-                placeholder="GC-10024"
-              />
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-slate-700">
+                  Order
+                </span>
+                <select
+                  name="orderId"
+                  required
+                  disabled={isLoadingOrders}
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                >
+                  <option value="">
+                    {isLoadingOrders ? "Loading orders..." : "Choose order"}
+                  </option>
+                  {orders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      Order #{order.id} - {formatPrice(order.total)}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               <FormField
                 label="Email"

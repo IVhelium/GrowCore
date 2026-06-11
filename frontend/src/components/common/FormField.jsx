@@ -3,12 +3,13 @@ export default function FormField({
   name,
   type = "text",
   as = "input",
+  wrapperClassName = "",
   ...props
 }) {
   const Component = as;
 
   return (
-    <label className="grid gap-2">
+    <label className={`grid gap-2 ${wrapperClassName}`}>
       <span className="text-sm font-semibold text-slate-700">{label}</span>
       <Component
         name={name}

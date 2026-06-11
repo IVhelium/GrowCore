@@ -1,13 +1,14 @@
 import { Bell, Menu, Heart, User, ShoppingBag, Leaf, X, Users } from "lucide-react";
 import { Popover } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Container from "../common/Container";
 import CatalogPopover from "../catalog/CatalogPopover";
 import SearchBar from "../search/SearchBar";
 import MobileMenu from "./MobileMenu";
 import UserAvatar from "../user/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
+import { getUnreadNotificationCount } from "../../api/userApi";
 
 
 // Account popover menu for authenticated header users.
@@ -69,6 +70,7 @@ export default function Header({
 }) {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -77,6 +79,39 @@ export default function Header({
     await logout();
     navigate("/");
   }
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setNotificationCount(0);
+      return undefined;
+    }
+
+    let isActive = true;
+
+    async function loadCount() {
+      try {
+        const count = await getUnreadNotificationCount();
+        if (isActive) {
+          setNotificationCount(count);
+        }
+      } catch {
+        if (isActive) {
+          setNotificationCount(0);
+        }
+      }
+    }
+
+    loadCount();
+
+    window.addEventListener("focus", loadCount);
+    window.addEventListener("growcore:notifications-updated", loadCount);
+
+    return () => {
+      isActive = false;
+      window.removeEventListener("focus", loadCount);
+      window.removeEventListener("growcore:notifications-updated", loadCount);
+    };
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -199,9 +234,14 @@ export default function Header({
                 <Link
                   to="/notifications"
                   aria-label="Notifications"
-                  className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                  className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
                 >
                   <Bell size={20} />
+                  {notificationCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded bg-red-500 px-1 text-[11px] font-bold text-white">
+                      {notificationCount}
+                    </span>
+                  )}
                 </Link>
               )}
 
@@ -254,6 +294,7 @@ export default function Header({
         user={user}
         cartCount={cartCount}
         savedCount={savedCount}
+        notificationCount={notificationCount}
         categories={categories}
       />
     </>

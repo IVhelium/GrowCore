@@ -74,6 +74,7 @@ export default function SellerRequestPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [documentName, setDocumentName] = useState("");
 
   useEffect(() => {
     let isActive = true;
@@ -245,13 +246,24 @@ export default function SellerRequestPage() {
                 <span className="text-sm font-semibold text-slate-700">
                   PDF documents
                 </span>
-                <input
-                  name="document"
-                  type="file"
-                  accept="application/pdf"
-                  required
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-[#4F8A5B] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-[#4F8A5B]"
-                />
+                <span className="flex cursor-pointer flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm transition hover:border-[#4F8A5B] sm:flex-row sm:items-center">
+                  <span className="inline-flex w-fit rounded-md bg-[#4F8A5B] px-4 py-2 font-semibold text-white transition hover:bg-[#3F7148]">
+                    Choose PDF file
+                  </span>
+                  <span className="truncate text-slate-500">
+                    {documentName || request?.documentName || "No file selected"}
+                  </span>
+                  <input
+                    name="document"
+                    type="file"
+                    accept="application/pdf"
+                    required
+                    onChange={(event) =>
+                      setDocumentName(event.target.files?.[0]?.name || "")
+                    }
+                    className="sr-only"
+                  />
+                </span>
                 {request?.documentName && (
                   <span className="text-xs text-slate-500">
                     Last uploaded: {request.documentName}

@@ -6,6 +6,7 @@ from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
     AdminDependency,
     CurrentUserDependency,
+    NotificationServiceDependency,
     UserServiceDependency,
 )
 from src.core.pagination import PaginationDependency
@@ -103,13 +104,35 @@ async def delete_my_avatar(
 )
 async def list_my_notifications(
     current_user: CurrentUserDependency,
-    user_service: UserServiceDependency,
+    notification_service: NotificationServiceDependency,
     pagination: PaginationDependency,
 ):
-    return await user_service.list_notifications(
+    return await notification_service.list_notifications(
         current_user=current_user,
         pagination=pagination,
     )
+
+
+@router.get(
+    "/me/notifications/unread-count",
+    response_model=dict[str, int],
+)
+async def get_my_notification_unread_count(
+    current_user: CurrentUserDependency,
+    notification_service: NotificationServiceDependency,
+):
+    return {"count": await notification_service.unread_count(current_user)}
+
+
+@router.patch(
+    "/me/notifications/read-all",
+    response_model=dict[str, int],
+)
+async def mark_all_my_notifications_read(
+    current_user: CurrentUserDependency,
+    notification_service: NotificationServiceDependency,
+):
+    return {"updated": await notification_service.mark_all_read(current_user)}
 
 
 @router.patch(
@@ -119,9 +142,9 @@ async def list_my_notifications(
 async def mark_my_notification_read(
     notification_id: int,
     current_user: CurrentUserDependency,
-    user_service: UserServiceDependency,
+    notification_service: NotificationServiceDependency,
 ):
-    return await user_service.mark_notification_read(
+    return await notification_service.mark_read(
         current_user=current_user,
         notification_id=notification_id,
     )
@@ -175,6 +198,53 @@ async def unblock_user(
     return await user_service.set_user_block(
         public_id=public_id,
         blocked=False,
+    )
+
+
+@router.get(
+    "/{public_id}/following",
+    response_model=dict[str, bool],
+)
+async def get_following_status(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return {
+        "is_following": await user_service.is_following(
+            current_user=current_user,
+            public_id=public_id,
+        )
+    }
+
+
+@router.post(
+    "/{public_id}/follow",
+    response_model=PublicUserDTO,
+)
+async def follow_user(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.follow_user(
+        current_user=current_user,
+        public_id=public_id,
+    )
+
+
+@router.delete(
+    "/{public_id}/follow",
+    response_model=PublicUserDTO,
+)
+async def unfollow_user(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.unfollow_user(
+        current_user=current_user,
+        public_id=public_id,
     )
 
 

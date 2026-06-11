@@ -23,6 +23,7 @@ from src.api.services.cart import CartService
 from src.api.services.favorite import FavoriteService
 from src.api.services.category import CategoryService
 from src.api.services.order import OrderService
+from src.api.services.notification import NotificationService
 
 
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
@@ -211,3 +212,11 @@ async def get_order_service(
     return OrderService(db=db)
 
 OrderServiceDependency = Annotated[OrderService, Depends(get_order_service)]
+
+
+async def get_notification_service(
+    db: SessionDependency,
+) -> NotificationService:
+    return NotificationService(db=db)
+
+NotificationServiceDependency = Annotated[NotificationService, Depends(get_notification_service)]

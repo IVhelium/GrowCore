@@ -18,6 +18,15 @@ import {
 import { showToast } from "../utils/showToast";
 
 const TICKETS_PAGE_SIZE = 8;
+const supportTypes = [
+  { value: "account", label: "Account" },
+  { value: "order", label: "Order" },
+  { value: "payment", label: "Payment" },
+  { value: "return_request", label: "Return" },
+  { value: "seller", label: "Seller" },
+  { value: "technical", label: "Technical" },
+  { value: "other", label: "Other" },
+];
 
 function StatusBadge({ status }) {
   const styles = {
@@ -80,7 +89,7 @@ export default function SupportPage() {
     const form = event.currentTarget;
     const payload = getTrimmedFormData(form);
 
-    if (hasEmptyRequiredFields(payload, ["subject", "message"])) {
+    if (hasEmptyRequiredFields(payload, ["ticketType", "subject", "message"])) {
       setErrorMessage(getEmptyFieldMessage());
       return;
     }
@@ -143,6 +152,9 @@ export default function SupportPage() {
                       </h3>
                       <StatusBadge status={ticket.status} />
                     </div>
+                    <p className="mt-2 text-xs font-bold uppercase text-slate-400">
+                      {ticket.ticketType?.replace("_", " ") || "other"}
+                    </p>
 
                     <p className="mt-3 text-sm leading-6 text-slate-600">
                       {ticket.message}
@@ -177,6 +189,24 @@ export default function SupportPage() {
             </p>
 
             <div className="mt-5 grid gap-4">
+              <label className="grid gap-2">
+                <span className="text-sm font-semibold text-slate-700">
+                  Help type
+                </span>
+                <select
+                  name="ticketType"
+                  required
+                  className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                  defaultValue="order"
+                >
+                  {supportTypes.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <FormField
                 label="Subject"
                 name="subject"

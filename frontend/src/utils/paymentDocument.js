@@ -7,6 +7,7 @@ export function createPaymentDocument({
   total,
   method,
   paidAt,
+  deliveryAddress,
 }) {
   const rows = items
     .map(
@@ -70,6 +71,7 @@ export function createPaymentDocument({
         <p><strong>Email:</strong> ${user?.email || "-"}</p>
         <p><strong>Payment method:</strong> ${method}</p>
         <p><strong>Paid at:</strong> ${paidAt}</p>
+        <p><strong>Delivery address:</strong> ${deliveryAddress || "-"}</p>
 
         <table>
           <thead>
@@ -93,19 +95,20 @@ export function createPaymentDocument({
 }
 
 export function downloadPaymentDocument(documentHtml, fileName) {
-  const blob = new Blob([documentHtml], {
-    type: "text/html;charset=utf-8",
-  });
+  const printWindow = window.open("", "_blank", "width=900,height=700");
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  if (!printWindow) {
+    return;
+  }
 
-  link.href = url;
-  link.download = fileName;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
+  printWindow.document.open();
+  printWindow.document.write(
+    documentHtml.replace(
+      "<title>GrowCore Payment Receipt</title>",
+      `<title>${fileName.replace(/\.pdf$/i, "")}</title>`,
+    ),
+  );
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
 }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from src.core.dependencies import CategoryServiceDependency
-from src.schemas import ReadCategoryDTO
+from src.core.dependencies import AdminDependency, CategoryServiceDependency
+from src.schemas import CreateCategoryDTO, ReadCategoryDTO
 
 
 router = APIRouter(tags=["Categories"])
@@ -19,3 +19,15 @@ async def list_categories(
     """
 
     return await category_service.list_categories()
+
+
+@router.post(
+    "/admin/categories",
+    response_model=ReadCategoryDTO,
+)
+async def create_category(
+    schema: CreateCategoryDTO,
+    admin: AdminDependency,
+    category_service: CategoryServiceDependency,
+):
+    return await category_service.create_category(schema)

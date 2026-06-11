@@ -7,6 +7,7 @@ export function normalizeSupportTicket(ticket) {
     message: ticket.message,
     response: ticket.response,
     status: ticket.status,
+    ticketType: ticket.ticket_type || "other",
     createdAt: ticket.created_at,
     updatedAt: ticket.updated_at,
     resolvedAt: ticket.resolved_at,
@@ -16,11 +17,12 @@ export function normalizeSupportTicket(ticket) {
   };
 }
 
-export async function getSupportTickets({ limit = 12, offset = 0, status } = {}) {
+export async function getSupportTickets({ limit = 12, offset = 0, status, search } = {}) {
   const { data } = await apiClient.get("/support/tickets", {
     params: {
       ...getPaginationParams({ limit, offset }),
       ticket_status: status || undefined,
+      search: search || undefined,
     },
   });
 
@@ -44,6 +46,7 @@ export async function getMySupportTickets({ limit = 20, offset = 0 } = {}) {
 export async function createSupportTicket(payload) {
   const { data } = await apiClient.post("/support/tickets", {
     subject: payload.subject,
+    ticket_type: payload.ticketType || payload.ticket_type || "other",
     message: payload.message,
   });
 

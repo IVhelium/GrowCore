@@ -18,3 +18,12 @@ export async function getCategories() {
 
   return (data || []).map(normalizeCategory);
 }
+
+export async function createCategory(payload) {
+  const { data } = await apiClient.post("/admin/categories", {
+    name: payload.name,
+    image_url: payload.imageUrl,
+  });
+
+  return normalizeCategory(data);
+}

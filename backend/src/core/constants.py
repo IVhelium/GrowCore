@@ -72,6 +72,16 @@ class SupportTicketStatus(enum.Enum):
     in_progress = "in_progress"
     resolved = "resolved"
     closed = "closed"
+
+
+class SupportTicketType(enum.Enum):
+    account = "account"
+    order = "order"
+    payment = "payment"
+    return_request = "return_request"
+    seller = "seller"
+    technical = "technical"
+    other = "other"
     
 # endregion
     

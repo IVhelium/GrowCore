@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, ReturnStatus
+from src.api.services.notification import NotificationService
 from src.models import OrderItemModel, OrderModel, ProductModel, UserModel
 from src.schemas import RequestReturnDTO, UpdateDeliveryDTO
 
@@ -131,6 +132,7 @@ class OrderService:
         order_id: int,
         transaction_id: str,
         payment_document: str,
+        delivery_address: str | None = None,
     ) -> OrderModel:
         order = await self._get_user_order(current_user, order_id)
 
@@ -143,6 +145,8 @@ class OrderService:
         order.payment_status = PaymentStatus.paid
         order.payment_transaction_id = transaction_id
         order.payment_document = payment_document
+        if delivery_address:
+            order.delivery_address = delivery_address.strip()
 
         try:
             await self.db.commit()
@@ -170,6 +174,11 @@ class OrderService:
         order.return_status = ReturnStatus.refunded
         order.payment_status = PaymentStatus.refunded
         order.status = OrderStatus.returned
+        await NotificationService(self.db).create(
+            user_id=order.user_id,
+            title="Return approved",
+            message=f"Return for order #{order.id} was approved and refunded.",
+        )
 
         try:
             await self.db.commit()

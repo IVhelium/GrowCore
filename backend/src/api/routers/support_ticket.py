@@ -60,10 +60,12 @@ async def list_support_tickets(
     support_ticket_service: SupportTicketServiceDependency,
     pagination: PaginationDependency,
     ticket_status: SupportTicketStatus | None = Query(default=None),
+    search: str | None = Query(default=None, max_length=100),
 ):
     return await support_ticket_service.list_tickets(
         ticket_status=ticket_status,
         pagination=pagination,
+        search=search,
     )
 
 

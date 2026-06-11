@@ -1,13 +1,14 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.core.constants import RoleStatus, SupportTicketStatus
 from src.core.pagination import PaginationParams, PaginationService
+from src.api.services.notification import NotificationService
 from src.models import SupportTicketModel, UserModel, UserRoleModel
 from src.schemas import (
     CreateSupportTicketDTO,
@@ -152,6 +153,7 @@ class SupportTicketService:
 
         ticket = SupportTicketModel(
             subject=subject,
+            ticket_type=schema.ticket_type,
             message=message,
             status=SupportTicketStatus.open,
             user_id=current_user.id,
@@ -199,6 +201,7 @@ class SupportTicketService:
         self,
         ticket_status: SupportTicketStatus | None,
         pagination: PaginationParams,
+        search: str | None = None,
     ) -> PaginationDTO:
         """
         Returns the queue of requests for support/admin
@@ -213,6 +216,16 @@ class SupportTicketService:
         if ticket_status is not None:
             query = query.where(
                 SupportTicketModel.status == ticket_status
+            )
+
+        if search:
+            value = f"%{search.strip()}%"
+            query = query.where(
+                or_(
+                    SupportTicketModel.subject.ilike(value),
+                    SupportTicketModel.message.ilike(value),
+                    SupportTicketModel.response.ilike(value),
+                )
             )
 
         query = query.order_by(SupportTicketModel.created_at.asc())
@@ -252,6 +265,11 @@ class SupportTicketService:
 
         ticket.assigned_support_id = support_user.id
         ticket.status = SupportTicketStatus.in_progress
+        await NotificationService(self.db).create(
+            user_id=ticket.user_id,
+            title="Support ticket assigned",
+            message=f"Your support ticket #{ticket.id} is now being reviewed.",
+        )
 
         try:
             await self.db.commit()
@@ -300,9 +318,19 @@ class SupportTicketService:
                 )
 
             ticket.response = response
+            await NotificationService(self.db).create(
+                user_id=ticket.user_id,
+                title="Support response",
+                message=f"Support replied to ticket #{ticket.id}: {response}",
+            )
 
         if "status" in data and data["status"] is not None:
             ticket.status = data["status"]
+            await NotificationService(self.db).create(
+                user_id=ticket.user_id,
+                title="Support ticket updated",
+                message=f"Your support ticket #{ticket.id} status changed to {ticket.status.value}.",
+            )
 
             if ticket.status in {
                 SupportTicketStatus.resolved,

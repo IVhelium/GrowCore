@@ -40,6 +40,7 @@ async def pay_order(
         order_id=order_id,
         transaction_id=schema.transaction_id,
         payment_document=schema.payment_document,
+        delivery_address=schema.delivery_address,
     )
 
 

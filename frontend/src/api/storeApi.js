@@ -1,4 +1,5 @@
-import { apiClient } from "./apiClient";
+import { apiClient, getPaginationParams } from "./apiClient";
+import { normalizeProduct } from "./productApi";
 
 export function normalizeStore(store) {
   return {
@@ -23,4 +24,26 @@ export async function updateMyStore(payload) {
   });
 
   return normalizeStore(data);
+}
+
+export async function getPublicUserStore(publicId) {
+  const { data } = await apiClient.get(`/stores/user/${encodeURIComponent(publicId)}`, {
+    _silent: true,
+  });
+  return normalizeStore(data);
+}
+
+export async function getPublicUserStoreProducts(publicId, { limit = 6, offset = 0 } = {}) {
+  const { data } = await apiClient.get(
+    `/stores/user/${encodeURIComponent(publicId)}/products`,
+    {
+      params: getPaginationParams({ limit, offset }),
+      _silent: true,
+    },
+  );
+
+  return {
+    ...data,
+    items: (data.items || []).map(normalizeProduct),
+  };
 }

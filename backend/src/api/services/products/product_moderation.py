@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.core.pagination import PaginationParams, PaginationService
 from src.schemas.pagination import PaginationDTO
 from src.core.constants import ProductModerationStatus
+from src.api.services.notification import NotificationService
 from src.models import CartItemModel, FavoriteItemModel, ProductModel, UserModel
 from src.schemas import DeleteProductDTO, RejectProductDTO
 
@@ -26,6 +27,19 @@ class ProductModerationService(ProductBaseService):
         db: AsyncSession,
     ):
         super().__init__(db)
+
+    async def _notify_product_owner(
+        self,
+        product: ProductModel,
+        title: str,
+        message: str,
+    ) -> None:
+        if product.store and product.store.user_id:
+            await NotificationService(self.db).create(
+                user_id=product.store.user_id,
+                title=title,
+                message=message,
+            )
 
 
     async def list_pending_moderation(
@@ -95,6 +109,11 @@ class ProductModerationService(ProductBaseService):
         product.rejection_reason = None
         product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id
+        await self._notify_product_owner(
+            product,
+            "Product approved",
+            f"Your product '{product.title}' was approved and is now visible in the catalog.",
+        )
 
         try:
             await self.db.commit()
@@ -143,6 +162,11 @@ class ProductModerationService(ProductBaseService):
         product.rejection_reason = reason
         product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id
+        await self._notify_product_owner(
+            product,
+            "Product rejected",
+            f"Your product '{product.title}' was rejected. Reason: {reason}",
+        )
 
         try:
             await self.db.commit()
@@ -172,6 +196,11 @@ class ProductModerationService(ProductBaseService):
         product.deletion_reason = reason
         product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id
+        await self._notify_product_owner(
+            product,
+            "Product blocked",
+            f"Your product '{product.title}' was blocked. Reason: {reason}",
+        )
 
         try:
             await self.db.execute(
@@ -205,6 +234,11 @@ class ProductModerationService(ProductBaseService):
         product.deletion_reason = reason
         product.deleted_at = datetime.utcnow()
         product.deleted_by_id = admin.id
+        await self._notify_product_owner(
+            product,
+            "Product deleted",
+            f"Your product '{product.title}' was deleted by an administrator. Reason: {reason}",
+        )
 
         try:
             await self.db.execute(

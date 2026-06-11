@@ -43,6 +43,7 @@ export default function SellerStorePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [productSearch, setProductSearch] = useState("");
 
   async function loadStoreData() {
     setIsLoading(true);
@@ -114,6 +115,16 @@ export default function SellerStorePage() {
       setErrorMessage(getApiError(error, "Could not delete product"));
     }
   }
+
+  const filteredProducts = products.filter((product) => {
+    const query = productSearch.trim().toLowerCase();
+
+    if (!query) return true;
+
+    return [product.title, product.category, product.description]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(query));
+  });
 
   return (
     <main>
@@ -199,6 +210,14 @@ export default function SellerStorePage() {
                   </p>
                 </div>
               </div>
+              <div className="border-b border-slate-100 px-5 py-4">
+                <input
+                  value={productSearch}
+                  onChange={(event) => setProductSearch(event.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+                  placeholder="Search products..."
+                />
+              </div>
 
               {products.length === 0 ? (
                 <div className="p-5">
@@ -211,7 +230,7 @@ export default function SellerStorePage() {
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <article key={product.id} className="p-5">
                       <div className="flex flex-col gap-4 md:flex-row md:items-start">
                         <img

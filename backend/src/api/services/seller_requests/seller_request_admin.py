@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from src.core.constants import RoleStatus, SellerRequestStatus
 from src.core.pagination import PaginationParams, PaginationService
+from src.api.services.notification import NotificationService
 from src.models import (
     RoleModel,
     SellerRequestModel,
@@ -134,6 +135,11 @@ class SellerRequestAdminService(SellerRequestBaseService):
             seller_request.rejection_reason = None
             seller_request.reviewed_at = datetime.utcnow()
             seller_request.reviewer_id = admin.id
+            await NotificationService(self.db).create(
+                user_id=seller_request.user_id,
+                title="Seller request approved",
+                message="Your seller request was approved. Your store is ready.",
+            )
 
             await self.db.commit()
 
@@ -190,6 +196,11 @@ class SellerRequestAdminService(SellerRequestBaseService):
         seller_request.rejection_reason = reason
         seller_request.reviewed_at = datetime.utcnow()
         seller_request.reviewer_id = admin.id
+        await NotificationService(self.db).create(
+            user_id=seller_request.user_id,
+            title="Seller request rejected",
+            message=f"Your seller request was rejected. Reason: {reason}",
+        )
 
         try:
             await self.db.commit()

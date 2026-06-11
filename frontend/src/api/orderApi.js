@@ -52,6 +52,7 @@ export async function payOrder(orderId, payload) {
   const { data } = await apiClient.post(`/orders/${orderId}/pay`, {
     transaction_id: payload.transactionId,
     payment_document: payload.paymentDocument,
+    delivery_address: payload.deliveryAddress || undefined,
   });
 
   return normalizeOrder(data);

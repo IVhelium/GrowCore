@@ -2,12 +2,13 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from src.core.constants import SupportTicketStatus
+from src.core.constants import SupportTicketStatus, SupportTicketType
 from src.schemas import ShortUserDTO
 
 
 class CreateSupportTicketDTO(BaseModel):
     subject: str = Field(min_length=1, max_length=150)
+    ticket_type: SupportTicketType = SupportTicketType.other
     message: str = Field(min_length=1, max_length=2000)
 
     @field_validator("subject", "message", mode="before")
@@ -42,6 +43,7 @@ class ReadSupportTicketDTO(BaseModel):
     id: int
 
     subject: str
+    ticket_type: SupportTicketType
     message: str
     response: str | None = None
 

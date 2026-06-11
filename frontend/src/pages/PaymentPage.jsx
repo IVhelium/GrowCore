@@ -19,6 +19,15 @@ import {
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
 
+function formatCardNumber(value) {
+  return value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
+}
+
+function formatExpiry(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+}
+
 export default function PaymentPage({ items = [], onPaid }) {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -27,6 +36,9 @@ export default function PaymentPage({ items = [], onPaid }) {
   const [receipt, setReceipt] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiry, setExpiry] = useState("");
+  const [cvv, setCvv] = useState("");
 
   useEffect(() => {
     let isActive = true;
@@ -90,6 +102,17 @@ export default function PaymentPage({ items = [], onPaid }) {
       return;
     }
 
+    if (hasEmptyRequiredFields(data, ["deliveryStreet", "deliveryCity", "deliveryZip"])) {
+      setError(getEmptyFieldMessage());
+      return;
+    }
+
+    const deliveryAddress = [
+      data.deliveryStreet,
+      data.deliveryCity,
+      data.deliveryZip,
+    ].join(", ");
+
     const paymentId = `GC-${Date.now()}`;
     const paidAt = new Date().toLocaleString("en-US");
 
@@ -100,6 +123,7 @@ export default function PaymentPage({ items = [], onPaid }) {
       total,
       method: "Card simulation",
       paidAt,
+      deliveryAddress,
     });
 
     setIsPaying(true);
@@ -108,6 +132,7 @@ export default function PaymentPage({ items = [], onPaid }) {
       const updatedOrder = await payOrder(selectedOrder.id, {
         transactionId: paymentId,
         paymentDocument: documentHtml,
+        deliveryAddress,
       });
 
       setReceipt({
@@ -136,7 +161,7 @@ export default function PaymentPage({ items = [], onPaid }) {
 
     downloadPaymentDocument(
       receipt.documentHtml,
-      `growcore-payment-${receipt.paymentId}.html`,
+      `growcore-payment-${receipt.paymentId}.pdf`,
     );
   }
 
@@ -216,11 +241,52 @@ export default function PaymentPage({ items = [], onPaid }) {
                   label="Card number"
                   name="cardNumber"
                   required
+                  inputMode="numeric"
+                  maxLength={19}
+                  value={cardNumber}
+                  onChange={(event) => setCardNumber(formatCardNumber(event.target.value))}
                   placeholder="4242 4242 4242 4242"
                   wrapperClassName="md:col-span-2"
                 />
-                <FormField label="Expiry" name="expiry" required placeholder="12/28" />
-                <FormField label="CVV" name="cvv" required placeholder="123" />
+                <FormField
+                  label="Expiry"
+                  name="expiry"
+                  required
+                  inputMode="numeric"
+                  maxLength={5}
+                  value={expiry}
+                  onChange={(event) => setExpiry(formatExpiry(event.target.value))}
+                  placeholder="12/28"
+                />
+                <FormField
+                  label="CVV"
+                  name="cvv"
+                  required
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={cvv}
+                  onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="123"
+                />
+                <FormField
+                  label="Street address"
+                  name="deliveryStreet"
+                  required
+                  placeholder="221B Garden Street"
+                  wrapperClassName="md:col-span-2"
+                />
+                <FormField
+                  label="City"
+                  name="deliveryCity"
+                  required
+                  placeholder="Evora"
+                />
+                <FormField
+                  label="ZIP / postal code"
+                  name="deliveryZip"
+                  required
+                  placeholder="7005-469"
+                />
               </div>
 
               {receipt && (
@@ -237,7 +303,7 @@ export default function PaymentPage({ items = [], onPaid }) {
                 {receipt && (
                   <Button type="button" style="secondary" onClick={handleDownload}>
                     <FileText size={17} />
-                    Download document
+                    Download PDF receipt
                   </Button>
                 )}
               </div>

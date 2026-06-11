@@ -56,6 +56,7 @@ class UpdateDeliveryDTO(BaseModel):
 class PayOrderDTO(BaseModel):
     transaction_id: str = Field(min_length=3, max_length=80)
     payment_document: str = Field(min_length=10)
+    delivery_address: str | None = Field(default=None, min_length=5, max_length=300)
 
     model_config = ConfigDict(extra="forbid")
 

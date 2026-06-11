@@ -82,3 +82,15 @@ class UserModel(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    follower_relations: Mapped[list["UserFollowModel"]] = relationship(
+        foreign_keys="UserFollowModel.following_id",
+        back_populates="following",
+        cascade="all, delete-orphan",
+    )
+
+    following_relations: Mapped[list["UserFollowModel"]] = relationship(
+        foreign_keys="UserFollowModel.follower_id",
+        back_populates="follower",
+        cascade="all, delete-orphan",
+    )

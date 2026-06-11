@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import CategoryModel
+from src.schemas import CreateCategoryDTO
 from src.utils.catalog_seed import CATEGORIES
 
 
@@ -68,7 +69,6 @@ class CategoryService:
         category_names = [seed.name for seed in CATEGORIES]
         query = (
             select(CategoryModel)
-            .where(CategoryModel.name.in_(category_names))
             .order_by(CategoryModel.id)
         )
 
@@ -90,4 +90,48 @@ class CategoryService:
             categories_by_name[name]
             for name in category_names
             if name in categories_by_name
+        ] + [
+            category
+            for category in categories_by_name.values()
+            if category.name not in category_names
         ]
+
+    async def create_category(self, schema: CreateCategoryDTO) -> CategoryModel:
+        name = schema.name.strip()
+        image_url = schema.image_url.strip()
+
+        if not name or not image_url:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Category name and image URL are required",
+            )
+
+        existing_result = await self.db.execute(
+            select(CategoryModel).where(CategoryModel.name == name)
+        )
+
+        if existing_result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Category already exists",
+            )
+
+        category = CategoryModel(name=name, image_url=image_url)
+
+        try:
+            self.db.add(category)
+            await self.db.commit()
+        except IntegrityError as exc:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Category already exists",
+            ) from exc
+        except SQLAlchemyError as exc:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not create category",
+            ) from exc
+
+        return category

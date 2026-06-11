@@ -13,6 +13,7 @@ export default function MobileMenu({
   onLogout,
   cartCount = 0,
   savedCount = 0,
+  notificationCount = 0,
   categories = [],
 }) {
 
@@ -85,9 +86,16 @@ export default function MobileMenu({
           <Link
             to="/notifications"
             onClick={onClose}
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            className="flex items-center justify-between rounded-lg px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            <Bell size={18} /> Notifications
+            <span className="flex items-center gap-3">
+              <Bell size={18} /> Notifications
+            </span>
+            {notificationCount > 0 && (
+              <span className="rounded bg-red-500 px-2 py-0.5 text-xs text-white">
+                {notificationCount}
+              </span>
+            )}
           </Link>
         )}
 

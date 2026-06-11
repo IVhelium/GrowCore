@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile, status
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,7 +10,8 @@ from src.api.services.files.file_storage import FileStorageService
 from src.core.upload_policies import AVATAR_POLICY
 from src.core.constants import PUBLIC_ID_RE
 from src.core.pagination import PaginationParams, PaginationService
-from src.models import NotificationModel, UserModel, UserRoleModel
+from src.api.services.notification import NotificationService
+from src.models import NotificationModel, UserFollowEventModel, UserFollowModel, UserModel, UserRoleModel
 from src.schemas import UpdateUserDTO
 
 
@@ -46,6 +47,42 @@ class UserService:
             )
             
         return value
+
+    async def _ensure_follow_rate_limit(
+        self,
+        current_user: UserModel,
+        target: UserModel,
+    ) -> None:
+        since = datetime.utcnow() - timedelta(hours=1)
+        actions = await self.db.scalar(
+            select(func.count())
+            .select_from(UserFollowEventModel)
+            .where(
+                UserFollowEventModel.follower_id == current_user.id,
+                UserFollowEventModel.following_id == target.id,
+                UserFollowEventModel.created_at >= since,
+            )
+        ) or 0
+
+        if actions >= 6:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many follow actions. Please try again later.",
+            )
+
+    def _record_follow_event(
+        self,
+        current_user: UserModel,
+        target: UserModel,
+        action: str,
+    ) -> None:
+        self.db.add(
+            UserFollowEventModel(
+                follower_id=current_user.id,
+                following_id=target.id,
+                action=action,
+            )
+        )
     
     
     # Retrieving a user with roles
@@ -123,6 +160,123 @@ class UserService:
         
         return user
 
+    async def is_following(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> bool:
+        target = await self.get_user_by_public_id(public_id)
+
+        result = await self.db.execute(
+            select(UserFollowModel)
+            .where(
+                UserFollowModel.follower_id == current_user.id,
+                UserFollowModel.following_id == target.id,
+            )
+        )
+
+        return result.scalar_one_or_none() is not None
+
+    async def follow_user(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> UserModel:
+        target = await self.get_user_by_public_id(public_id)
+
+        if target.id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You cannot follow yourself",
+            )
+
+        await self._ensure_follow_rate_limit(current_user, target)
+
+        result = await self.db.execute(
+            select(UserFollowModel)
+            .where(
+                UserFollowModel.follower_id == current_user.id,
+                UserFollowModel.following_id == target.id,
+            )
+        )
+
+        if result.scalar_one_or_none():
+            return target
+
+        self._record_follow_event(current_user, target, "follow")
+        self.db.add(
+            UserFollowModel(
+                follower_id=current_user.id,
+                following_id=target.id,
+            )
+        )
+        target.followers_count += 1
+        current_user.following_count += 1
+        follow_message = f"{current_user.username} started following you."
+        recent_notification = await self.db.scalar(
+            select(NotificationModel)
+            .where(
+                NotificationModel.user_id == target.id,
+                NotificationModel.title == "New follower",
+                NotificationModel.message == follow_message,
+                NotificationModel.created_at >= datetime.utcnow() - timedelta(days=1),
+            )
+        )
+
+        if not recent_notification:
+            await NotificationService(self.db).create(
+                user_id=target.id,
+                title="New follower",
+                message=follow_message,
+            )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not follow user",
+            ) from exc
+
+        return await self.get_user_by_public_id(public_id)
+
+    async def unfollow_user(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> UserModel:
+        target = await self.get_user_by_public_id(public_id)
+
+        result = await self.db.execute(
+            select(UserFollowModel)
+            .where(
+                UserFollowModel.follower_id == current_user.id,
+                UserFollowModel.following_id == target.id,
+            )
+        )
+        relation = result.scalar_one_or_none()
+
+        if not relation:
+            return target
+
+        await self._ensure_follow_rate_limit(current_user, target)
+        self._record_follow_event(current_user, target, "unfollow")
+        await self.db.delete(relation)
+        target.followers_count = max(0, target.followers_count - 1)
+        current_user.following_count = max(0, current_user.following_count - 1)
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not unfollow user",
+            ) from exc
+
+        return await self.get_user_by_public_id(public_id)
+
     async def list_users(
         self,
         pagination: PaginationParams,
@@ -161,23 +315,19 @@ class UserService:
         user.block_reason = trimmed_reason if blocked else None
 
         if blocked:
-            self.db.add(
-                NotificationModel(
-                    user_id=user.id,
-                    title="Account blocked",
-                    message=(
-                        "Your GrowCore account was blocked by an administrator. "
-                        f"Reason: {trimmed_reason}"
-                    ),
-                )
+            await NotificationService(self.db).create(
+                user_id=user.id,
+                title="Account blocked",
+                message=(
+                    "Your GrowCore account was blocked by an administrator. "
+                    f"Reason: {trimmed_reason}"
+                ),
             )
         else:
-            self.db.add(
-                NotificationModel(
-                    user_id=user.id,
-                    title="Account restored",
-                    message="Your GrowCore account is active again.",
-                )
+            await NotificationService(self.db).create(
+                user_id=user.id,
+                title="Account restored",
+                message="Your GrowCore account is active again.",
             )
 
         try:

@@ -6,6 +6,7 @@ import {
   getSupportTickets,
   updateSupportTicket,
 } from "../api/supportApi";
+import { blockUser } from "../api/userApi";
 import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
@@ -13,6 +14,7 @@ import PaginationBar from "../components/common/PaginationBar";
 import UserMiniCard from "../components/user/UserMiniCard";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+import { useAuth } from "../hooks/useAuth";
 
 const TICKETS_PAGE_SIZE = 8;
 
@@ -24,6 +26,10 @@ const statusFilters = [
 ];
 
 const statusFilterValues = statusFilters.map((filter) => filter.value);
+
+function hasRole(user, role) {
+  return (user?.roles || []).some((item) => item.role?.role === role || item.role === role);
+}
 
 function getSafePage(value) {
   return Math.max(1, Number(value) || 1);
@@ -55,6 +61,9 @@ export default function SupportPanelPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [busyKey, setBusyKey] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { user: currentUser } = useAuth();
+  const isAdmin = hasRole(currentUser, "admin");
   const queryStatus = searchParams.get("status") || "open";
   const statusFilter = statusFilterValues.includes(queryStatus)
     ? queryStatus
@@ -103,13 +112,14 @@ export default function SupportPanelPage() {
     [setSearchParams],
   );
 
-  const loadTickets = useCallback(async (nextStatus, page) => {
+  const loadTickets = useCallback(async (nextStatus, page, search = searchQuery) => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
       const ticketPage = await getSupportTickets({
         status: nextStatus,
+        search: search.trim() || undefined,
         limit: TICKETS_PAGE_SIZE,
         offset: (page - 1) * TICKETS_PAGE_SIZE,
       });
@@ -128,12 +138,12 @@ export default function SupportPanelPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [setCurrentPage]);
+  }, [searchQuery, setCurrentPage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTickets(statusFilter, currentPage);
-  }, [currentPage, loadTickets, statusFilter]);
+  }, [currentPage, loadTickets, searchQuery, statusFilter]);
 
   const metricText = useMemo(
     () => `${ticketTotal} ${statusFilter.replace("_", " ")} tickets`,
@@ -220,6 +230,18 @@ export default function SupportPanelPage() {
           </div>
         </section>
 
+        <div className="mb-6">
+          <input
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
+            placeholder="Search current support queue..."
+          />
+        </div>
+
         <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
           {isLoading && (
             <p className="p-5 text-sm text-slate-500">
@@ -244,6 +266,9 @@ export default function SupportPanelPage() {
                       </h3>
                       <StatusBadge status={ticket.status} />
                     </div>
+                    <p className="mt-2 text-xs font-bold uppercase text-slate-400">
+                      {ticket.ticketType?.replace("_", " ") || "other"}
+                    </p>
 
                     <div className="mt-2">
                       <UserMiniCard user={ticket.user} />
@@ -283,6 +308,33 @@ export default function SupportPanelPage() {
                       >
                         <UserCheck size={16} />
                         Assign
+                      </Button>
+                    )}
+
+                    {isAdmin && ticket.user?.public_id && (
+                      <Button
+                        size="sm"
+                        style="danger"
+                        disabled={busyKey === `block-user-${ticket.id}`}
+                        onClick={() => {
+                          const reason = window.prompt(`Reason for blocking ${ticket.user.username}`);
+                          const trimmedReason = reason?.trim();
+
+                          if (!trimmedReason) return;
+
+                          if (trimmedReason.length < 10) {
+                            showToast("Block reason must be at least 10 characters");
+                            return;
+                          }
+
+                          runTicketAction(
+                            `block-user-${ticket.id}`,
+                            () => blockUser(ticket.user.public_id, trimmedReason),
+                            "User blocked",
+                          );
+                        }}
+                      >
+                        Block user
                       </Button>
                     )}
 
