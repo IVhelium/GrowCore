@@ -20,6 +20,7 @@ from src.api.services.files.file_storage import FileStorageService
 from src.api.services.store import StoreService
 from src.api.services.support_ticket import SupportTicketService
 from src.api.services.cart import CartService
+from src.api.services.chat import ChatService
 from src.api.services.favorite import FavoriteService
 from src.api.services.category import CategoryService
 from src.api.services.order import OrderService
@@ -105,6 +106,14 @@ async def get_user_service(
     )
 
 UserServiceDependency = Annotated[UserService, Depends(get_user_service)]
+
+
+async def get_chat_service(
+    db: SessionDependency,
+) -> ChatService:
+    return ChatService(db=db)
+
+ChatServiceDependency = Annotated[ChatService, Depends(get_chat_service)]
 
 
 # Get Product Service

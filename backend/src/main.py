@@ -7,12 +7,12 @@ from authx.exceptions import AuthXException
 import uvicorn
 from src.api.router import main_router
 from src.core.config import settings
-from src.core.constants import ORIGINS
 from src.core.lifespan import lifespan
 
 
-settings.PUBLIC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
-settings.PRIVATE_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+if settings.FILE_STORAGE_BACKEND == "local":
+    settings.PUBLIC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    settings.PRIVATE_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 app = FastAPI(
@@ -33,17 +33,18 @@ app.include_router(main_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ORIGINS,
+    allow_origins=settings.CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["Content-Type", "Authorization"],
     allow_credentials=True
 )
 
-app.mount(
-    settings.MEDIA_URL_PREFIX,
-    StaticFiles(directory=str(settings.PUBLIC_STORAGE_DIR)),
-    name="media",
-)
+if settings.FILE_STORAGE_BACKEND == "local":
+    app.mount(
+        settings.MEDIA_URL_PREFIX,
+        StaticFiles(directory=str(settings.PUBLIC_STORAGE_DIR)),
+        name="media",
+    )
 
 
 # Configure the server to run on localhost

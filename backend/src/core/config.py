@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.constants import BASE_DIR
 
 class Settings(BaseSettings):
+    ENV: str = "development"
+
     # Database
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -15,15 +17,24 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ACCESS_COOKIE_NAME: str
     JWT_REFRESH_COOKIE_NAME: str
+    JWT_COOKIE_SECURE: bool = False
+    JWT_COOKIE_SAMESITE: str = "lax"
     
     # File Storage
+    FILE_STORAGE_BACKEND: str = "local"
     STORAGE_ROOT: Path = BASE_DIR / "storage"
+    CLOUDINARY_URL: str | None = None
+    CLOUDINARY_CLOUD_NAME: str | None = None
+    CLOUDINARY_API_KEY: str | None = None
+    CLOUDINARY_API_SECRET: str | None = None
+    CLOUDINARY_FOLDER: str = "growcore"
     
     # Media URL Prefix
     MEDIA_URL_PREFIX: str = "/media"
     
     # Frontend
     FRONTEND_URL: str = "http://localhost:5173"
+    ADDITIONAL_CORS_ORIGINS: str | None = None
 
     # Stripe
     STRIPE_SECRET_KEY: str | None = None
@@ -49,6 +60,23 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL_asyncpg(self):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def CORS_ORIGINS(self) -> list[str]:
+        origins = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            self.FRONTEND_URL,
+        ]
+
+        if self.ADDITIONAL_CORS_ORIGINS:
+            origins.extend(
+                origin.strip()
+                for origin in self.ADDITIONAL_CORS_ORIGINS.split(",")
+                if origin.strip()
+            )
+
+        return list(dict.fromkeys(origins))
     
     # File Storage
     @property

@@ -13,7 +13,6 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
 from src.models import (
     NotificationModel,
-    UserChatMessageModel,
     UserFollowEventModel,
     UserFollowModel,
     UserFriendModel,
@@ -21,7 +20,7 @@ from src.models import (
     UserModel,
     UserRoleModel,
 )
-from src.schemas import CreateUserChatMessageDTO, UserChatThreadDTO, UpdateUserDTO
+from src.schemas import UpdateUserDTO
 
 
 class UserService:
@@ -600,145 +599,6 @@ class UserService:
             query=query,
             pagination=pagination,
         )
-
-    async def list_chat_threads(
-        self,
-        current_user: UserModel,
-    ) -> list[UserChatThreadDTO]:
-        result = await self.db.execute(
-            select(UserChatMessageModel)
-            .options(
-                selectinload(UserChatMessageModel.sender),
-                selectinload(UserChatMessageModel.recipient),
-            )
-            .where(
-                or_(
-                    UserChatMessageModel.sender_id == current_user.id,
-                    UserChatMessageModel.recipient_id == current_user.id,
-                )
-            )
-            .order_by(UserChatMessageModel.created_at.desc())
-            .limit(200)
-        )
-
-        threads = []
-        seen_user_ids = set()
-
-        for message in result.scalars().all():
-            peer = message.recipient if message.sender_id == current_user.id else message.sender
-
-            if peer.id in seen_user_ids:
-                continue
-
-            seen_user_ids.add(peer.id)
-            threads.append(
-                UserChatThreadDTO(
-                    user=peer,
-                    last_message=message.message,
-                    last_message_at=message.created_at,
-                )
-            )
-
-        friends_result = await self.db.execute(
-            select(UserModel)
-            .join(UserFriendModel, UserFriendModel.friend_id == UserModel.id)
-            .where(UserFriendModel.user_id == current_user.id)
-            .order_by(UserModel.username.asc())
-        )
-
-        for friend in friends_result.scalars().all():
-            if friend.id in seen_user_ids:
-                continue
-
-            seen_user_ids.add(friend.id)
-            threads.append(UserChatThreadDTO(user=friend))
-
-        return threads
-
-    async def list_chat_messages(
-        self,
-        current_user: UserModel,
-        public_id: str,
-    ) -> list[UserChatMessageModel]:
-        target = await self.get_user_by_public_id(public_id)
-
-        result = await self.db.execute(
-            select(UserChatMessageModel)
-            .options(
-                selectinload(UserChatMessageModel.sender),
-                selectinload(UserChatMessageModel.recipient),
-            )
-            .where(
-                or_(
-                    and_(
-                        UserChatMessageModel.sender_id == current_user.id,
-                        UserChatMessageModel.recipient_id == target.id,
-                    ),
-                    and_(
-                        UserChatMessageModel.sender_id == target.id,
-                        UserChatMessageModel.recipient_id == current_user.id,
-                    ),
-                )
-            )
-            .order_by(UserChatMessageModel.created_at.asc())
-        )
-
-        return list(result.scalars().all())
-
-    async def send_chat_message(
-        self,
-        current_user: UserModel,
-        public_id: str,
-        schema: CreateUserChatMessageDTO,
-    ) -> UserChatMessageModel:
-        target = await self.get_user_by_public_id(public_id)
-
-        if target.id == current_user.id:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="You cannot chat with yourself",
-            )
-
-        message = UserChatMessageModel(
-            sender_id=current_user.id,
-            recipient_id=target.id,
-            message=schema.message,
-        )
-        self.db.add(message)
-
-        await NotificationService(self.db).create(
-            user_id=target.id,
-            title="New chat message",
-            message=f"{current_user.username} sent you a message.",
-        )
-
-        try:
-            await self.db.commit()
-        except SQLAlchemyError as exc:
-            await self._safe_rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not send message",
-            ) from exc
-
-        result = await self.db.execute(
-            select(UserChatMessageModel)
-            .options(
-                selectinload(UserChatMessageModel.sender),
-                selectinload(UserChatMessageModel.recipient),
-            )
-            .where(UserChatMessageModel.id == message.id)
-        )
-
-        created_message = result.scalar_one_or_none()
-
-        if not created_message:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Message was not created",
-            )
-
-        return created_message
 
     async def list_users(
         self,

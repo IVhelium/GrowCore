@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
     AdminDependency,
+    ChatServiceDependency,
     CurrentUserDependency,
     NotificationServiceDependency,
     UserServiceDependency,
@@ -214,9 +215,9 @@ async def decline_my_friend_request(
 )
 async def list_my_chats(
     current_user: CurrentUserDependency,
-    user_service: UserServiceDependency,
+    chat_service: ChatServiceDependency,
 ):
-    return await user_service.list_chat_threads(current_user=current_user)
+    return await chat_service.list_threads(current_user=current_user)
 
 
 @router.patch(
@@ -409,9 +410,9 @@ async def remove_friend(
 async def list_user_chat_messages(
     public_id: str,
     current_user: CurrentUserDependency,
-    user_service: UserServiceDependency,
+    chat_service: ChatServiceDependency,
 ):
-    return await user_service.list_chat_messages(
+    return await chat_service.list_messages(
         current_user=current_user,
         public_id=public_id,
     )
@@ -426,9 +427,9 @@ async def send_user_chat_message(
     public_id: str,
     schema: CreateUserChatMessageDTO,
     current_user: CurrentUserDependency,
-    user_service: UserServiceDependency,
+    chat_service: ChatServiceDependency,
 ):
-    return await user_service.send_chat_message(
+    return await chat_service.send_message(
         current_user=current_user,
         public_id=public_id,
         schema=schema,

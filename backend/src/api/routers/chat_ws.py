@@ -6,36 +6,15 @@ from uuid import UUID
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import selectinload
 
-from src.api.services.notification import NotificationService
-from src.api.services.user import UserService
+from src.api.services.chat import ChatService
 from src.core.config import settings
 from src.core.database import new_session
-from src.models import UserChatMessageModel, UserModel
+from src.models import UserModel
+from src.schemas import CreateUserChatMessageDTO
 
 
 router = APIRouter(tags=["Chats"])
-
-
-def serialize_user(user: UserModel) -> dict[str, Any]:
-    return {
-        "public_id": user.public_id,
-        "username": user.username,
-        "avatar_url": user.avatar_url,
-        "is_blocked": user.is_blocked,
-    }
-
-
-def serialize_message(message: UserChatMessageModel) -> dict[str, Any]:
-    return {
-        "id": message.id,
-        "message": message.message,
-        "created_at": message.created_at.isoformat(),
-        "sender": serialize_user(message.sender),
-        "recipient": serialize_user(message.recipient),
-    }
 
 
 class ChatConnectionManager:
@@ -84,56 +63,6 @@ async def get_websocket_user(websocket: WebSocket) -> UserModel | None:
         return result.scalar_one_or_none()
 
 
-async def create_chat_message(
-    sender: UserModel,
-    recipient_public_id: str,
-    message_text: str,
-) -> UserChatMessageModel:
-    async with new_session() as db:
-        normalized_public_id = UserService.normalize_public_id(recipient_public_id)
-        text = message_text.strip()
-
-        if not text or len(text) > 10_000:
-            raise ValueError("Message must be between 1 and 10000 characters")
-
-        result = await db.execute(
-            select(UserModel).where(UserModel.public_id == normalized_public_id)
-        )
-        recipient = result.scalar_one_or_none()
-
-        if not recipient or recipient.id == sender.id:
-            raise ValueError("Recipient is not available")
-
-        chat_message = UserChatMessageModel(
-            sender_id=sender.id,
-            recipient_id=recipient.id,
-            message=text,
-        )
-        db.add(chat_message)
-
-        await NotificationService(db).create(
-            user_id=recipient.id,
-            title="New chat message",
-            message=f"{sender.username} sent you a message.",
-        )
-
-        try:
-            await db.commit()
-        except SQLAlchemyError:
-            await db.rollback()
-            raise
-
-        created = await db.execute(
-            select(UserChatMessageModel)
-            .options(
-                selectinload(UserChatMessageModel.sender),
-                selectinload(UserChatMessageModel.recipient),
-            )
-            .where(UserChatMessageModel.id == chat_message.id)
-        )
-        return created.scalar_one()
-
-
 @router.websocket("/users/ws/chats")
 async def user_chat_websocket(websocket: WebSocket):
     current_user = await get_websocket_user(websocket)
@@ -156,18 +85,20 @@ async def user_chat_websocket(websocket: WebSocket):
             message_text = str(payload.get("message") or "")
 
             try:
-                chat_message = await create_chat_message(
-                    sender=current_user,
-                    recipient_public_id=recipient_public_id,
-                    message_text=message_text,
-                )
+                message_schema = CreateUserChatMessageDTO(message=message_text)
+                async with new_session() as db:
+                    chat_message = await ChatService(db).send_message(
+                        current_user=current_user,
+                        public_id=recipient_public_id,
+                        schema=message_schema,
+                    )
             except Exception:
                 await websocket.send_json({"type": "error", "message": "Could not send message"})
                 continue
 
             event = {
                 "type": "message",
-                "message": serialize_message(chat_message),
+                "message": ChatService.serialize_message(chat_message),
             }
             await manager.send_to_user(chat_message.sender_id, event)
             await manager.send_to_user(chat_message.recipient_id, event)
