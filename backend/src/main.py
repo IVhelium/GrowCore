@@ -31,6 +31,11 @@ async def authx_exception_handler(request, exc):
 
 app.include_router(main_router)
 
+
+@app.get("/health", include_in_schema=False)
+async def health_check():
+    return {"status": "ok"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

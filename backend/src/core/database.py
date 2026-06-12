@@ -9,8 +9,8 @@ from src.core.config import settings
 engine = create_async_engine(               # Create an async engine for connecting to a PostgreSQL database
     url=settings.DATABASE_URL_asyncpg,      # Connection link
     echo=False,                             # It will display all SQL queries in the console
-    pool_size=5,                            # Standard maximum number of connections to the database
-    max_overflow=10,                        # Maximum number of connections to the database
+    pool_size=settings.DB_POOL_SIZE,        # Keep the pool small for hosted Postgres free tiers
+    max_overflow=settings.DB_MAX_OVERFLOW,  # Extra temporary connections allowed above pool_size
     pool_pre_ping=True,                     # Functionality check before use
 )  
 
