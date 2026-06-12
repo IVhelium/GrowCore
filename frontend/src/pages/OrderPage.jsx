@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Clock, PackageCheck, Truck } from "lucide-react";
+import { CheckCircle2, Clock, FileText, PackageCheck, Truck } from "lucide-react";
 import { getOrders, requestOrderReturn } from "../api/orderApi";
+import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
+import { useAuth } from "../hooks/useAuth";
 import { formatPrice } from "../utils/formatPrice";
 import { formatDateTime } from "../utils/formatDateTime";
 import { getApiError } from "../utils/getApiError";
+import {
+  createPaymentDocument,
+  downloadPaymentDocument,
+} from "../utils/paymentDocument";
 import { showToast } from "../utils/showToast";
 
 function humanizeStatus(value) {
@@ -84,6 +90,7 @@ function OrderProgress({ order }) {
 }
 
 export default function OrderPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -138,6 +145,27 @@ export default function OrderPage() {
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not request return"));
     }
+  }
+
+  function handleReceiptDownload(order) {
+    const paymentId = order.transactionId || `ORDER-${order.id}`;
+    const documentHtml =
+      order.paymentDocument ||
+      createPaymentDocument({
+        paymentId,
+        user,
+        items: order.items,
+        total: order.total,
+        method: order.paymentMethod || "Stripe",
+        paidAt: formatDateTime(order.date),
+        deliveryAddress: order.deliveryAddress,
+        customerNif: order.customerNif,
+      });
+
+    downloadPaymentDocument(
+      documentHtml,
+      `growcore-payment-${paymentId}.pdf`,
+    );
   }
 
   return (
@@ -213,10 +241,16 @@ export default function OrderPage() {
                     </span>{" "}
                     {order.deliveryAddress || "-"}
                   </div>
-                  {order.paymentDocument && (
-                    <pre className="max-h-44 overflow-auto whitespace-pre-wrap rounded-md bg-white p-3 text-xs text-slate-600">
-                      {order.paymentDocument}
-                    </pre>
+                  {order.paymentStatus === "paid" && (
+                    <Button
+                      type="button"
+                      style="secondary"
+                      className="w-fit"
+                      onClick={() => handleReceiptDownload(order)}
+                    >
+                      <FileText size={17} />
+                      Download PDF receipt
+                    </Button>
                   )}
                   {order.returnReason && (
                     <div className="rounded-md bg-white p-3">

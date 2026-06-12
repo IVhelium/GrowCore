@@ -12,4 +12,10 @@ from src.models.User.roles import RoleModel
 from src.models.User.user_roles import UserRoleModel
 from src.models.User.users import UserModel
 from src.models.User.notifications import NotificationModel
-from src.models.User.follows import UserChatMessageModel, UserFollowEventModel, UserFollowModel, UserFriendModel
+from src.models.User.follows import (
+    UserChatMessageModel,
+    UserFollowEventModel,
+    UserFollowModel,
+    UserFriendModel,
+    UserFriendRequestModel,
+)

@@ -45,9 +45,12 @@ export async function deleteUserAvatar() {
     return normalizeUser(data);
 }
 
-export async function getUsers({ limit = 12, offset = 0 } = {}) {
+export async function getUsers({ limit = 12, offset = 0, search = "" } = {}) {
     const { data } = await apiClient.get("/users", {
-        params: getPaginationParams({ limit, offset }),
+        params: {
+            ...getPaginationParams({ limit, offset }),
+            ...(search ? { search } : {}),
+        },
     });
 
     return {
@@ -96,7 +99,12 @@ export async function getFriendshipStatus(publicId) {
         `/users/${encodeURIComponent(publicId)}/friendship`,
         { _silent: true },
     );
-    return Boolean(data?.is_friend);
+    return {
+        isFriend: Boolean(data?.is_friend),
+        requestStatus: data?.request_status || null,
+        requestDirection: data?.request_direction || null,
+        requestId: data?.request_id || null,
+    };
 }
 
 export async function followUser(publicId) {
@@ -113,9 +121,10 @@ export async function unfollowUser(publicId) {
     return normalizeUser(data);
 }
 
-export async function addFriend(publicId) {
+export async function addFriend(publicId, message = "") {
     const { data } = await apiClient.post(
         `/users/${encodeURIComponent(publicId)}/friend`,
+        { message: message || undefined },
     );
     return normalizeUser(data);
 }
@@ -127,40 +136,37 @@ export async function removeFriend(publicId) {
     return normalizeUser(data);
 }
 
-function normalizeChatMessage(message) {
-    return {
-        id: message.id,
-        message: message.message,
-        createdAt: message.created_at,
-        sender: normalizeUser(message.sender),
-        recipient: normalizeUser(message.recipient),
-    };
+export async function getFriendRequests() {
+    const { data } = await apiClient.get("/users/me/friend-requests");
+    return (data || []).map((request) => ({
+        id: request.id,
+        status: request.status,
+        message: request.message || "",
+        createdAt: request.created_at,
+        requester: normalizeUser(request.requester),
+        recipient: normalizeUser(request.recipient),
+    }));
 }
 
-export function normalizeChatThread(thread) {
-    return {
-        user: normalizeUser(thread.user),
-        lastMessage: thread.last_message || "",
-        lastMessageAt: thread.last_message_at || null,
-    };
+export async function getFriendRequestCount() {
+    const { data } = await apiClient.get("/users/me/friend-requests/count", {
+        _silent: true,
+    });
+    return Number(data?.count || 0);
 }
 
-export async function getChatThreads() {
-    const { data } = await apiClient.get("/users/me/chats");
-    return (data || []).map(normalizeChatThread);
-}
-
-export async function getChatMessages(publicId) {
-    const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}/chat`);
-    return (data || []).map(normalizeChatMessage);
-}
-
-export async function sendChatMessage(publicId, message) {
+export async function acceptFriendRequest(requestId) {
     const { data } = await apiClient.post(
-        `/users/${encodeURIComponent(publicId)}/chat`,
-        { message },
+        `/users/me/friend-requests/${requestId}/accept`,
     );
-    return normalizeChatMessage(data);
+    return data;
+}
+
+export async function declineFriendRequest(requestId) {
+    const { data } = await apiClient.post(
+        `/users/me/friend-requests/${requestId}/decline`,
+    );
+    return data;
 }
 
 export async function blockUser(publicId, reason) {
@@ -204,4 +210,8 @@ export async function markNotificationRead(notificationId) {
     );
 
     return data;
+}
+
+export async function deleteAllNotifications() {
+    await apiClient.delete("/users/me/notifications");
 }

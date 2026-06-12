@@ -1,24 +1,28 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   addFriend,
   blockUser,
   followUser,
-  getChatMessages,
   getFriendshipStatus,
   getFollowingStatus,
   getPublicUserProfile,
   removeFriend,
-  sendChatMessage,
   unblockUser,
   unfollowUser,
 } from "../api/userApi";
+import {
+  createChatSocket,
+  getChatMessages,
+  sendChatMessage,
+} from "../api/chatApi";
 import { getPublicUserStore, getPublicUserStoreProducts } from "../api/storeApi";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
 import UserProfileCard from "../components/user/UserProfileCard";
+import PublicProfileTabsPanel from "../components/user/PublicProfileTabsPanel";
 import { useAuth } from "../hooks/useAuth";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
@@ -35,16 +39,22 @@ export default function PublicUserProfilePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
+  const [friendRequestStatus, setFriendRequestStatus] = useState(null);
+  const [followCooldownUntil, setFollowCooldownUntil] = useState(0);
+  const [isFollowCoolingDown, setIsFollowCoolingDown] = useState(false);
   const [store, setStore] = useState(null);
   const [storeProducts, setStoreProducts] = useState([]);
-  const [storeTab, setStoreTab] = useState("products");
   const [chatMessages, setChatMessages] = useState([]);
   const [chatText, setChatText] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isChatSending, setIsChatSending] = useState(false);
+  const chatSocketRef = useRef(null);
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
   const isOwnProfile = currentUser?.public_id === user?.public_id;
+  const isSellerProfile = hasRole(user, "seller");
+  const canChat = !isOwnProfile && currentUser?.public_id && (isFriend || isSellerProfile);
+  const [friendRequestMessage, setFriendRequestMessage] = useState("");
 
   useEffect(() => {
     let isActive = true;
@@ -67,10 +77,12 @@ export default function PublicUserProfilePage() {
               getFriendshipStatus(loadedUser.public_id),
             ]);
             setIsFollowing(followingStatus);
-            setIsFriend(friendshipStatus);
+            setIsFriend(friendshipStatus.isFriend);
+            setFriendRequestStatus(friendshipStatus);
           } catch {
             setIsFollowing(false);
             setIsFriend(false);
+            setFriendRequestStatus(null);
           }
         }
 
@@ -105,6 +117,59 @@ export default function PublicUserProfilePage() {
     };
   }, [currentUser?.public_id, publicId]);
 
+  useEffect(() => {
+    if (!currentUser?.public_id || !user?.public_id || isOwnProfile) {
+      return undefined;
+    }
+
+    const socket = createChatSocket();
+    chatSocketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+
+      if (payload.type !== "message") {
+        return;
+      }
+
+      const incomingMessage = payload.message;
+      const senderId = incomingMessage.sender?.public_id;
+      const recipientId = incomingMessage.recipient?.public_id;
+      const belongsToOpenChat =
+        [senderId, recipientId].includes(user.public_id) &&
+        [senderId, recipientId].includes(currentUser.public_id);
+
+      if (!belongsToOpenChat) {
+        return;
+      }
+
+      setChatMessages((currentMessages) => {
+        if (currentMessages.some((message) => message.id === incomingMessage.id)) {
+          return currentMessages;
+        }
+
+        return [
+          ...currentMessages,
+          {
+            ...incomingMessage,
+            createdAt: incomingMessage.created_at || incomingMessage.createdAt,
+          },
+        ];
+      });
+    };
+
+    socket.onerror = () => {
+      chatSocketRef.current = null;
+    };
+
+    return () => {
+      socket.close();
+      if (chatSocketRef.current === socket) {
+        chatSocketRef.current = null;
+      }
+    };
+  }, [currentUser?.public_id, isOwnProfile, user?.public_id]);
+
   async function handleBlock() {
     const reason = window.prompt(`Reason for blocking ${user.username}`);
     const trimmedReason = reason?.trim();
@@ -138,10 +203,27 @@ export default function PublicUserProfilePage() {
     try {
       isFriend
         ? await removeFriend(user.public_id)
-        : await addFriend(user.public_id);
+        : await addFriend(user.public_id, friendRequestMessage);
 
-      setIsFriend((value) => !value);
-      showToast(isFriend ? "Friend removed" : "Friend added", "success");
+      if (isFriend) {
+        setIsFriend(false);
+        setFriendRequestStatus(null);
+        showToast("Friend removed", "success");
+      } else if (friendRequestStatus?.requestDirection === "incoming") {
+        setIsFriend(true);
+        setFriendRequestStatus(null);
+        showToast("Friend request accepted", "success");
+        window.dispatchEvent(new Event("growcore:friend-requests-updated"));
+      } else {
+        setFriendRequestStatus({
+          isFriend: false,
+          requestStatus: "pending",
+          requestDirection: "outgoing",
+        });
+        setFriendRequestMessage("");
+        showToast("Friend request sent", "success");
+        window.dispatchEvent(new Event("growcore:friend-requests-updated"));
+      }
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not update friend status"));
     } finally {
@@ -163,14 +245,6 @@ export default function PublicUserProfilePage() {
     }
   }
 
-  async function handleStoreTabChange(tab) {
-    setStoreTab(tab);
-
-    if (tab === "chat" && chatMessages.length === 0) {
-      await loadChat();
-    }
-  }
-
   async function handleSendMessage(event) {
     event.preventDefault();
 
@@ -181,8 +255,18 @@ export default function PublicUserProfilePage() {
     setIsChatSending(true);
 
     try {
-      const createdMessage = await sendChatMessage(user.public_id, message);
-      setChatMessages((currentMessages) => [...currentMessages, createdMessage]);
+      if (chatSocketRef.current?.readyState === WebSocket.OPEN) {
+        chatSocketRef.current.send(
+          JSON.stringify({
+            recipient_public_id: user.public_id,
+            message,
+          }),
+        );
+      } else {
+        const createdMessage = await sendChatMessage(user.public_id, message);
+        setChatMessages((currentMessages) => [...currentMessages, createdMessage]);
+      }
+
       setChatText("");
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not send message"));
@@ -208,6 +292,10 @@ export default function PublicUserProfilePage() {
 
   async function handleFollowToggle() {
     if (!user) return;
+    if (Date.now() < followCooldownUntil) {
+      showToast("Please wait before changing follow status again.");
+      return;
+    }
 
     setIsActionBusy(true);
 
@@ -219,11 +307,44 @@ export default function PublicUserProfilePage() {
       setUser(updatedUser);
       setIsFollowing((value) => !value);
     } catch (error) {
+      if (error?.response?.status === 429) {
+        setFollowCooldownUntil(Date.now() + 10000);
+        setIsFollowCoolingDown(true);
+        showToast(getApiError(error, "Too many follow actions. Please try again shortly."));
+        return;
+      }
       setErrorMessage(getApiError(error, "Could not update follow status"));
     } finally {
       setIsActionBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!canChat || chatMessages.length > 0) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      loadChat();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canChat, user?.public_id]);
+
+  useEffect(() => {
+    if (!followCooldownUntil) {
+      return undefined;
+    }
+
+    const delay = Math.max(0, followCooldownUntil - Date.now());
+    const timer = window.setTimeout(() => {
+      setIsFollowCoolingDown(false);
+      setFollowCooldownUntil(0);
+    }, delay);
+
+    return () => window.clearTimeout(timer);
+  }, [followCooldownUntil]);
 
   return (
     <main>
@@ -241,51 +362,67 @@ export default function PublicUserProfilePage() {
         ) : errorMessage ? (
           <EmptyState title="User not found" text={errorMessage} />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] lg:items-stretch">
             <div className="grid gap-4">
-              <UserProfileCard user={user} />
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="grid grid-cols-2 gap-3 text-center">
+              <UserProfileCard user={user} className="min-h-640px">
+                <div className="mt-5 grid grid-cols-2 gap-3 text-center">
                   <div className="rounded-lg bg-slate-50 p-4">
                     <div className="text-2xl font-black text-slate-950">
                       {user?.followers_count ?? 0}
                     </div>
-                    <div className="text-xs font-bold uppercase text-slate-400">
-                      Followers
-                    </div>
+                    <div className="text-xs font-bold uppercase text-slate-400">Followers</div>
                   </div>
                   <div className="rounded-lg bg-slate-50 p-4">
                     <div className="text-2xl font-black text-slate-950">
                       {user?.following_count ?? 0}
                     </div>
-                    <div className="text-xs font-bold uppercase text-slate-400">
-                      Following
-                    </div>
+                    <div className="text-xs font-bold uppercase text-slate-400">Following</div>
                   </div>
                 </div>
-              </div>
-              {currentUser?.public_id && !isOwnProfile && (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    type="button"
-                    style={isFriend ? "secondary" : "primary"}
-                    disabled={isActionBusy}
-                    onClick={handleFriendToggle}
-                    className="w-full"
-                  >
-                    {isFriend ? "Remove friend" : "Add friend"}
-                  </Button>
-                  <Button
-                    type="button"
-                    style={isFollowing ? "secondary" : "primary"}
-                    disabled={isActionBusy}
-                    onClick={handleFollowToggle}
-                    className="w-full"
-                  >
-                    {isFollowing ? "Unfollow" : "Follow"}
-                  </Button>
-                </div>
+                {currentUser?.public_id && !isOwnProfile && (
+                  <div className="mt-5 grid gap-3">
+                    {!isFriend && !friendRequestStatus?.requestDirection && (
+                      <textarea
+                        value={friendRequestMessage}
+                        onChange={(event) => setFriendRequestMessage(event.target.value)}
+                        maxLength={500}
+                        rows={3}
+                        placeholder="Write a short hello with your friend request"
+                        className="min-h-20 resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
+                      />
+                    )}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                    <Button
+                      type="button"
+                      style={isFriend ? "secondary" : "primary"}
+                      disabled={
+                        isActionBusy ||
+                        friendRequestStatus?.requestDirection === "outgoing"
+                      }
+                      onClick={handleFriendToggle}
+                      className="w-full"
+                    >
+                      {isFriend
+                        ? "Remove friend"
+                        : friendRequestStatus?.requestDirection === "outgoing"
+                          ? "Request sent"
+                          : friendRequestStatus?.requestDirection === "incoming"
+                            ? "Accept request"
+                            : "Add friend"}
+                    </Button>
+                    <Button
+                      type="button"
+                      style={isFollowing ? "secondary" : "primary"}
+                      disabled={isActionBusy || isFollowCoolingDown}
+                      onClick={handleFollowToggle}
+                      className="w-full"
+                    >
+                      {isFollowing ? "Unfollow" : "Follow"}
+                    </Button>
+                    </div>
+                  </div>
                 )}
+              </UserProfileCard>
             </div>
             <div className="grid min-w-0 gap-4">
               {user?.isBlocked && (
@@ -319,120 +456,20 @@ export default function PublicUserProfilePage() {
                   </div>
                 </div>
               )}
-              {store && (
-                <aside className="flex h-[640px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:h-[calc(100vh-10rem)]">
-                  <div className="shrink-0 border-b border-slate-100 bg-white p-5">
-                    <div className="flex min-w-0 items-center gap-4">
-                      <img
-                        src={storeProducts[0]?.image || user.avatarUrl || "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=700&auto=format&fit=crop"}
-                        alt={store.name}
-                        className="h-16 w-16 shrink-0 rounded-md object-cover"
-                      />
-                      <div className="min-w-0">
-                        <h2 className="truncate text-xl font-bold text-slate-950">
-                          {store.name}
-                        </h2>
-                        <p className="mt-1 max-h-10 overflow-hidden text-sm leading-5 text-slate-500">
-                          {store.description || "Seller store"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-5 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
-                      {["products", "chat"].map((tab) => (
-                        <button
-                          key={tab}
-                          type="button"
-                          onClick={() => handleStoreTabChange(tab)}
-                          className={`rounded-md px-4 py-2 text-sm font-bold capitalize transition ${
-                            storeTab === tab
-                              ? "bg-white text-[#4F8A5B] shadow-sm"
-                              : "text-slate-500 hover:text-slate-950"
-                          }`}
-                        >
-                          {tab}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {storeTab === "products" ? (
-                    <div className="min-h-0 flex-1 overflow-y-auto p-5">
-                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {storeProducts.map((product) => (
-                          <Link
-                            key={product.id}
-                            to={`/product/${product.id}`}
-                            className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
-                          >
-                            <img
-                              src={product.image}
-                              alt={product.title}
-                              className="h-14 w-14 shrink-0 rounded-md object-cover"
-                            />
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-bold text-slate-950">
-                                {product.title}
-                              </p>
-                              <p className="truncate text-xs text-slate-500">
-                                {product.category || "Product"}
-                              </p>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex min-h-0 flex-1 flex-col">
-                      <div className="min-h-0 flex-1 overflow-y-auto p-5">
-                        {isOwnProfile ? (
-                          <EmptyState title="Store chat" text="Open chats from the users page." />
-                        ) : isChatLoading ? (
-                          <div className="rounded-lg border border-slate-200 p-4 text-sm text-slate-500">
-                            Loading chat...
-                          </div>
-                        ) : chatMessages.length === 0 ? (
-                          <EmptyState title="No messages yet" text="Start the conversation." />
-                        ) : (
-                          <div className="grid gap-3">
-                            {chatMessages.map((message) => {
-                              const isMine = message.sender.public_id === currentUser?.public_id;
-
-                              return (
-                                <div
-                                  key={message.id}
-                                  className={`max-w-[80%] rounded-lg px-4 py-3 text-sm ${
-                                    isMine
-                                      ? "ml-auto bg-[#4F8A5B] text-white"
-                                      : "bg-slate-100 text-slate-700"
-                                  }`}
-                                >
-                                  {message.message}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                      {!isOwnProfile && currentUser?.public_id && (
-                        <form
-                          onSubmit={handleSendMessage}
-                          className="flex gap-3 border-t border-slate-100 p-4"
-                        >
-                          <input
-                            value={chatText}
-                            onChange={(event) => setChatText(event.target.value)}
-                            placeholder="Message"
-                            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
-                          />
-                          <Button type="submit" disabled={isChatSending || !chatText.trim()}>
-                            Send
-                          </Button>
-                        </form>
-                      )}
-                    </div>
-                  )}
-                </aside>
-              )}
+              <PublicProfileTabsPanel
+                user={user}
+                currentUser={currentUser}
+                canChat={Boolean(canChat)}
+                isOwnProfile={isOwnProfile}
+                store={store}
+                storeProducts={storeProducts}
+                chatMessages={chatMessages}
+                chatText={chatText}
+                isChatLoading={isChatLoading}
+                isChatSending={isChatSending}
+                onChatTextChange={setChatText}
+                onSendMessage={handleSendMessage}
+              />
             </div>
           </div>
         )}

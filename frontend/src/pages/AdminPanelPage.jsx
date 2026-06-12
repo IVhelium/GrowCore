@@ -239,6 +239,7 @@ export default function AdminPanelPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAdminData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controlsPage, moderationPage, requestsPage, usersPage]);
 
   const metrics = useMemo(

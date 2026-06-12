@@ -1,7 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from src.core.dependencies import AdminDependency, CurrentUserDependency, OrderServiceDependency
-from src.schemas import PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
+from src.schemas import CreateStripeCheckoutDTO, PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
 
 
 router = APIRouter(
@@ -44,6 +44,35 @@ async def pay_order(
         delivery_address=schema.delivery_address,
         customer_nif=schema.customer_nif,
     )
+
+
+@router.post(
+    "/{order_id}/stripe-checkout",
+    response_model=dict[str, str],
+)
+async def create_stripe_checkout(
+    order_id: int,
+    schema: CreateStripeCheckoutDTO,
+    current_user: CurrentUserDependency,
+    order_service: OrderServiceDependency,
+):
+    return await order_service.create_stripe_checkout_session(
+        current_user=current_user,
+        order_id=order_id,
+        delivery_address=schema.delivery_address,
+        customer_nif=schema.customer_nif,
+    )
+
+
+@router.post(
+    "/stripe/webhook",
+    response_model=dict[str, bool],
+)
+async def stripe_webhook(
+    request: Request,
+    order_service: OrderServiceDependency,
+):
+    return await order_service.handle_stripe_webhook(request)
 
 
 @router.post(

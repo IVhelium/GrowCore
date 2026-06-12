@@ -65,6 +65,40 @@ class UserChatThreadDTO(BaseModel):
     last_message_at: datetime | None = None
 
     model_config = ConfigDict(extra="forbid")
+
+
+class FriendshipStatusDTO(BaseModel):
+    is_friend: bool
+    request_status: str | None = None
+    request_direction: str | None = None
+    request_id: int | None = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class CreateFriendRequestDTO(BaseModel):
+    message: str | None = Field(default=None, max_length=500)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def trim_message(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            return value or None
+        return value
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class UserFriendRequestDTO(BaseModel):
+    id: int
+    requester: ShortUserDTO
+    recipient: ShortUserDTO
+    status: str
+    message: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
     
     
 # User Update Schema

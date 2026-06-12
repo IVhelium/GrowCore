@@ -11,7 +11,16 @@ from src.core.upload_policies import AVATAR_POLICY
 from src.core.constants import PUBLIC_ID_RE
 from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
-from src.models import NotificationModel, UserChatMessageModel, UserFollowEventModel, UserFollowModel, UserFriendModel, UserModel, UserRoleModel
+from src.models import (
+    NotificationModel,
+    UserChatMessageModel,
+    UserFollowEventModel,
+    UserFollowModel,
+    UserFriendModel,
+    UserFriendRequestModel,
+    UserModel,
+    UserRoleModel,
+)
 from src.schemas import CreateUserChatMessageDTO, UserChatThreadDTO, UpdateUserDTO
 
 
@@ -277,11 +286,11 @@ class UserService:
 
         return await self.get_user_by_public_id(public_id)
 
-    async def is_friend(
+    async def get_friendship_status(
         self,
         current_user: UserModel,
         public_id: str,
-    ) -> bool:
+    ) -> dict[str, bool | str | int | None]:
         target = await self.get_user_by_public_id(public_id)
 
         result = await self.db.execute(
@@ -292,12 +301,59 @@ class UserService:
             )
         )
 
-        return result.scalar_one_or_none() is not None
+        if result.scalar_one_or_none() is not None:
+            return {
+                "is_friend": True,
+                "request_status": None,
+                "request_direction": None,
+                "request_id": None,
+            }
+
+        request_result = await self.db.execute(
+            select(UserFriendRequestModel)
+            .where(
+                UserFriendRequestModel.status == "pending",
+                or_(
+                    and_(
+                        UserFriendRequestModel.requester_id == current_user.id,
+                        UserFriendRequestModel.recipient_id == target.id,
+                    ),
+                    and_(
+                        UserFriendRequestModel.requester_id == target.id,
+                        UserFriendRequestModel.recipient_id == current_user.id,
+                    ),
+                ),
+            )
+        )
+        friend_request = request_result.scalar_one_or_none()
+
+        if not friend_request:
+            return {
+                "is_friend": False,
+                "request_status": None,
+                "request_direction": None,
+                "request_id": None,
+            }
+
+        return {
+            "is_friend": False,
+            "request_status": friend_request.status,
+            "request_direction": "outgoing" if friend_request.requester_id == current_user.id else "incoming",
+            "request_id": friend_request.id,
+        }
+
+    async def is_friend(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> bool:
+        return bool((await self.get_friendship_status(current_user, public_id))["is_friend"])
 
     async def add_friend(
         self,
         current_user: UserModel,
         public_id: str,
+        message: str | None = None,
     ) -> UserModel:
         target = await self.get_user_by_public_id(public_id)
 
@@ -307,20 +363,32 @@ class UserService:
                 detail="You cannot add yourself as a friend",
             )
 
-        already_friend = await self.is_friend(current_user, public_id)
+        friendship_status = await self.get_friendship_status(current_user, public_id)
 
-        if already_friend:
+        if friendship_status["is_friend"] or friendship_status["request_direction"] == "outgoing":
             return target
 
-        self.db.add_all([
-            UserFriendModel(user_id=current_user.id, friend_id=target.id),
-            UserFriendModel(user_id=target.id, friend_id=current_user.id),
-        ])
+        if friendship_status["request_direction"] == "incoming" and friendship_status["request_id"]:
+            await self.accept_friend_request(current_user, int(friendship_status["request_id"]))
+            return await self.get_user_by_public_id(public_id)
+
+        self.db.add(
+            UserFriendRequestModel(
+                requester_id=current_user.id,
+                recipient_id=target.id,
+                status="pending",
+                message=message,
+            )
+        )
+
+        notification_message = f"{current_user.username} sent you a friend request."
+        if message:
+            notification_message = f"{notification_message} Message: {message}"
 
         await NotificationService(self.db).create(
             user_id=target.id,
-            title="New friend",
-            message=f"{current_user.username} added you as a friend.",
+            title="Friend request",
+            message=notification_message,
         )
 
         try:
@@ -331,10 +399,120 @@ class UserService:
             await self._safe_rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not add friend",
+                detail="Could not send friend request",
             ) from exc
 
         return await self.get_user_by_public_id(public_id)
+
+    async def list_friend_requests(
+        self,
+        current_user: UserModel,
+    ) -> list[UserFriendRequestModel]:
+        result = await self.db.execute(
+            select(UserFriendRequestModel)
+            .options(
+                selectinload(UserFriendRequestModel.requester),
+                selectinload(UserFriendRequestModel.recipient),
+            )
+            .where(
+                UserFriendRequestModel.recipient_id == current_user.id,
+                UserFriendRequestModel.status == "pending",
+            )
+            .order_by(UserFriendRequestModel.created_at.desc())
+        )
+
+        return list(result.scalars().all())
+
+    async def friend_request_count(
+        self,
+        current_user: UserModel,
+    ) -> int:
+        return await self.db.scalar(
+            select(func.count())
+            .select_from(UserFriendRequestModel)
+            .where(
+                UserFriendRequestModel.recipient_id == current_user.id,
+                UserFriendRequestModel.status == "pending",
+            )
+        ) or 0
+
+    async def _get_pending_friend_request(
+        self,
+        current_user: UserModel,
+        request_id: int,
+    ) -> UserFriendRequestModel:
+        result = await self.db.execute(
+            select(UserFriendRequestModel)
+            .options(
+                selectinload(UserFriendRequestModel.requester),
+                selectinload(UserFriendRequestModel.recipient),
+            )
+            .where(
+                UserFriendRequestModel.id == request_id,
+                UserFriendRequestModel.recipient_id == current_user.id,
+                UserFriendRequestModel.status == "pending",
+            )
+        )
+        friend_request = result.scalar_one_or_none()
+
+        if not friend_request:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Friend request not found",
+            )
+
+        return friend_request
+
+    async def accept_friend_request(
+        self,
+        current_user: UserModel,
+        request_id: int,
+    ) -> UserFriendRequestModel:
+        friend_request = await self._get_pending_friend_request(current_user, request_id)
+
+        self.db.add_all([
+            UserFriendModel(user_id=friend_request.requester_id, friend_id=friend_request.recipient_id),
+            UserFriendModel(user_id=friend_request.recipient_id, friend_id=friend_request.requester_id),
+        ])
+        friend_request.status = "accepted"
+
+        await NotificationService(self.db).create(
+            user_id=friend_request.requester_id,
+            title="Friend request accepted",
+            message=f"{current_user.username} accepted your friend request.",
+        )
+
+        try:
+            await self.db.commit()
+        except IntegrityError:
+            await self._safe_rollback()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not accept friend request",
+            ) from exc
+
+        return friend_request
+
+    async def decline_friend_request(
+        self,
+        current_user: UserModel,
+        request_id: int,
+    ) -> UserFriendRequestModel:
+        friend_request = await self._get_pending_friend_request(current_user, request_id)
+        friend_request.status = "declined"
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not decline friend request",
+            ) from exc
+
+        return friend_request
 
     async def remove_friend(
         self,
@@ -361,6 +539,26 @@ class UserService:
 
         for relation in result.scalars().all():
             await self.db.delete(relation)
+
+        pending_requests = await self.db.execute(
+            select(UserFriendRequestModel)
+            .where(
+                UserFriendRequestModel.status == "pending",
+                or_(
+                    and_(
+                        UserFriendRequestModel.requester_id == current_user.id,
+                        UserFriendRequestModel.recipient_id == target.id,
+                    ),
+                    and_(
+                        UserFriendRequestModel.requester_id == target.id,
+                        UserFriendRequestModel.recipient_id == current_user.id,
+                    ),
+                ),
+            )
+        )
+
+        for friend_request in pending_requests.scalars().all():
+            await self.db.delete(friend_request)
 
         try:
             await self.db.commit()
@@ -545,6 +743,7 @@ class UserService:
     async def list_users(
         self,
         pagination: PaginationParams,
+        search: str | None = None,
     ):
         query = (
             select(UserModel)
@@ -554,6 +753,17 @@ class UserService:
             )
             .order_by(UserModel.created_at.desc())
         )
+
+        search_value = search.strip() if search else ""
+
+        if search_value:
+            normalized_public_id = search_value.upper()
+            query = query.where(
+                or_(
+                    UserModel.username.ilike(f"%{search_value}%"),
+                    UserModel.public_id.ilike(f"%{normalized_public_id}%"),
+                )
+            )
 
         return await PaginationService.paginate(
             db=self.db,

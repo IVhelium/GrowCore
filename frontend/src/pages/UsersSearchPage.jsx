@@ -1,51 +1,64 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { MessageCircle, Search, Users } from "lucide-react";
-import { getChatThreads, getUsers, searchUserByPublicId } from "../api/userApi";
+import { MessageCircle, UserRoundCheck, Users } from "lucide-react";
+import {
+  createChatSocket,
+  getChatMessages,
+  getChatThreads,
+  sendChatMessage,
+} from "../api/chatApi";
+import {
+  acceptFriendRequest,
+  declineFriendRequest,
+  getFriendRequestCount,
+  getFriendRequests,
+  getFriends,
+  getUsers,
+  searchUserByPublicId,
+} from "../api/userApi";
 import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
 import { useAuth } from "../hooks/useAuth";
 import { getApiError } from "./../utils/getApiError";
 import Container from "../components/common/Container";
-import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
-import Button from "../components/common/Button";
-import PaginationBar from "../components/common/PaginationBar";
-import UserAvatar from "../components/user/UserAvatar";
+import ChatsPanel from "../components/chat/ChatsPanel";
+import FriendsPanel from "../components/user/FriendsPanel";
+import UserResultCard from "../components/user/UserResultCard";
+import UsersGridSection from "../components/user/UsersGridSection";
+import UsersSearchBox from "../components/user/UsersSearchBox";
+import UsersTabs from "../components/user/UsersTabs";
+import { showToast } from "../utils/showToast";
+import { randomUsers } from "../utils/randomArray";
 
 const PAGE_SIZE = 39;
-
-function UserResultCard({ user }) {
-  return (
-    <Link
-      to={`/users/${encodeURIComponent(user.public_id)}`}
-      className="flex min-w-0 items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#4F8A5B]"
-    >
-      <UserAvatar user={user} size="md" />
-      <div className="min-w-0">
-        <h2 className="truncate font-bold text-slate-950">{user.username}</h2>
-        <p className="mt-1 truncate text-sm text-slate-500">{user.public_id}</p>
-        {user.isBlocked && (
-          <p className="mt-2 w-fit rounded-lg bg-red-50 px-2 py-1 text-xs font-bold uppercase text-red-600">
-            blocked
-          </p>
-        )}
-      </div>
-    </Link>
-  );
-}
+const FRIENDS_PAGE_SIZE = 18;
 
 export default function UsersSearchPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friendRequestCount, setFriendRequestCount] = useState(0);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatText, setChatText] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [appliedUserSearch, setAppliedUserSearch] = useState("");
+  const [friendSearch, setFriendSearch] = useState("");
+  const [appliedFriendSearch, setAppliedFriendSearch] = useState("");
   const [result, setResult] = useState(null);
   const [total, setTotal] = useState(0);
+  const [friendsTotal, setFriendsTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [friendsPage, setFriendsPage] = useState(1);
   const [error, setError] = useAutoDismissMessage("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [isChatsLoading, setIsChatsLoading] = useState(false);
+  const [isFriendsLoading, setIsFriendsLoading] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isChatSending, setIsChatSending] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -57,10 +70,11 @@ export default function UsersSearchPage() {
         const page = await getUsers({
           limit: PAGE_SIZE,
           offset: (currentPage - 1) * PAGE_SIZE,
+          search: appliedUserSearch,
         });
 
         if (isActive) {
-          setUsers(page.items || []);
+          setUsers(randomUsers(page.items || []));
           setTotal(page.total || 0);
         }
       } catch (requestError) {
@@ -79,7 +93,7 @@ export default function UsersSearchPage() {
     return () => {
       isActive = false;
     };
-  }, [currentPage, setError]);
+  }, [appliedUserSearch, currentPage, setError]);
 
   useEffect(() => {
     let isActive = true;
@@ -113,19 +127,209 @@ export default function UsersSearchPage() {
     };
   }, [activeTab, isAuthenticated, setError]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadFriends() {
+      if (activeTab !== "friends" || !isAuthenticated) return;
+
+      setIsFriendsLoading(true);
+
+      try {
+        const page = await getFriends({
+          limit: FRIENDS_PAGE_SIZE,
+          offset: (friendsPage - 1) * FRIENDS_PAGE_SIZE,
+          search: appliedFriendSearch,
+        });
+
+        if (isActive) {
+          setFriends(page.items || []);
+          setFriendsTotal(page.total || 0);
+        }
+      } catch (requestError) {
+        if (isActive) {
+          setError(getApiError(requestError, "Could not load friends"));
+        }
+      } finally {
+        if (isActive) {
+          setIsFriendsLoading(false);
+        }
+      }
+    }
+
+    loadFriends();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activeTab, appliedFriendSearch, friendsPage, isAuthenticated, setError]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadFriendRequests() {
+      if (!isAuthenticated) {
+        setFriendRequestCount(0);
+        setFriendRequests([]);
+        return;
+      }
+
+      try {
+        const [requests, count] = await Promise.all([
+          activeTab === "friends" ? getFriendRequests() : Promise.resolve([]),
+          getFriendRequestCount(),
+        ]);
+
+        if (isActive) {
+          setFriendRequestCount(count);
+          if (activeTab === "friends") {
+            setFriendRequests(requests);
+          }
+        }
+      } catch {
+        if (isActive) {
+          setFriendRequestCount(0);
+        }
+      }
+    }
+
+    loadFriendRequests();
+    window.addEventListener(
+      "growcore:friend-requests-updated",
+      loadFriendRequests,
+    );
+    window.addEventListener("focus", loadFriendRequests);
+
+    return () => {
+      isActive = false;
+      window.removeEventListener(
+        "growcore:friend-requests-updated",
+        loadFriendRequests,
+      );
+      window.removeEventListener("focus", loadFriendRequests);
+    };
+  }, [activeTab, isAuthenticated]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadSelectedChat() {
+      if (activeTab !== "chats" || !selectedChat?.public_id) return;
+
+      setIsChatLoading(true);
+
+      try {
+        const messages = await getChatMessages(selectedChat.public_id);
+
+        if (isActive) {
+          setChatMessages(messages);
+        }
+      } catch (requestError) {
+        if (isActive) {
+          setError(getApiError(requestError, "Could not load chat"));
+        }
+      } finally {
+        if (isActive) {
+          setIsChatLoading(false);
+        }
+      }
+    }
+
+    loadSelectedChat();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activeTab, selectedChat?.public_id, setError]);
+
+  useEffect(() => {
+    if (activeTab !== "chats" || !isAuthenticated || !currentUser?.public_id) {
+      return undefined;
+    }
+
+    const socket = createChatSocket();
+
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+
+      if (payload.type !== "message") {
+        return;
+      }
+
+      const incomingMessage = payload.message;
+      const peer =
+        incomingMessage.sender.public_id === currentUser?.public_id
+          ? incomingMessage.recipient
+          : incomingMessage.sender;
+
+      setChats((currentChats) => {
+        const existingChat = currentChats.find(
+          (chat) =>
+            chat.user.public_id === incomingMessage.sender.public_id ||
+            chat.user.public_id === incomingMessage.recipient.public_id,
+        );
+        const chatUser = existingChat?.user || peer;
+        const updatedChat = {
+          user: chatUser,
+          lastMessage: incomingMessage.message,
+          lastMessageAt: incomingMessage.created_at,
+        };
+
+        return [
+          updatedChat,
+          ...currentChats.filter(
+            (chat) => chat.user.public_id !== chatUser.public_id,
+          ),
+        ];
+      });
+
+      setChatMessages((currentMessages) => {
+        if (!selectedChat) return currentMessages;
+
+        const belongsToSelectedChat =
+          incomingMessage.sender.public_id === selectedChat.public_id ||
+          incomingMessage.recipient.public_id === selectedChat.public_id;
+
+        if (!belongsToSelectedChat) return currentMessages;
+        if (
+          currentMessages.some((message) => message.id === incomingMessage.id)
+        ) {
+          return currentMessages;
+        }
+
+        return [
+          ...currentMessages,
+          {
+            ...incomingMessage,
+            createdAt: incomingMessage.created_at || incomingMessage.createdAt,
+          },
+        ];
+      });
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [activeTab, currentUser?.public_id, isAuthenticated, selectedChat]);
+
   async function handleSubmit(event) {
     event.preventDefault();
     setError("");
     setResult(null);
+    setCurrentPage(1);
+
+    const search = new FormData(event.currentTarget).get("search").trim();
+
+    setAppliedUserSearch(search);
+
+    if (!search.startsWith("#")) {
+      return;
+    }
+
     setIsSearchLoading(true);
 
-    const publicId = new FormData(event.currentTarget)
-      .get("public_id")
-      .trim()
-      .toUpperCase();
-
     try {
-      const user = await searchUserByPublicId(publicId);
+      const user = await searchUserByPublicId(search.toUpperCase());
       setResult(user);
     } catch (requestError) {
       setError(getApiError(requestError, "User not found"));
@@ -134,31 +338,104 @@ export default function UsersSearchPage() {
     }
   }
 
+  function handleFriendSearchSubmit(event) {
+    event.preventDefault();
+    setFriendsPage(1);
+    setAppliedFriendSearch(friendSearch.trim());
+  }
+
+  function handleSelectChat(chatUser) {
+    setSelectedChat(chatUser);
+    setChatMessages([]);
+  }
+
+  async function handleSendMessage(event) {
+    event.preventDefault();
+
+    const message = chatText.trim();
+    if (!message || !selectedChat) return;
+
+    setIsChatSending(true);
+    setError("");
+
+    try {
+      const createdMessage = await sendChatMessage(
+        selectedChat.public_id,
+        message,
+      );
+
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        createdMessage,
+      ]);
+      setChats((currentChats) => {
+        const updatedChat = {
+          user: selectedChat,
+          lastMessage: createdMessage.message,
+          lastMessageAt: createdMessage.createdAt,
+        };
+
+        return [
+          updatedChat,
+          ...currentChats.filter(
+            (chat) => chat.user.public_id !== selectedChat.public_id,
+          ),
+        ];
+      });
+      setChatText("");
+    } catch (requestError) {
+      setError(getApiError(requestError, "Could not send message"));
+    } finally {
+      setIsChatSending(false);
+    }
+  }
+
+  async function handleFriendRequestAction(requestId, action) {
+    try {
+      if (action === "accept") {
+        await acceptFriendRequest(requestId);
+        showToast("Friend request accepted", "success");
+      } else {
+        await declineFriendRequest(requestId);
+        showToast("Friend request declined", "success");
+      }
+
+      setFriendRequests((currentRequests) =>
+        currentRequests.filter((request) => request.id !== requestId),
+      );
+      setFriendRequestCount((count) => Math.max(0, count - 1));
+      window.dispatchEvent(new Event("growcore:friend-requests-updated"));
+    } catch (requestError) {
+      setError(getApiError(requestError, "Could not update friend request"));
+    }
+  }
+
+  const tabs = [
+    { id: "users", label: "Users", icon: Users },
+    { id: "chats", label: "Chats", icon: MessageCircle },
+    {
+      id: "friends",
+      label: "Friends",
+      icon: UserRoundCheck,
+      count: friendRequestCount,
+    },
+  ];
+
   return (
     <main>
       <Container className="py-8">
         <PageHeader
           pretitle="Users"
           title="Find a GrowCore user"
-          text="Browse all members or search by public ID, for example #A1B2C3D4E5"
+          text="Browse all members or search by username or public ID, for example #A1B2C3D4E5"
         />
 
-        <form
+        <UsersSearchBox
+          value={userSearch}
+          onChange={setUserSearch}
           onSubmit={handleSubmit}
-          className="flex max-w-xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
-        >
-          <input
-            name="public_id"
-            required
-            pattern="#[0-9A-Fa-f]{10}"
-            placeholder="#A1B2C3D4E5"
-            className="w-full px-5 py-3 text-sm uppercase outline-none placeholder:text-slate-400"
-          />
-
-          <Button type="submit" disabled={isSearchLoading} className="rounded-none">
-            <Search size={18} /> {isSearchLoading ? "Searching..." : "Search"}
-          </Button>
-        </form>
+          isLoading={isSearchLoading}
+        />
 
         {error && (
           <p className="mt-6 max-w-xl rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -172,96 +449,47 @@ export default function UsersSearchPage() {
           </div>
         )}
 
-        <div className="mt-8 flex max-w-xl rounded-lg border border-slate-200 bg-slate-50 p-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("users")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition ${
-              activeTab === "users"
-                ? "bg-white text-[#4F8A5B] shadow-sm"
-                : "text-slate-500 hover:text-slate-950"
-            }`}
-          >
-            <Users size={17} />
-            Users
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("chats")}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition ${
-              activeTab === "chats"
-                ? "bg-white text-[#4F8A5B] shadow-sm"
-                : "text-slate-500 hover:text-slate-950"
-            }`}
-          >
-            <MessageCircle size={17} />
-            Chats
-          </button>
-        </div>
+        <UsersTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
         {activeTab === "users" ? (
-          <section className="mt-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-bold text-slate-950">All users</h2>
-              {isAuthenticated && (
-                <Link className="font-semibold text-[#4F8A5B]" to="/friends">
-                  Friends
-                </Link>
-              )}
-            </div>
-
-            {isLoading ? (
-              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
-                Loading users...
-              </div>
-            ) : (
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {users.map((user) => (
-                  <UserResultCard key={user.public_id} user={user} />
-                ))}
-              </div>
-            )}
-
-            <PaginationBar
-              current={currentPage}
-              total={total}
-              pageSize={PAGE_SIZE}
-              onChange={setCurrentPage}
-            />
-          </section>
+          <UsersGridSection
+            users={users}
+            isLoading={isLoading}
+            currentPage={currentPage}
+            total={total}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+          />
+        ) : activeTab === "chats" ? (
+          <ChatsPanel
+            chats={chats}
+            selectedChat={selectedChat}
+            currentUser={currentUser}
+            messages={chatMessages}
+            text={chatText}
+            isAuthenticated={isAuthenticated}
+            isLoading={isChatsLoading}
+            isChatLoading={isChatLoading}
+            isSending={isChatSending}
+            onSelectChat={handleSelectChat}
+            onTextChange={setChatText}
+            onSendMessage={handleSendMessage}
+          />
         ) : (
-          <section className="mt-6">
-            <h2 className="text-xl font-bold text-slate-950">Chats</h2>
-            {!isAuthenticated ? (
-              <EmptyState title="Sign in to see chats" text="Your user chats appear here." />
-            ) : isChatsLoading ? (
-              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
-                Loading chats...
-              </div>
-            ) : chats.length === 0 ? (
-              <EmptyState title="No chats yet" text="Open a user profile and start a chat." />
-            ) : (
-              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {chats.map((chat) => (
-                  <Link
-                    key={chat.user.public_id}
-                    to={`/users/${encodeURIComponent(chat.user.public_id)}`}
-                    className="flex min-w-0 items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#4F8A5B]"
-                  >
-                    <UserAvatar user={chat.user} size="md" />
-                    <div className="min-w-0">
-                      <h2 className="truncate font-bold text-slate-950">
-                        {chat.user.username}
-                      </h2>
-                      <p className="mt-1 truncate text-sm text-slate-500">
-                        {chat.lastMessage || "No messages yet"}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
+          <FriendsPanel
+            isAuthenticated={isAuthenticated}
+            friendRequests={friendRequests}
+            friends={friends}
+            search={friendSearch}
+            isLoading={isFriendsLoading}
+            currentPage={friendsPage}
+            total={friendsTotal}
+            pageSize={FRIENDS_PAGE_SIZE}
+            onSearchChange={setFriendSearch}
+            onSearchSubmit={handleFriendSearchSubmit}
+            onPageChange={setFriendsPage}
+            onRequestAction={handleFriendRequestAction}
+          />
         )}
       </Container>
     </main>

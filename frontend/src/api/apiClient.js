@@ -3,6 +3,20 @@ import axios from "axios";
 
 export const API_URL = import.meta.env.VITE_API_URL || "/api";
 
+export function getWebSocketUrl(path) {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (/^https?:\/\//i.test(API_URL)) {
+    const apiUrl = new URL(API_URL);
+    apiUrl.protocol = apiUrl.protocol === "https:" ? "wss:" : "ws:";
+    apiUrl.pathname = `${apiUrl.pathname.replace(/\/$/, "")}${normalizedPath}`;
+    return apiUrl.toString();
+  }
+
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}${API_URL.replace(/\/$/, "")}${normalizedPath}`;
+}
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,

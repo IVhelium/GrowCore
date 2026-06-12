@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const NOTICE_DURATION_MS = 3200;
@@ -46,6 +46,15 @@ export default function Toast() {
     return null;
   }
 
+  function closeNotice() {
+    if (hideTimer.current) {
+      clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    }
+
+    setNotice(null);
+  }
+
   const isSuccess = notice.type === "success";
   const Icon = isSuccess ? CheckCircle2 : AlertTriangle;
   const toastClassName = isSuccess
@@ -59,7 +68,15 @@ export default function Toast() {
     >
       <div className="flex items-start gap-3">
         <Icon className={`mt-0.5 shrink-0 ${iconClassName}`} size={20} />
-        <p className="text-sm font-semibold leading-5">{notice.message}</p>
+        <p className="min-w-0 flex-1 text-sm font-semibold leading-5">{notice.message}</p>
+        <button
+          type="button"
+          onClick={closeNotice}
+          aria-label="Close notification"
+          className="grid h-6 w-6 shrink-0 place-items-center rounded text-current/70 transition hover:bg-white/70 hover:text-current"
+        >
+          <X size={16} />
+        </button>
       </div>
     </div>
   );

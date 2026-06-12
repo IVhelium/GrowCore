@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2 } from "lucide-react";
+import { Bell, CheckCircle2, Trash2 } from "lucide-react";
 import {
+  deleteAllNotifications,
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -42,6 +43,7 @@ export default function NotificationsPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadNotifications(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
@@ -83,6 +85,24 @@ export default function NotificationsPage() {
     }
   }
 
+  async function handleDeleteAll() {
+    if (notifications.length === 0) return;
+
+    setBusyId("delete-all");
+
+    try {
+      await deleteAllNotifications();
+      setNotifications([]);
+      setTotal(0);
+      setCurrentPage(1);
+      window.dispatchEvent(new Event("growcore:notifications-updated"));
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not delete notifications"));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <main>
       <Container className="py-8">
@@ -91,14 +111,25 @@ export default function NotificationsPage() {
           title="Notifications"
           text="Important account and moderation updates appear here."
           action={
-            <Button
-              type="button"
-              style="secondary"
-              disabled={busyId === "all" || notifications.every((item) => item.read_at)}
-              onClick={handleMarkAllRead}
-            >
-              Mark all read
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                style="secondary"
+                disabled={busyId === "all" || notifications.every((item) => item.read_at)}
+                onClick={handleMarkAllRead}
+              >
+                Mark all read
+              </Button>
+              <Button
+                type="button"
+                style="danger"
+                disabled={busyId === "delete-all" || notifications.length === 0}
+                onClick={handleDeleteAll}
+              >
+                <Trash2 size={17} />
+                Delete all
+              </Button>
+            </div>
           }
         />
 

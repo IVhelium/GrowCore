@@ -13,6 +13,8 @@ function normalizeOrderItem(item) {
     title: product.title || "Deleted product",
     price: Number(item.price ?? product.price ?? 0),
     quantity: item.quantity,
+    companyFee: Number(item.company_fee ?? 0),
+    sellerAmount: Number(item.seller_amount ?? 0),
     image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
   };
 }
@@ -22,6 +24,7 @@ export function normalizeOrder(order) {
     id: order.id,
     status: order.status,
     total: Number(order.total_price ?? 0),
+    companyFeeTotal: Number(order.company_fee_total ?? 0),
     paymentStatus: order.payment_status,
     deliveryStatus: order.delivery_status,
     returnStatus: order.return_status,
@@ -60,4 +63,13 @@ export async function payOrder(orderId, payload) {
   });
 
   return normalizeOrder(data);
+}
+
+export async function createStripeCheckout(orderId, payload) {
+  const { data } = await apiClient.post(`/orders/${orderId}/stripe-checkout`, {
+    delivery_address: payload.deliveryAddress || undefined,
+    customer_nif: payload.customerNif || undefined,
+  });
+
+  return data;
 }

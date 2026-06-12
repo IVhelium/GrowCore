@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getCategoryIcon } from "../../utils/categoryIcons";
@@ -6,8 +7,6 @@ export default function CatalogPopoverCard({
   category,
   onClose 
 }) {
-    const Icon = getCategoryIcon(category.name);
-
     return (
       <Link
         to={`/catalog?category=${category.id}`}
@@ -16,7 +15,7 @@ export default function CatalogPopoverCard({
       >
         <div className="flex min-w-0 items-center gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 group-hover:bg-[#4F8A5B] group-hover:text-white">
-            <Icon size={18} />
+            {createElement(getCategoryIcon(category.name), { size: 18 })}
           </span>
           <h3 className="truncate text-sm font-bold text-slate-950 group-hover:text-[#4F8A5B]">
             {category.name}

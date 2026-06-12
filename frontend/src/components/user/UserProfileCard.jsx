@@ -5,7 +5,9 @@ import UserAvatar from "./UserAvatar";
 
 export default function UserProfileCard({
     user,
-    onLogout
+    onLogout,
+    children,
+    className = "",
 }) {
     const roles = user?.roles
       ?.map((userRole) => userRole?.role?.role || userRole?.role)
@@ -27,7 +29,7 @@ export default function UserProfileCard({
         }) : "-";
 
     return (
-      <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
+      <aside className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 ${className}`}>
         <UserAvatar user={user} size="lg" />
 
         <h2 className="mt-5 text-2xl font-bold text-slate-950">
@@ -67,6 +69,8 @@ export default function UserProfileCard({
             <div className="mt-1 font-semibold">{createdDate}</div>
           </div>
         </div>
+
+        {children}
 
         {onLogout && (
           <Button style="dark" onClick={onLogout} className="mt-6 w-full">

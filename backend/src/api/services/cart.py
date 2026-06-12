@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -12,6 +13,8 @@ from src.schemas import AddCartItemDTO, CheckoutDTO, UpdateCartItemDTO
 
 
 class CartService:
+    COMPANY_FEE_RATE = Decimal("0.10")
+
     def __init__(
         self,
         db: AsyncSession,
@@ -429,7 +432,8 @@ class CartService:
                     detail="Delivery address cannot be empty",
                 )
 
-            total_price = 0
+            total_price = Decimal("0.00")
+            company_fee_total = Decimal("0.00")
 
             for item in cart.items:
                 product = await self._get_available_product(item.product_id)
@@ -440,7 +444,12 @@ class CartService:
                         detail=f"Not enough quantity for {product.title}",
                     )
 
-                total_price += product.price * item.quantity
+                line_total = product.price * item.quantity
+                total_price += line_total
+                company_fee_total += (line_total * self.COMPANY_FEE_RATE).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
 
             order = OrderModel(
                 user_id=current_user.id,
@@ -449,6 +458,7 @@ class CartService:
                 delivery_status=DeliveryStatus.preparing,
                 return_status=ReturnStatus.none,
                 total_price=total_price,
+                company_fee_total=company_fee_total,
                 delivery_address=delivery_address,
                 tracking_number=f"GC-{uuid.uuid4().hex[:10].upper()}",
             )
@@ -457,6 +467,11 @@ class CartService:
 
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)
+                line_total = product.price * item.quantity
+                company_fee = (line_total * self.COMPANY_FEE_RATE).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                )
 
                 self.db.add(
                     OrderItemModel(
@@ -464,6 +479,8 @@ class CartService:
                         product_id=product.id,
                         price=product.price,
                         quantity=item.quantity,
+                        company_fee=company_fee,
+                        seller_amount=line_total - company_fee,
                     )
                 )
 

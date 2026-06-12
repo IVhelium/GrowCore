@@ -1,73 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CreditCard, FileText, ShieldCheck } from "lucide-react";
-import { getOrders, payOrder } from "../api/orderApi";
+import { CreditCard, ShieldCheck } from "lucide-react";
+import { createStripeCheckout, getOrders } from "../api/orderApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
 import FormField from "../components/common/FormField";
-import { useAuth } from "../hooks/useAuth";
 import { formatPrice } from "../utils/formatPrice";
-import {
-  createPaymentDocument,
-  downloadPaymentDocument,
-} from "../utils/paymentDocument";
 import {
   getTrimmedFormData,
   getEmptyFieldMessage,
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
 
-function formatCardNumber(value) {
-  return value.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
-}
-
-function formatExpiry(value) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
-}
-
 const PAYMENT_METHODS = [
   {
-    id: "card",
-    label: "Card",
-    note: "Demo card payment",
-  },
-  {
-    id: "paypal",
-    label: "PayPal",
-    note: "Pay with PayPal email",
-  },
-  {
-    id: "multibanco",
-    label: "Multibanco",
-    note: "Portuguese payment reference",
-  },
-  {
-    id: "mbway",
-    label: "MB Way",
-    note: "Portuguese mobile payment",
-  },
-  {
-    id: "bank_transfer",
-    label: "Bank transfer",
-    note: "Manual transfer simulation",
+    id: "stripe",
+    label: "Stripe",
+    note: "Secure Stripe checkout",
   },
 ];
 
 export default function PaymentPage({ items = [], onPaid }) {
-  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState("");
   const [error, setError] = useState("");
-  const [receipt, setReceipt] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].id);
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
   const [deliveryCountry, setDeliveryCountry] = useState("Portugal");
 
   useEffect(() => {
@@ -127,14 +87,6 @@ export default function PaymentPage({ items = [], onPaid }) {
 
     const requiredFields = ["deliveryStreet", "deliveryCity", "deliveryZip", "deliveryCountry"];
 
-    if (paymentMethod === "card") {
-      requiredFields.push("cardName", "cardNumber", "expiry", "cvv");
-    }
-
-    if (paymentMethod === "paypal") {
-      requiredFields.push("paypalEmail");
-    }
-
     if (deliveryCountry === "Portugal") {
       requiredFields.push("customerNif");
     }
@@ -156,60 +108,21 @@ export default function PaymentPage({ items = [], onPaid }) {
       data.deliveryCountry,
     ].join(", ");
 
-    const paymentId = `GC-${Date.now()}`;
-    const paidAt = new Date().toLocaleString("de-DE");
-    const methodLabel = PAYMENT_METHODS.find((method) => method.id === paymentMethod)?.label || "Payment";
-
-    const documentHtml = createPaymentDocument({
-      paymentId,
-      user,
-      items: paymentItems,
-      total,
-      method: methodLabel,
-      paidAt,
-      deliveryAddress,
-      customerNif: data.customerNif,
-    });
-
     setIsPaying(true);
 
     try {
-      const updatedOrder = await payOrder(selectedOrder.id, {
-        transactionId: paymentId,
-        paymentMethod,
-        paymentDocument: documentHtml,
+      const checkout = await createStripeCheckout(selectedOrder.id, {
         deliveryAddress,
         customerNif: data.customerNif,
       });
 
-      setReceipt({
-        paymentId,
-        paidAt,
-        documentHtml,
-      });
-      setOrders((currentOrders) =>
-        currentOrders.filter((order) => order.id !== updatedOrder.id),
-      );
-      setSelectedOrderId("");
-      await onPaid?.({
-        paymentId,
-        paidAt,
-        total,
-      });
+      await onPaid?.();
+      window.location.assign(checkout.url);
     } catch {
       setError("Could not complete payment.");
     } finally {
       setIsPaying(false);
     }
-  }
-
-  function handleDownload() {
-    if (!receipt) return;
-
-    downloadPaymentDocument(
-      receipt.documentHtml,
-      `growcore-payment-${receipt.paymentId}.pdf`,
-    );
   }
 
   return (
@@ -218,7 +131,7 @@ export default function PaymentPage({ items = [], onPaid }) {
         <PageHeader
           pretitle="Payment"
           title="Pay an order"
-          text="Choose an unpaid order, select a payment method, then complete the demo payment."
+          text="Choose an unpaid order, enter delivery details, then continue to Stripe Checkout."
         />
 
         {error && (
@@ -231,7 +144,7 @@ export default function PaymentPage({ items = [], onPaid }) {
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
             Loading orders...
           </div>
-        ) : orders.length === 0 && !receipt ? (
+        ) : orders.length === 0 ? (
           <EmptyState
             title="No orders awaiting payment"
             text="Create an order first, then unpaid orders will appear here."
@@ -270,12 +183,7 @@ export default function PaymentPage({ items = [], onPaid }) {
                     <button
                       key={method.id}
                       type="button"
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`rounded-lg border p-4 text-left transition ${
-                        paymentMethod === method.id
-                          ? "border-[#4F8A5B] bg-[#4F8A5B]/10"
-                          : "border-slate-200 bg-white hover:border-[#4F8A5B]"
-                      }`}
+                      className="rounded-lg border border-[#4F8A5B] bg-[#4F8A5B]/10 p-4 text-left"
                     >
                       <span className="block text-sm font-bold text-slate-950">
                         {method.label}
@@ -298,69 +206,15 @@ export default function PaymentPage({ items = [], onPaid }) {
                     Payment details
                   </h2>
                   <p className="text-sm text-slate-500">
-                    Demo payment. No real money is charged.
+                    Stripe handles the card details on its secure checkout page.
                   </p>
                 </div>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                {paymentMethod === "card" && (
-                  <>
-                    <FormField
-                      label="Cardholder name"
-                      name="cardName"
-                      required
-                      placeholder="Max Green"
-                      wrapperClassName="md:col-span-2"
-                    />
-                    <FormField
-                      label="Card number"
-                      name="cardNumber"
-                      required
-                      inputMode="numeric"
-                      maxLength={19}
-                      value={cardNumber}
-                      onChange={(event) => setCardNumber(formatCardNumber(event.target.value))}
-                      placeholder="4242 4242 4242 4242"
-                      wrapperClassName="md:col-span-2"
-                    />
-                    <FormField
-                      label="Expiry"
-                      name="expiry"
-                      required
-                      inputMode="numeric"
-                      maxLength={5}
-                      value={expiry}
-                      onChange={(event) => setExpiry(formatExpiry(event.target.value))}
-                      placeholder="12/28"
-                    />
-                    <FormField
-                      label="CVV"
-                      name="cvv"
-                      required
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={cvv}
-                      onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
-                      placeholder="123"
-                    />
-                  </>
-                )}
-                {paymentMethod === "paypal" && (
-                  <FormField
-                    label="PayPal email"
-                    name="paypalEmail"
-                    required
-                    type="email"
-                    placeholder="customer@example.com"
-                    wrapperClassName="md:col-span-2"
-                  />
-                )}
-                {["multibanco", "mbway", "bank_transfer"].includes(paymentMethod) && (
-                  <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
-                    A demo payment reference will be generated after submitting.
-                  </p>
-                )}
+                <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
+                  You will be redirected to Stripe Checkout after submitting.
+                </p>
                 <FormField
                   label="Street address"
                   name="deliveryStreet"
@@ -410,23 +264,10 @@ export default function PaymentPage({ items = [], onPaid }) {
                 )}
               </div>
 
-              {receipt && (
-                <div className="mt-5 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
-                  Payment simulated successfully. Receipt ID: {receipt.paymentId}
-                </div>
-              )}
-
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button type="submit" disabled={!selectedOrder || isPaying}>
-                  {isPaying ? "Paying..." : `Pay ${formatPrice(total)}`}
+                  {isPaying ? "Paying..." : `Pay with Stripe ${formatPrice(total)}`}
                 </Button>
-
-                {receipt && (
-                  <Button type="button" style="secondary" onClick={handleDownload}>
-                    <FileText size={17} />
-                    Download PDF receipt
-                  </Button>
-                )}
               </div>
             </form>
 
@@ -456,6 +297,12 @@ export default function PaymentPage({ items = [], onPaid }) {
               </div>
 
               <div className="mt-5 border-t border-slate-100 pt-5">
+                {selectedOrder?.companyFeeTotal > 0 && (
+                  <div className="mb-3 flex justify-between text-sm text-slate-500">
+                    <span>Company commission</span>
+                    <span>{formatPrice(selectedOrder.companyFeeTotal)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>

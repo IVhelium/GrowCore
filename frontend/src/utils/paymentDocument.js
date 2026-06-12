@@ -1,5 +1,78 @@
 import { formatPrice } from "./formatPrice";
 
+function stripHtml(value) {
+  const element = document.createElement("div");
+  element.innerHTML = value;
+
+  return (element.textContent || element.innerText || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n\s+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function sanitizePdfText(value) {
+  return String(value)
+    .replace(/[€]/g, "EUR")
+    .replace(/[^\u0020-\u007E]/g, "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)");
+}
+
+function createPdfFromText(text) {
+  const lines = text
+    .split(/\r?\n/)
+    .flatMap((line) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) return [""];
+
+      const chunks = [];
+      for (let index = 0; index < trimmedLine.length; index += 88) {
+        chunks.push(trimmedLine.slice(index, index + 88));
+      }
+      return chunks;
+    })
+    .slice(0, 42);
+
+  const stream = [
+    "BT",
+    "/F1 12 Tf",
+    "50 790 Td",
+    "16 TL",
+    ...lines.map((line) => `(${sanitizePdfText(line)}) Tj T*`),
+    "ET",
+  ].join("\n");
+
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+  ];
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n`;
+  pdf += `startxref\n${xrefOffset}\n%%EOF`;
+
+  return pdf;
+}
+
 export function createPaymentDocument({
   paymentId,
   user,
@@ -97,20 +170,16 @@ export function createPaymentDocument({
 }
 
 export function downloadPaymentDocument(documentHtml, fileName) {
-  const printWindow = window.open("", "_blank", "width=900,height=700");
+  const text = stripHtml(documentHtml);
+  const pdf = createPdfFromText(text);
+  const blob = new Blob([pdf], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-  if (!printWindow) {
-    return;
-  }
-
-  printWindow.document.open();
-  printWindow.document.write(
-    documentHtml.replace(
-      "<title>GrowCore Payment Receipt</title>",
-      `<title>${fileName.replace(/\.pdf$/i, "")}</title>`,
-    ),
-  );
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
+  link.href = url;
+  link.download = fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

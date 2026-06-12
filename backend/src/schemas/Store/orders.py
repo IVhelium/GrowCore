@@ -72,6 +72,22 @@ class PayOrderDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class CreateStripeCheckoutDTO(BaseModel):
+    delivery_address: str | None = Field(default=None, min_length=5, max_length=300)
+    customer_nif: str | None = Field(default=None, min_length=9, max_length=20)
+
+    @field_validator("delivery_address", "customer_nif", mode="before")
+    @classmethod
+    def trim_stripe_fields(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+        return value
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class ReadOrderProductImageDTO(BaseModel):
     id: int
     image: str
@@ -93,6 +109,8 @@ class ReadOrderItemDTO(BaseModel):
     id: int
     price: Decimal
     quantity: int
+    company_fee: Decimal = Field(default=Decimal("0.00"))
+    seller_amount: Decimal = Field(default=Decimal("0.00"))
     product: ReadOrderProductDTO
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
@@ -106,6 +124,7 @@ class ReadOrderDTO(BaseModel):
     delivery_status: DeliveryStatus
     return_status: ReturnStatus
     total_price: Decimal
+    company_fee_total: Decimal = Field(default=Decimal("0.00"))
     payment_transaction_id: str | None = None
     payment_method: str | None = None
     customer_nif: str | None = None

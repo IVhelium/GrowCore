@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -112,6 +112,22 @@ class NotificationService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not mark notifications as read",
+            ) from exc
+
+        return result.rowcount or 0
+
+    async def delete_all(self, current_user: UserModel) -> int:
+        try:
+            result = await self.db.execute(
+                delete(NotificationModel)
+                .where(NotificationModel.user_id == current_user.id)
+            )
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not delete notifications",
             ) from exc
 
         return result.rowcount or 0

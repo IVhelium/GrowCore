@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import Sidebar from "../components/layout/Sidebar";
-import { randomArray } from "../utils/randomArray";
+import { randomProducts } from "../utils/randomArray";
 import { usePagination } from "../hooks/usePagination";
 import Container from "../components/common/Container";
 import Hero from "../components/home/Hero";
@@ -20,14 +20,11 @@ export default function HomePage({
 }) {
   const productsSectionRef = useRef(null);
 
-  const randomProducts = useMemo(() => randomArray(products), [products]);
-  const {
-    currentPage,
-    pageItems,
-    pageSize,
-    total,
-    changePage,
-  } = usePagination(randomProducts, HOME_PAGE_SIZE);
+  const randomProductss = useMemo(() => randomProducts(products), [products]);
+  const { currentPage, pageItems, pageSize, total, changePage } = usePagination(
+    randomProductss,
+    HOME_PAGE_SIZE,
+  );
 
   function handlePageChange(page) {
     changePage(page);
@@ -44,7 +41,11 @@ export default function HomePage({
 
         <div className="min-w-0 space-y-10">
           <Hero />
-          <section id="products" ref={productsSectionRef} className="scroll-mt-24">
+          <section
+            id="products"
+            ref={productsSectionRef}
+            className="scroll-mt-24"
+          >
             <SectionTitle pretitle="Products" title="Product for your system" />
             <ProductGrid
               products={pageItems}

@@ -8,7 +8,7 @@ import SearchBar from "../search/SearchBar";
 import MobileMenu from "./MobileMenu";
 import UserAvatar from "../user/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
-import { getUnreadNotificationCount } from "../../api/userApi";
+import { getFriendRequestCount, getUnreadNotificationCount } from "../../api/userApi";
 
 
 // Account popover menu for authenticated header users.
@@ -71,6 +71,7 @@ export default function Header({
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [friendRequestCount, setFriendRequestCount] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -82,7 +83,10 @@ export default function Header({
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setNotificationCount(0);
+      window.setTimeout(() => {
+        setNotificationCount(0);
+        setFriendRequestCount(0);
+      }, 0);
       return undefined;
     }
 
@@ -90,13 +94,18 @@ export default function Header({
 
     async function loadCount() {
       try {
-        const count = await getUnreadNotificationCount();
+        const [count, requests] = await Promise.all([
+          getUnreadNotificationCount(),
+          getFriendRequestCount(),
+        ]);
         if (isActive) {
           setNotificationCount(count);
+          setFriendRequestCount(requests);
         }
       } catch {
         if (isActive) {
           setNotificationCount(0);
+          setFriendRequestCount(0);
         }
       }
     }
@@ -105,11 +114,13 @@ export default function Header({
 
     window.addEventListener("focus", loadCount);
     window.addEventListener("growcore:notifications-updated", loadCount);
+    window.addEventListener("growcore:friend-requests-updated", loadCount);
 
     return () => {
       isActive = false;
       window.removeEventListener("focus", loadCount);
       window.removeEventListener("growcore:notifications-updated", loadCount);
+      window.removeEventListener("growcore:friend-requests-updated", loadCount);
     };
   }, [isAuthenticated]);
 
@@ -213,9 +224,14 @@ export default function Header({
               <Link
                 to="/users"
                 aria-label="Find members"
-                className="grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
               >
                 <Users size={20} />
+                {friendRequestCount > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded bg-red-500 px-1 text-[11px] font-bold text-white">
+                    {friendRequestCount}
+                  </span>
+                )}
               </Link>
 
               <Link

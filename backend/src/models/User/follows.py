@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import ForeignKey, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.custom_types import intPk, createdAt
@@ -58,6 +58,30 @@ class UserFriendModel(Base):
     )
     friend: Mapped["UserModel"] = relationship(
         foreign_keys=[friend_id],
+    )
+
+
+class UserFriendRequestModel(Base):
+    __tablename__ = "user_friend_requests"
+    __table_args__ = (
+        UniqueConstraint("requester_id", "recipient_id", name="uq_user_friend_request_pair"),
+    )
+
+    id: Mapped[intPk]
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[createdAt]
+
+    requester_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    recipient_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    requester: Mapped["UserModel"] = relationship(
+        foreign_keys=[requester_id],
+        back_populates="sent_friend_requests",
+    )
+    recipient: Mapped["UserModel"] = relationship(
+        foreign_keys=[recipient_id],
+        back_populates="received_friend_requests",
     )
 
 

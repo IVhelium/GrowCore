@@ -29,6 +29,7 @@ class OrderModel(Base):
         default=ReturnStatus.none,
     )
     total_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
+    company_fee_total: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), default=Decimal("0.00"))
     payment_transaction_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
     payment_method: Mapped[str | None] = mapped_column(String(40), nullable=True)
     customer_nif: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -57,6 +58,8 @@ class OrderItemModel(Base):
     id: Mapped[intPk]
     price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     quantity: Mapped[int] = mapped_column(default=1)
+    company_fee: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), default=Decimal("0.00"))
+    seller_amount: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2), default=Decimal("0.00"))
     
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id", ondelete="CASCADE"))
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))

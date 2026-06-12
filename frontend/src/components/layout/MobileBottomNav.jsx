@@ -1,7 +1,7 @@
 import { Bell, Heart, Home, Search, ShoppingBag, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getUnreadNotificationCount } from "../../api/userApi";
+import { getFriendRequestCount, getUnreadNotificationCount } from "../../api/userApi";
 import { useAuth } from "../../hooks/useAuth";
 
 const navItems = [
@@ -16,10 +16,14 @@ const navItems = [
 export default function MobileBottomNav() {
   const { isAuthenticated } = useAuth();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [friendRequestCount, setFriendRequestCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setNotificationCount(0);
+      window.setTimeout(() => {
+        setNotificationCount(0);
+        setFriendRequestCount(0);
+      }, 0);
       return undefined;
     }
 
@@ -27,23 +31,30 @@ export default function MobileBottomNav() {
 
     async function loadCount() {
       try {
-        const count = await getUnreadNotificationCount();
+        const [count, requests] = await Promise.all([
+          getUnreadNotificationCount(),
+          getFriendRequestCount(),
+        ]);
         if (isActive) {
           setNotificationCount(count);
+          setFriendRequestCount(requests);
         }
       } catch {
         if (isActive) {
           setNotificationCount(0);
+          setFriendRequestCount(0);
         }
       }
     }
 
     loadCount();
     window.addEventListener("growcore:notifications-updated", loadCount);
+    window.addEventListener("growcore:friend-requests-updated", loadCount);
 
     return () => {
       isActive = false;
       window.removeEventListener("growcore:notifications-updated", loadCount);
+      window.removeEventListener("growcore:friend-requests-updated", loadCount);
     };
   }, [isAuthenticated]);
 
@@ -61,6 +72,11 @@ export default function MobileBottomNav() {
             {item.href === "/notifications" && notificationCount > 0 && (
               <span className="absolute right-2 top-0 grid h-4 min-w-4 place-items-center rounded bg-red-500 px-1 text-[10px] font-bold text-white">
                 {notificationCount}
+              </span>
+            )}
+            {item.href === "/users" && friendRequestCount > 0 && (
+              <span className="absolute right-2 top-0 grid h-4 min-w-4 place-items-center rounded bg-red-500 px-1 text-[10px] font-bold text-white">
+                {friendRequestCount}
               </span>
             )}
             {item.label}

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
+from fastapi import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
@@ -12,12 +13,15 @@ from src.core.dependencies import (
 from src.core.pagination import PaginationDependency
 from src.schemas import (
     CreateUserChatMessageDTO,
+    CreateFriendRequestDTO,
+    FriendshipStatusDTO,
     PaginationDTO,
     PublicUserDTO,
     ReadNotificationDTO,
     ReadUserChatMessageDTO,
     ReadUserDTO,
     ShortUserDTO,
+    UserFriendRequestDTO,
     UpdateUserDTO,
     UserChatThreadDTO,
 )
@@ -49,8 +53,9 @@ router = APIRouter(
 async def list_users(
     user_service: UserServiceDependency,
     pagination: PaginationDependency,
+    search: str | None = Query(default=None, max_length=64),
 ):
-    return await user_service.list_users(pagination=pagination)
+    return await user_service.list_users(pagination=pagination, search=search)
 
 
 @router.get(
@@ -152,6 +157,58 @@ async def list_my_friends(
 
 
 @router.get(
+    "/me/friend-requests",
+    response_model=list[UserFriendRequestDTO],
+)
+async def list_my_friend_requests(
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.list_friend_requests(current_user=current_user)
+
+
+@router.get(
+    "/me/friend-requests/count",
+    response_model=dict[str, int],
+)
+async def get_my_friend_request_count(
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return {"count": await user_service.friend_request_count(current_user)}
+
+
+@router.post(
+    "/me/friend-requests/{request_id}/accept",
+    response_model=UserFriendRequestDTO,
+)
+async def accept_my_friend_request(
+    request_id: int,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.accept_friend_request(
+        current_user=current_user,
+        request_id=request_id,
+    )
+
+
+@router.post(
+    "/me/friend-requests/{request_id}/decline",
+    response_model=UserFriendRequestDTO,
+)
+async def decline_my_friend_request(
+    request_id: int,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.decline_friend_request(
+        current_user=current_user,
+        request_id=request_id,
+    )
+
+
+@router.get(
     "/me/chats",
     response_model=list[UserChatThreadDTO],
 )
@@ -186,6 +243,18 @@ async def mark_my_notification_read(
         current_user=current_user,
         notification_id=notification_id,
     )
+
+
+@router.delete(
+    "/me/notifications",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_all_my_notifications(
+    current_user: CurrentUserDependency,
+    notification_service: NotificationServiceDependency,
+):
+    await notification_service.delete_all(current_user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get(
@@ -258,19 +327,17 @@ async def get_following_status(
 
 @router.get(
     "/{public_id}/friendship",
-    response_model=dict[str, bool],
+    response_model=FriendshipStatusDTO,
 )
 async def get_friendship_status(
     public_id: str,
     current_user: CurrentUserDependency,
     user_service: UserServiceDependency,
 ):
-    return {
-        "is_friend": await user_service.is_friend(
-            current_user=current_user,
-            public_id=public_id,
-        )
-    }
+    return await user_service.get_friendship_status(
+        current_user=current_user,
+        public_id=public_id,
+    )
 
 
 @router.post(
@@ -309,12 +376,14 @@ async def unfollow_user(
 )
 async def add_friend(
     public_id: str,
+    schema: CreateFriendRequestDTO,
     current_user: CurrentUserDependency,
     user_service: UserServiceDependency,
 ):
     return await user_service.add_friend(
         current_user=current_user,
         public_id=public_id,
+        message=schema.message,
     )
 
 
