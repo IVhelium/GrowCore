@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.constants import BASE_DIR
 
@@ -7,11 +8,15 @@ class Settings(BaseSettings):
     ENV: str = "development"
 
     # Database
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int
-    POSTGRES_DB: str
+    DATABASE_URL: str | None = None
+    POSTGRES_USER: str | None = None
+    POSTGRES_PASSWORD: str | None = None
+    POSTGRES_HOST: str | None = None
+    POSTGRES_PORT: int | None = None
+    POSTGRES_DB: str | None = None
+    DB_POOL_SIZE: int = 2
+    DB_MAX_OVERFLOW: int = 3
+    
     
     # JWT
     JWT_SECRET: str
@@ -59,7 +64,50 @@ class Settings(BaseSettings):
     # Db URL
     @property
     def DATABASE_URL_asyncpg(self):
+        if self.DATABASE_URL:
+            if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
+                return self.DATABASE_URL
+            if self.DATABASE_URL.startswith("postgresql://"):
+                return self.DATABASE_URL.replace(
+                    "postgresql://",
+                    "postgresql+asyncpg://",
+                    1,
+                )
+            if self.DATABASE_URL.startswith("postgres://"):
+                return self.DATABASE_URL.replace(
+                    "postgres://",
+                    "postgresql+asyncpg://",
+                    1,
+                )
+
+            return self.DATABASE_URL
+
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @model_validator(mode="after")
+    def validate_database_config(self):
+        if self.DATABASE_URL:
+            return self
+
+        missing = [
+            field
+            for field in (
+                "POSTGRES_USER",
+                "POSTGRES_PASSWORD",
+                "POSTGRES_HOST",
+                "POSTGRES_PORT",
+                "POSTGRES_DB",
+            )
+            if getattr(self, field) in (None, "")
+        ]
+
+        if missing:
+            raise ValueError(
+                "Set DATABASE_URL or all PostgreSQL fields: "
+                + ", ".join(missing)
+            )
+
+        return self
 
     @property
     def CORS_ORIGINS(self) -> list[str]:
