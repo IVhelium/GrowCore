@@ -1,0 +1,71 @@
+
+services:
+  # === DB config ===
+  db:
+    image: postgres:16-alpine
+    container_name: growcore_db
+    restart: always
+
+    # .env file
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+  # === Backend config ===
+  backend:
+    build: ./backend
+    container_name: growcore_backend
+    restart: always
+
+    # .env file
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "8000:8000"
+
+    expose:
+      - "8000"
+
+    depends_on:
+      - db
+
+    volumes:
+      - ./backend:/app              # Hot Reload
+      - ./backend/storage:/storage  # The files are located in backend/storage
+
+  
+  # === Frontend config ===
+  frontend:
+    build: ./frontend
+    container_name: growcore_frontend
+
+    # .env file
+    env_file:
+      - ./frontend/.env
+    
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+
+    ports:
+      - "5173:5173"
+
+    expose:
+      - "5173"
+
+    depends_on:
+      - backend
+
+    volumes:
+      - ./frontend:/app   # React components synchronization
+      - /app/node_modules
+
+
+volumes:
+  pgdata:

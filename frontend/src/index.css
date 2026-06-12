@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Header Popover */
+.catalog-popover-centered {
+  position: fixed !important;
+  top: 6rem !important;
+  left: max(0px, calc((100% - 80rem) / 2)) !important;
+  right: auto !important;
+  width: min(100%, 80rem) !important;
+  max-height: min(34rem, calc(100vh - 8rem)) !important;
+  transform: none !important;
+}
+
+.catalog-popover-centered .ant-popover-content {
+  width: 100%;
+  max-height: min(34rem, calc(100vh - 8rem));
+  overflow-y: auto;
+}
+
+.catalog-popover-centered .ant-popover-inner {
+  width: 100%;
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* Catalog filters */
+.catalog-filter-panel {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.catalog-filter-panel:hover {
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.catalog-filter-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.catalog-filter-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.catalog-filter-panel::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.catalog-filter-panel:hover::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+/* Product cards */
+.product-card-title,
+.product-card-description {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+}
+
+.product-card-title {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.product-card-description {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+
+/* Header Icons */
+.header-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+}
+
