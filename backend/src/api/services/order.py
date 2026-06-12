@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, ReturnStatus
 from src.api.services.notification import NotificationService
-from src.models import OrderItemModel, OrderModel, ProductModel, UserModel
+from src.models import CartModel, OrderItemModel, OrderModel, ProductModel, UserModel
 from src.schemas import RequestReturnDTO, UpdateDeliveryDTO
 
 
@@ -131,8 +131,10 @@ class OrderService:
         current_user: UserModel,
         order_id: int,
         transaction_id: str,
+        payment_method: str,
         payment_document: str,
         delivery_address: str | None = None,
+        customer_nif: str | None = None,
     ) -> OrderModel:
         order = await self._get_user_order(current_user, order_id)
 
@@ -142,11 +144,46 @@ class OrderService:
                 detail="Order is not awaiting payment",
             )
 
+        final_delivery_address = (delivery_address or order.delivery_address or "").strip()
+        if "portugal" in final_delivery_address.lower() and not (customer_nif or "").strip():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="NIF is required for Portugal payments",
+            )
+
+        for item in order.items:
+            product = item.product
+
+            if not product or product.quantity < item.quantity:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Not enough quantity for {product.title if product else 'product'}",
+                )
+
+        for item in order.items:
+            item.product.quantity -= item.quantity
+
         order.payment_status = PaymentStatus.paid
         order.payment_transaction_id = transaction_id
+        order.payment_method = payment_method.strip()
+        order.customer_nif = customer_nif.strip() if customer_nif else None
         order.payment_document = payment_document
-        if delivery_address:
-            order.delivery_address = delivery_address.strip()
+        if final_delivery_address:
+            order.delivery_address = final_delivery_address
+
+        cart_result = await self.db.execute(
+            select(CartModel)
+            .options(selectinload(CartModel.items))
+            .where(CartModel.user_id == current_user.id)
+        )
+        cart = cart_result.scalar_one_or_none()
+
+        if cart:
+            ordered_product_ids = {item.product_id for item in order.items}
+
+            for cart_item in list(cart.items):
+                if cart_item.product_id in ordered_product_ids:
+                    await self.db.delete(cart_item)
 
         try:
             await self.db.commit()

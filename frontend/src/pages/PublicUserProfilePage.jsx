@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  addFriend,
   blockUser,
   followUser,
+  getChatMessages,
+  getFriendshipStatus,
   getFollowingStatus,
   getPublicUserProfile,
+  removeFriend,
+  sendChatMessage,
   unblockUser,
   unfollowUser,
 } from "../api/userApi";
@@ -29,10 +34,17 @@ export default function PublicUserProfilePage() {
   const [isActionBusy, setIsActionBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
   const [store, setStore] = useState(null);
   const [storeProducts, setStoreProducts] = useState([]);
+  const [storeTab, setStoreTab] = useState("products");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatText, setChatText] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isChatSending, setIsChatSending] = useState(false);
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
+  const isOwnProfile = currentUser?.public_id === user?.public_id;
 
   useEffect(() => {
     let isActive = true;
@@ -50,9 +62,15 @@ export default function PublicUserProfilePage() {
 
         if (isActive && currentUser?.public_id && currentUser.public_id !== loadedUser.public_id) {
           try {
-            setIsFollowing(await getFollowingStatus(loadedUser.public_id));
+            const [followingStatus, friendshipStatus] = await Promise.all([
+              getFollowingStatus(loadedUser.public_id),
+              getFriendshipStatus(loadedUser.public_id),
+            ]);
+            setIsFollowing(followingStatus);
+            setIsFriend(friendshipStatus);
           } catch {
             setIsFollowing(false);
+            setIsFriend(false);
           }
         }
 
@@ -60,7 +78,7 @@ export default function PublicUserProfilePage() {
           try {
             const [loadedStore, productPage] = await Promise.all([
               getPublicUserStore(loadedUser.public_id),
-              getPublicUserStoreProducts(loadedUser.public_id, { limit: 4 }),
+              getPublicUserStoreProducts(loadedUser.public_id, { limit: 24 }),
             ]);
             setStore(loadedStore);
             setStoreProducts(productPage.items || []);
@@ -109,6 +127,67 @@ export default function PublicUserProfilePage() {
       setErrorMessage(getApiError(error, "Could not block user"));
     } finally {
       setIsActionBusy(false);
+    }
+  }
+
+  async function handleFriendToggle() {
+    if (!user) return;
+
+    setIsActionBusy(true);
+
+    try {
+      isFriend
+        ? await removeFriend(user.public_id)
+        : await addFriend(user.public_id);
+
+      setIsFriend((value) => !value);
+      showToast(isFriend ? "Friend removed" : "Friend added", "success");
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not update friend status"));
+    } finally {
+      setIsActionBusy(false);
+    }
+  }
+
+  async function loadChat() {
+    if (!user || isOwnProfile) return;
+
+    setIsChatLoading(true);
+
+    try {
+      setChatMessages(await getChatMessages(user.public_id));
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not load chat"));
+    } finally {
+      setIsChatLoading(false);
+    }
+  }
+
+  async function handleStoreTabChange(tab) {
+    setStoreTab(tab);
+
+    if (tab === "chat" && chatMessages.length === 0) {
+      await loadChat();
+    }
+  }
+
+  async function handleSendMessage(event) {
+    event.preventDefault();
+
+    const message = chatText.trim();
+
+    if (!message || !user) return;
+
+    setIsChatSending(true);
+
+    try {
+      const createdMessage = await sendChatMessage(user.public_id, message);
+      setChatMessages((currentMessages) => [...currentMessages, createdMessage]);
+      setChatText("");
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not send message"));
+    } finally {
+      setIsChatSending(false);
     }
   }
 
@@ -184,18 +263,29 @@ export default function PublicUserProfilePage() {
                     </div>
                   </div>
                 </div>
-                {currentUser?.public_id && currentUser.public_id !== user?.public_id && (
+              </div>
+              {currentUser?.public_id && !isOwnProfile && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button
+                    type="button"
+                    style={isFriend ? "secondary" : "primary"}
+                    disabled={isActionBusy}
+                    onClick={handleFriendToggle}
+                    className="w-full"
+                  >
+                    {isFriend ? "Remove friend" : "Add friend"}
+                  </Button>
                   <Button
                     type="button"
                     style={isFollowing ? "secondary" : "primary"}
                     disabled={isActionBusy}
                     onClick={handleFollowToggle}
-                    className="mt-4 w-full"
+                    className="w-full"
                   >
                     {isFollowing ? "Unfollow" : "Follow"}
                   </Button>
+                </div>
                 )}
-              </div>
             </div>
             <div className="grid min-w-0 gap-4">
               {user?.isBlocked && (
@@ -230,34 +320,117 @@ export default function PublicUserProfilePage() {
                 </div>
               )}
               {store && (
-                <aside className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <h2 className="text-xl font-bold text-slate-950">{store.name}</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    {store.description || "Seller store"}
-                  </p>
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    {storeProducts.map((product) => (
-                      <Link
-                        key={product.id}
-                        to={`/product/${product.id}`}
-                        className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
-                      >
-                        <img
-                          src={product.image}
-                          alt={product.title}
-                          className="h-14 w-14 shrink-0 rounded-md object-cover"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-slate-950">
-                            {product.title}
-                          </p>
-                          <p className="truncate text-xs text-slate-500">
-                            {product.category || "Product"}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
+                <aside className="flex h-[640px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm lg:h-[calc(100vh-10rem)]">
+                  <div className="shrink-0 border-b border-slate-100 bg-white p-5">
+                    <div className="flex min-w-0 items-center gap-4">
+                      <img
+                        src={storeProducts[0]?.image || user.avatarUrl || "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=700&auto=format&fit=crop"}
+                        alt={store.name}
+                        className="h-16 w-16 shrink-0 rounded-md object-cover"
+                      />
+                      <div className="min-w-0">
+                        <h2 className="truncate text-xl font-bold text-slate-950">
+                          {store.name}
+                        </h2>
+                        <p className="mt-1 max-h-10 overflow-hidden text-sm leading-5 text-slate-500">
+                          {store.description || "Seller store"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+                      {["products", "chat"].map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => handleStoreTabChange(tab)}
+                          className={`rounded-md px-4 py-2 text-sm font-bold capitalize transition ${
+                            storeTab === tab
+                              ? "bg-white text-[#4F8A5B] shadow-sm"
+                              : "text-slate-500 hover:text-slate-950"
+                          }`}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  {storeTab === "products" ? (
+                    <div className="min-h-0 flex-1 overflow-y-auto p-5">
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {storeProducts.map((product) => (
+                          <Link
+                            key={product.id}
+                            to={`/product/${product.id}`}
+                            className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.title}
+                              className="h-14 w-14 shrink-0 rounded-md object-cover"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-slate-950">
+                                {product.title}
+                              </p>
+                              <p className="truncate text-xs text-slate-500">
+                                {product.category || "Product"}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex min-h-0 flex-1 flex-col">
+                      <div className="min-h-0 flex-1 overflow-y-auto p-5">
+                        {isOwnProfile ? (
+                          <EmptyState title="Store chat" text="Open chats from the users page." />
+                        ) : isChatLoading ? (
+                          <div className="rounded-lg border border-slate-200 p-4 text-sm text-slate-500">
+                            Loading chat...
+                          </div>
+                        ) : chatMessages.length === 0 ? (
+                          <EmptyState title="No messages yet" text="Start the conversation." />
+                        ) : (
+                          <div className="grid gap-3">
+                            {chatMessages.map((message) => {
+                              const isMine = message.sender.public_id === currentUser?.public_id;
+
+                              return (
+                                <div
+                                  key={message.id}
+                                  className={`max-w-[80%] rounded-lg px-4 py-3 text-sm ${
+                                    isMine
+                                      ? "ml-auto bg-[#4F8A5B] text-white"
+                                      : "bg-slate-100 text-slate-700"
+                                  }`}
+                                >
+                                  {message.message}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                      {!isOwnProfile && currentUser?.public_id && (
+                        <form
+                          onSubmit={handleSendMessage}
+                          className="flex gap-3 border-t border-slate-100 p-4"
+                        >
+                          <input
+                            value={chatText}
+                            onChange={(event) => setChatText(event.target.value)}
+                            placeholder="Message"
+                            className="min-w-0 flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
+                          />
+                          <Button type="submit" disabled={isChatSending || !chatText.trim()}>
+                            Send
+                          </Button>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </aside>
               )}
             </div>

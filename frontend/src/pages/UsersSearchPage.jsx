@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
-import { getUsers, searchUserByPublicId } from "../api/userApi";
+import { MessageCircle, Search, Users } from "lucide-react";
+import { getChatThreads, getUsers, searchUserByPublicId } from "../api/userApi";
 import { useAutoDismissMessage } from "../hooks/useAutoDismissMessage";
+import { useAuth } from "../hooks/useAuth";
 import { getApiError } from "./../utils/getApiError";
 import Container from "../components/common/Container";
+import EmptyState from "../components/common/EmptyState";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
 import PaginationBar from "../components/common/PaginationBar";
@@ -33,13 +35,17 @@ function UserResultCard({ user }) {
 }
 
 export default function UsersSearchPage() {
+  const { isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
+  const [chats, setChats] = useState([]);
   const [result, setResult] = useState(null);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useAutoDismissMessage("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isChatsLoading, setIsChatsLoading] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -74,6 +80,38 @@ export default function UsersSearchPage() {
       isActive = false;
     };
   }, [currentPage, setError]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadChats() {
+      if (activeTab !== "chats" || !isAuthenticated) return;
+
+      setIsChatsLoading(true);
+
+      try {
+        const loadedChats = await getChatThreads();
+
+        if (isActive) {
+          setChats(loadedChats);
+        }
+      } catch (requestError) {
+        if (isActive) {
+          setError(getApiError(requestError, "Could not load chats"));
+        }
+      } finally {
+        if (isActive) {
+          setIsChatsLoading(false);
+        }
+      }
+    }
+
+    loadChats();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activeTab, isAuthenticated, setError]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -134,28 +172,97 @@ export default function UsersSearchPage() {
           </div>
         )}
 
-        <section className="mt-8">
-          <h2 className="text-xl font-bold text-slate-950">All users</h2>
+        <div className="mt-8 flex max-w-xl rounded-lg border border-slate-200 bg-slate-50 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("users")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition ${
+              activeTab === "users"
+                ? "bg-white text-[#4F8A5B] shadow-sm"
+                : "text-slate-500 hover:text-slate-950"
+            }`}
+          >
+            <Users size={17} />
+            Users
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("chats")}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition ${
+              activeTab === "chats"
+                ? "bg-white text-[#4F8A5B] shadow-sm"
+                : "text-slate-500 hover:text-slate-950"
+            }`}
+          >
+            <MessageCircle size={17} />
+            Chats
+          </button>
+        </div>
 
-          {isLoading ? (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
-              Loading users...
+        {activeTab === "users" ? (
+          <section className="mt-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-bold text-slate-950">All users</h2>
+              {isAuthenticated && (
+                <Link className="font-semibold text-[#4F8A5B]" to="/friends">
+                  Friends
+                </Link>
+              )}
             </div>
-          ) : (
-            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {users.map((user) => (
-                <UserResultCard key={user.public_id} user={user} />
-              ))}
-            </div>
-          )}
 
-          <PaginationBar
-            current={currentPage}
-            total={total}
-            pageSize={PAGE_SIZE}
-            onChange={setCurrentPage}
-          />
-        </section>
+            {isLoading ? (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
+                Loading users...
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {users.map((user) => (
+                  <UserResultCard key={user.public_id} user={user} />
+                ))}
+              </div>
+            )}
+
+            <PaginationBar
+              current={currentPage}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onChange={setCurrentPage}
+            />
+          </section>
+        ) : (
+          <section className="mt-6">
+            <h2 className="text-xl font-bold text-slate-950">Chats</h2>
+            {!isAuthenticated ? (
+              <EmptyState title="Sign in to see chats" text="Your user chats appear here." />
+            ) : isChatsLoading ? (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 text-slate-500 shadow-sm">
+                Loading chats...
+              </div>
+            ) : chats.length === 0 ? (
+              <EmptyState title="No chats yet" text="Open a user profile and start a chat." />
+            ) : (
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {chats.map((chat) => (
+                  <Link
+                    key={chat.user.public_id}
+                    to={`/users/${encodeURIComponent(chat.user.public_id)}`}
+                    className="flex min-w-0 items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-[#4F8A5B]"
+                  >
+                    <UserAvatar user={chat.user} size="md" />
+                    <div className="min-w-0">
+                      <h2 className="truncate font-bold text-slate-950">
+                        {chat.user.username}
+                      </h2>
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {chat.lastMessage || "No messages yet"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </Container>
     </main>
   );

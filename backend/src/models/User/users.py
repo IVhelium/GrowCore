@@ -94,3 +94,21 @@ class UserModel(Base):
         back_populates="follower",
         cascade="all, delete-orphan",
     )
+
+    friend_relations: Mapped[list["UserFriendModel"]] = relationship(
+        foreign_keys="UserFriendModel.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    sent_chat_messages: Mapped[list["UserChatMessageModel"]] = relationship(
+        foreign_keys="UserChatMessageModel.sender_id",
+        back_populates="sender",
+        cascade="all, delete-orphan",
+    )
+
+    received_chat_messages: Mapped[list["UserChatMessageModel"]] = relationship(
+        foreign_keys="UserChatMessageModel.recipient_id",
+        back_populates="recipient",
+        cascade="all, delete-orphan",
+    )

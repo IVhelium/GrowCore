@@ -32,6 +32,39 @@ class PublicUserDTO(ShortUserDTO):
     block_reason: str | None = None
 
     model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+
+class CreateUserChatMessageDTO(BaseModel):
+    message: str = Field(min_length=1, max_length=1000)
+
+    @field_validator("message", mode="before")
+    @classmethod
+    def trim_message(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Message cannot be empty")
+        return value
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class ReadUserChatMessageDTO(BaseModel):
+    id: int
+    message: str
+    created_at: datetime
+    sender: ShortUserDTO
+    recipient: ShortUserDTO
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+
+class UserChatThreadDTO(BaseModel):
+    user: ShortUserDTO
+    last_message: str | None = None
+    last_message_at: datetime | None = None
+
+    model_config = ConfigDict(extra="forbid")
     
     
 # User Update Schema

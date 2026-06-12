@@ -8,6 +8,7 @@ export function createPaymentDocument({
   method,
   paidAt,
   deliveryAddress,
+  customerNif,
 }) {
   const rows = items
     .map(
@@ -70,6 +71,7 @@ export function createPaymentDocument({
         <p><strong>User:</strong> ${user?.username || "Customer"}</p>
         <p><strong>Email:</strong> ${user?.email || "-"}</p>
         <p><strong>Payment method:</strong> ${method}</p>
+        <p><strong>NIF:</strong> ${customerNif || "-"}</p>
         <p><strong>Paid at:</strong> ${paidAt}</p>
         <p><strong>Delivery address:</strong> ${deliveryAddress || "-"}</p>
 

@@ -39,8 +39,10 @@ async def pay_order(
         current_user=current_user,
         order_id=order_id,
         transaction_id=schema.transaction_id,
+        payment_method=schema.payment_method,
         payment_document=schema.payment_document,
         delivery_address=schema.delivery_address,
+        customer_nif=schema.customer_nif,
     )
 
 

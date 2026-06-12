@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile, status
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, select, update
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,8 +11,8 @@ from src.core.upload_policies import AVATAR_POLICY
 from src.core.constants import PUBLIC_ID_RE
 from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
-from src.models import NotificationModel, UserFollowEventModel, UserFollowModel, UserModel, UserRoleModel
-from src.schemas import UpdateUserDTO
+from src.models import NotificationModel, UserChatMessageModel, UserFollowEventModel, UserFollowModel, UserFriendModel, UserModel, UserRoleModel
+from src.schemas import CreateUserChatMessageDTO, UserChatThreadDTO, UpdateUserDTO
 
 
 class UserService:
@@ -276,6 +276,271 @@ class UserService:
             ) from exc
 
         return await self.get_user_by_public_id(public_id)
+
+    async def is_friend(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> bool:
+        target = await self.get_user_by_public_id(public_id)
+
+        result = await self.db.execute(
+            select(UserFriendModel)
+            .where(
+                UserFriendModel.user_id == current_user.id,
+                UserFriendModel.friend_id == target.id,
+            )
+        )
+
+        return result.scalar_one_or_none() is not None
+
+    async def add_friend(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> UserModel:
+        target = await self.get_user_by_public_id(public_id)
+
+        if target.id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You cannot add yourself as a friend",
+            )
+
+        already_friend = await self.is_friend(current_user, public_id)
+
+        if already_friend:
+            return target
+
+        self.db.add_all([
+            UserFriendModel(user_id=current_user.id, friend_id=target.id),
+            UserFriendModel(user_id=target.id, friend_id=current_user.id),
+        ])
+
+        await NotificationService(self.db).create(
+            user_id=target.id,
+            title="New friend",
+            message=f"{current_user.username} added you as a friend.",
+        )
+
+        try:
+            await self.db.commit()
+        except IntegrityError:
+            await self._safe_rollback()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not add friend",
+            ) from exc
+
+        return await self.get_user_by_public_id(public_id)
+
+    async def remove_friend(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> UserModel:
+        target = await self.get_user_by_public_id(public_id)
+
+        result = await self.db.execute(
+            select(UserFriendModel)
+            .where(
+                or_(
+                    and_(
+                        UserFriendModel.user_id == current_user.id,
+                        UserFriendModel.friend_id == target.id,
+                    ),
+                    and_(
+                        UserFriendModel.user_id == target.id,
+                        UserFriendModel.friend_id == current_user.id,
+                    ),
+                )
+            )
+        )
+
+        for relation in result.scalars().all():
+            await self.db.delete(relation)
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not remove friend",
+            ) from exc
+
+        return await self.get_user_by_public_id(public_id)
+
+    async def list_friends(
+        self,
+        current_user: UserModel,
+        pagination: PaginationParams,
+        search: str | None = None,
+    ):
+        query = (
+            select(UserModel)
+            .join(UserFriendModel, UserFriendModel.friend_id == UserModel.id)
+            .where(UserFriendModel.user_id == current_user.id)
+            .order_by(UserModel.username.asc())
+        )
+
+        search_value = search.strip() if search else ""
+
+        if search_value:
+            normalized_public_id = search_value.upper()
+            query = query.where(
+                or_(
+                    UserModel.username.ilike(f"%{search_value}%"),
+                    UserModel.public_id.ilike(f"%{normalized_public_id}%"),
+                )
+            )
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )
+
+    async def list_chat_threads(
+        self,
+        current_user: UserModel,
+    ) -> list[UserChatThreadDTO]:
+        result = await self.db.execute(
+            select(UserChatMessageModel)
+            .options(
+                selectinload(UserChatMessageModel.sender),
+                selectinload(UserChatMessageModel.recipient),
+            )
+            .where(
+                or_(
+                    UserChatMessageModel.sender_id == current_user.id,
+                    UserChatMessageModel.recipient_id == current_user.id,
+                )
+            )
+            .order_by(UserChatMessageModel.created_at.desc())
+            .limit(200)
+        )
+
+        threads = []
+        seen_user_ids = set()
+
+        for message in result.scalars().all():
+            peer = message.recipient if message.sender_id == current_user.id else message.sender
+
+            if peer.id in seen_user_ids:
+                continue
+
+            seen_user_ids.add(peer.id)
+            threads.append(
+                UserChatThreadDTO(
+                    user=peer,
+                    last_message=message.message,
+                    last_message_at=message.created_at,
+                )
+            )
+
+        friends_result = await self.db.execute(
+            select(UserModel)
+            .join(UserFriendModel, UserFriendModel.friend_id == UserModel.id)
+            .where(UserFriendModel.user_id == current_user.id)
+            .order_by(UserModel.username.asc())
+        )
+
+        for friend in friends_result.scalars().all():
+            if friend.id in seen_user_ids:
+                continue
+
+            seen_user_ids.add(friend.id)
+            threads.append(UserChatThreadDTO(user=friend))
+
+        return threads
+
+    async def list_chat_messages(
+        self,
+        current_user: UserModel,
+        public_id: str,
+    ) -> list[UserChatMessageModel]:
+        target = await self.get_user_by_public_id(public_id)
+
+        result = await self.db.execute(
+            select(UserChatMessageModel)
+            .options(
+                selectinload(UserChatMessageModel.sender),
+                selectinload(UserChatMessageModel.recipient),
+            )
+            .where(
+                or_(
+                    and_(
+                        UserChatMessageModel.sender_id == current_user.id,
+                        UserChatMessageModel.recipient_id == target.id,
+                    ),
+                    and_(
+                        UserChatMessageModel.sender_id == target.id,
+                        UserChatMessageModel.recipient_id == current_user.id,
+                    ),
+                )
+            )
+            .order_by(UserChatMessageModel.created_at.asc())
+        )
+
+        return list(result.scalars().all())
+
+    async def send_chat_message(
+        self,
+        current_user: UserModel,
+        public_id: str,
+        schema: CreateUserChatMessageDTO,
+    ) -> UserChatMessageModel:
+        target = await self.get_user_by_public_id(public_id)
+
+        if target.id == current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You cannot chat with yourself",
+            )
+
+        message = UserChatMessageModel(
+            sender_id=current_user.id,
+            recipient_id=target.id,
+            message=schema.message,
+        )
+        self.db.add(message)
+
+        await NotificationService(self.db).create(
+            user_id=target.id,
+            title="New chat message",
+            message=f"{current_user.username} sent you a message.",
+        )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not send message",
+            ) from exc
+
+        result = await self.db.execute(
+            select(UserChatMessageModel)
+            .options(
+                selectinload(UserChatMessageModel.sender),
+                selectinload(UserChatMessageModel.recipient),
+            )
+            .where(UserChatMessageModel.id == message.id)
+        )
+
+        created_message = result.scalar_one_or_none()
+
+        if not created_message:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Message was not created",
+            )
+
+        return created_message
 
     async def list_users(
         self,

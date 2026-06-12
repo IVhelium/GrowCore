@@ -192,7 +192,7 @@ export function useCart(initialItems = EMPTY_CART) {
       const updatedCart = await checkoutCart(deliveryAddress.trim());
       setCart(updatedCart.items);
       setCartError(null);
-      showToast("Order completed", "success");
+      showToast("Order created. Choose payment to finish checkout", "success");
       return updatedCart;
     } catch (error) {
       setCartError(error);

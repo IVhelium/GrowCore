@@ -28,6 +28,34 @@ function formatExpiry(value) {
   return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
 }
 
+const PAYMENT_METHODS = [
+  {
+    id: "card",
+    label: "Card",
+    note: "Demo card payment",
+  },
+  {
+    id: "paypal",
+    label: "PayPal",
+    note: "Pay with PayPal email",
+  },
+  {
+    id: "multibanco",
+    label: "Multibanco",
+    note: "Portuguese payment reference",
+  },
+  {
+    id: "mbway",
+    label: "MB Way",
+    note: "Portuguese mobile payment",
+  },
+  {
+    id: "bank_transfer",
+    label: "Bank transfer",
+    note: "Manual transfer simulation",
+  },
+];
+
 export default function PaymentPage({ items = [], onPaid }) {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
@@ -36,9 +64,11 @@ export default function PaymentPage({ items = [], onPaid }) {
   const [receipt, setReceipt] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].id);
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [deliveryCountry, setDeliveryCountry] = useState("Portugal");
 
   useEffect(() => {
     let isActive = true;
@@ -95,15 +125,27 @@ export default function PaymentPage({ items = [], onPaid }) {
 
     const data = getTrimmedFormData(event.currentTarget);
 
-    if (
-      hasEmptyRequiredFields(data, ["cardName", "cardNumber", "expiry", "cvv"])
-    ) {
+    const requiredFields = ["deliveryStreet", "deliveryCity", "deliveryZip", "deliveryCountry"];
+
+    if (paymentMethod === "card") {
+      requiredFields.push("cardName", "cardNumber", "expiry", "cvv");
+    }
+
+    if (paymentMethod === "paypal") {
+      requiredFields.push("paypalEmail");
+    }
+
+    if (deliveryCountry === "Portugal") {
+      requiredFields.push("customerNif");
+    }
+
+    if (hasEmptyRequiredFields(data, requiredFields)) {
       setError(getEmptyFieldMessage());
       return;
     }
 
-    if (hasEmptyRequiredFields(data, ["deliveryStreet", "deliveryCity", "deliveryZip"])) {
-      setError(getEmptyFieldMessage());
+    if (deliveryCountry === "Portugal" && !/^\d{9}$/.test(data.customerNif || "")) {
+      setError("Enter a valid 9 digit Portuguese NIF.");
       return;
     }
 
@@ -111,19 +153,22 @@ export default function PaymentPage({ items = [], onPaid }) {
       data.deliveryStreet,
       data.deliveryCity,
       data.deliveryZip,
+      data.deliveryCountry,
     ].join(", ");
 
     const paymentId = `GC-${Date.now()}`;
     const paidAt = new Date().toLocaleString("de-DE");
+    const methodLabel = PAYMENT_METHODS.find((method) => method.id === paymentMethod)?.label || "Payment";
 
     const documentHtml = createPaymentDocument({
       paymentId,
       user,
       items: paymentItems,
       total,
-      method: "Card simulation",
+      method: methodLabel,
       paidAt,
       deliveryAddress,
+      customerNif: data.customerNif,
     });
 
     setIsPaying(true);
@@ -131,8 +176,10 @@ export default function PaymentPage({ items = [], onPaid }) {
     try {
       const updatedOrder = await payOrder(selectedOrder.id, {
         transactionId: paymentId,
+        paymentMethod,
         paymentDocument: documentHtml,
         deliveryAddress,
+        customerNif: data.customerNif,
       });
 
       setReceipt({
@@ -144,7 +191,7 @@ export default function PaymentPage({ items = [], onPaid }) {
         currentOrders.filter((order) => order.id !== updatedOrder.id),
       );
       setSelectedOrderId("");
-      onPaid?.({
+      await onPaid?.({
         paymentId,
         paidAt,
         total,
@@ -171,7 +218,7 @@ export default function PaymentPage({ items = [], onPaid }) {
         <PageHeader
           pretitle="Payment"
           title="Pay an order"
-          text="Choose an unpaid order before entering demo card details."
+          text="Choose an unpaid order, select a payment method, then complete the demo payment."
         />
 
         {error && (
@@ -214,6 +261,33 @@ export default function PaymentPage({ items = [], onPaid }) {
                 </select>
               </div>
 
+              <div className="mb-6">
+                <label className="mb-3 block text-sm font-bold text-slate-700">
+                  Payment method
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {PAYMENT_METHODS.map((method) => (
+                    <button
+                      key={method.id}
+                      type="button"
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`rounded-lg border p-4 text-left transition ${
+                        paymentMethod === method.id
+                          ? "border-[#4F8A5B] bg-[#4F8A5B]/10"
+                          : "border-slate-200 bg-white hover:border-[#4F8A5B]"
+                      }`}
+                    >
+                      <span className="block text-sm font-bold text-slate-950">
+                        {method.label}
+                      </span>
+                      <span className="mt-1 block text-xs text-slate-500">
+                        {method.note}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="mb-6 flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
                   <CreditCard size={24} />
@@ -221,7 +295,7 @@ export default function PaymentPage({ items = [], onPaid }) {
 
                 <div>
                   <h2 className="text-2xl font-bold text-slate-950">
-                    Card details
+                    Payment details
                   </h2>
                   <p className="text-sm text-slate-500">
                     Demo payment. No real money is charged.
@@ -230,44 +304,63 @@ export default function PaymentPage({ items = [], onPaid }) {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  label="Cardholder name"
-                  name="cardName"
-                  required
-                  placeholder="Max Green"
-                  wrapperClassName="md:col-span-2"
-                />
-                <FormField
-                  label="Card number"
-                  name="cardNumber"
-                  required
-                  inputMode="numeric"
-                  maxLength={19}
-                  value={cardNumber}
-                  onChange={(event) => setCardNumber(formatCardNumber(event.target.value))}
-                  placeholder="4242 4242 4242 4242"
-                  wrapperClassName="md:col-span-2"
-                />
-                <FormField
-                  label="Expiry"
-                  name="expiry"
-                  required
-                  inputMode="numeric"
-                  maxLength={5}
-                  value={expiry}
-                  onChange={(event) => setExpiry(formatExpiry(event.target.value))}
-                  placeholder="12/28"
-                />
-                <FormField
-                  label="CVV"
-                  name="cvv"
-                  required
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={cvv}
-                  onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
-                  placeholder="123"
-                />
+                {paymentMethod === "card" && (
+                  <>
+                    <FormField
+                      label="Cardholder name"
+                      name="cardName"
+                      required
+                      placeholder="Max Green"
+                      wrapperClassName="md:col-span-2"
+                    />
+                    <FormField
+                      label="Card number"
+                      name="cardNumber"
+                      required
+                      inputMode="numeric"
+                      maxLength={19}
+                      value={cardNumber}
+                      onChange={(event) => setCardNumber(formatCardNumber(event.target.value))}
+                      placeholder="4242 4242 4242 4242"
+                      wrapperClassName="md:col-span-2"
+                    />
+                    <FormField
+                      label="Expiry"
+                      name="expiry"
+                      required
+                      inputMode="numeric"
+                      maxLength={5}
+                      value={expiry}
+                      onChange={(event) => setExpiry(formatExpiry(event.target.value))}
+                      placeholder="12/28"
+                    />
+                    <FormField
+                      label="CVV"
+                      name="cvv"
+                      required
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={cvv}
+                      onChange={(event) => setCvv(event.target.value.replace(/\D/g, "").slice(0, 4))}
+                      placeholder="123"
+                    />
+                  </>
+                )}
+                {paymentMethod === "paypal" && (
+                  <FormField
+                    label="PayPal email"
+                    name="paypalEmail"
+                    required
+                    type="email"
+                    placeholder="customer@example.com"
+                    wrapperClassName="md:col-span-2"
+                  />
+                )}
+                {["multibanco", "mbway", "bank_transfer"].includes(paymentMethod) && (
+                  <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
+                    A demo payment reference will be generated after submitting.
+                  </p>
+                )}
                 <FormField
                   label="Street address"
                   name="deliveryStreet"
@@ -287,6 +380,34 @@ export default function PaymentPage({ items = [], onPaid }) {
                   required
                   placeholder="7005-469"
                 />
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">
+                    Country / region
+                  </label>
+                  <select
+                    name="deliveryCountry"
+                    required
+                    value={deliveryCountry}
+                    onChange={(event) => setDeliveryCountry(event.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
+                  >
+                    <option value="Portugal">Portugal</option>
+                    <option value="Spain">Spain</option>
+                    <option value="France">France</option>
+                    <option value="Germany">Germany</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                {deliveryCountry === "Portugal" && (
+                  <FormField
+                    label="NIF"
+                    name="customerNif"
+                    required
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="123456789"
+                  />
+                )}
               </div>
 
               {receipt && (

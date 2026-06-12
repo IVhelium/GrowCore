@@ -26,7 +26,7 @@ from .Store.favorites import (
 from .Store.reviews import CreateReviewDTO, CreateReviewReplyDTO, ReadReviewDTO
 from .User.roles import ReadRoleDTO
 from .User.user_roles import ReadUserRoleDTO
-from .User.users import CreateUserDTO, PublicUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO
+from .User.users import CreateUserChatMessageDTO, PublicUserDTO, ReadUserChatMessageDTO, CreateUserDTO, ReadUserDTO, ShortUserDTO, UpdateUserDTO, UserChatThreadDTO
 from .User.notifications import ReadNotificationDTO
 from .User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
 from .pagination import PaginationDTO
@@ -56,6 +56,9 @@ ReadUserRoleDTO.model_rebuild()
 ReadUserDTO.model_rebuild()
 ShortUserDTO.model_rebuild()
 PublicUserDTO.model_rebuild()
+CreateUserChatMessageDTO.model_rebuild()
+ReadUserChatMessageDTO.model_rebuild()
+UserChatThreadDTO.model_rebuild()
 ReadNotificationDTO.model_rebuild()
 ReadSupportTicketDTO.model_rebuild()
 ReadFavoriteItemDTO.model_rebuild()

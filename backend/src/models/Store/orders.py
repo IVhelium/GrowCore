@@ -30,6 +30,8 @@ class OrderModel(Base):
     )
     total_price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     payment_transaction_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    payment_method: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    customer_nif: Mapped[str | None] = mapped_column(String(20), nullable=True)
     payment_document: Mapped[str | None] = mapped_column(Text, nullable=True)
     delivery_address: Mapped[str | None] = mapped_column(String(300), nullable=True)
     tracking_number: Mapped[str | None] = mapped_column(String(80), nullable=True)

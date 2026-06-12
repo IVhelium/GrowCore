@@ -26,6 +26,8 @@ export function normalizeOrder(order) {
     deliveryStatus: order.delivery_status,
     returnStatus: order.return_status,
     transactionId: order.payment_transaction_id,
+    paymentMethod: order.payment_method,
+    customerNif: order.customer_nif,
     paymentDocument: order.payment_document,
     deliveryAddress: order.delivery_address,
     trackingNumber: order.tracking_number,
@@ -51,8 +53,10 @@ export async function requestOrderReturn(orderId, reason) {
 export async function payOrder(orderId, payload) {
   const { data } = await apiClient.post(`/orders/${orderId}/pay`, {
     transaction_id: payload.transactionId,
+    payment_method: payload.paymentMethod,
     payment_document: payload.paymentDocument,
     delivery_address: payload.deliveryAddress || undefined,
+    customer_nif: payload.customerNif || undefined,
   });
 
   return normalizeOrder(data);

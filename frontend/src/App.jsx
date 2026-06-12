@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { moveFavoriteToCart } from "./api/favoritesApi";
+import { getCart } from "./api/cartApi";
 import MainLayout from "./layout/MainLayout";
 import { useCategories } from "./hooks/useCategories";
 import { useCart } from "./hooks/useCart";
@@ -32,6 +33,7 @@ import PaymentPage from "./pages/PaymentPage";
 import DeliveryPage from "./pages/DeliveryPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import FriendsPage from "./pages/FriendsPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -136,6 +138,16 @@ export default function App() {
     }
   }
 
+  async function refreshCartAfterPayment() {
+    if (!isAuthenticated) return;
+
+    try {
+      replaceCart(await getCart());
+    } catch {
+      showToast("Payment finished, but cart could not be refreshed");
+    }
+  }
+
   return (
     <Routes>
       <Route
@@ -220,7 +232,11 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/orders" element={<OrderPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route
+            path="/payment"
+            element={<PaymentPage items={cart} onPaid={refreshCartAfterPayment} />}
+          />
         </Route>
 
         <Route path="/users" element={<UsersSearchPage />} />

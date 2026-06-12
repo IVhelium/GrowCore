@@ -10,7 +10,17 @@ from src.core.dependencies import (
     UserServiceDependency,
 )
 from src.core.pagination import PaginationDependency
-from src.schemas import PaginationDTO, PublicUserDTO, ReadNotificationDTO, ReadUserDTO, UpdateUserDTO, ShortUserDTO
+from src.schemas import (
+    CreateUserChatMessageDTO,
+    PaginationDTO,
+    PublicUserDTO,
+    ReadNotificationDTO,
+    ReadUserChatMessageDTO,
+    ReadUserDTO,
+    ShortUserDTO,
+    UpdateUserDTO,
+    UserChatThreadDTO,
+)
 
 
 class BlockUserDTO(BaseModel):
@@ -124,6 +134,34 @@ async def get_my_notification_unread_count(
     return {"count": await notification_service.unread_count(current_user)}
 
 
+@router.get(
+    "/me/friends",
+    response_model=PaginationDTO[ShortUserDTO],
+)
+async def list_my_friends(
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+    pagination: PaginationDependency,
+    search: str | None = Query(default=None, max_length=64),
+):
+    return await user_service.list_friends(
+        current_user=current_user,
+        pagination=pagination,
+        search=search,
+    )
+
+
+@router.get(
+    "/me/chats",
+    response_model=list[UserChatThreadDTO],
+)
+async def list_my_chats(
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.list_chat_threads(current_user=current_user)
+
+
 @router.patch(
     "/me/notifications/read-all",
     response_model=dict[str, int],
@@ -218,6 +256,23 @@ async def get_following_status(
     }
 
 
+@router.get(
+    "/{public_id}/friendship",
+    response_model=dict[str, bool],
+)
+async def get_friendship_status(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return {
+        "is_friend": await user_service.is_friend(
+            current_user=current_user,
+            public_id=public_id,
+        )
+    }
+
+
 @router.post(
     "/{public_id}/follow",
     response_model=PublicUserDTO,
@@ -245,6 +300,69 @@ async def unfollow_user(
     return await user_service.unfollow_user(
         current_user=current_user,
         public_id=public_id,
+    )
+
+
+@router.post(
+    "/{public_id}/friend",
+    response_model=PublicUserDTO,
+)
+async def add_friend(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.add_friend(
+        current_user=current_user,
+        public_id=public_id,
+    )
+
+
+@router.delete(
+    "/{public_id}/friend",
+    response_model=PublicUserDTO,
+)
+async def remove_friend(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.remove_friend(
+        current_user=current_user,
+        public_id=public_id,
+    )
+
+
+@router.get(
+    "/{public_id}/chat",
+    response_model=list[ReadUserChatMessageDTO],
+)
+async def list_user_chat_messages(
+    public_id: str,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.list_chat_messages(
+        current_user=current_user,
+        public_id=public_id,
+    )
+
+
+@router.post(
+    "/{public_id}/chat",
+    response_model=ReadUserChatMessageDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+async def send_user_chat_message(
+    public_id: str,
+    schema: CreateUserChatMessageDTO,
+    current_user: CurrentUserDependency,
+    user_service: UserServiceDependency,
+):
+    return await user_service.send_chat_message(
+        current_user=current_user,
+        public_id=public_id,
+        schema=schema,
     )
 
 

@@ -69,12 +69,34 @@ export async function getPublicUserProfile(publicId) {
     return normalizeUser(data);
 }
 
+export async function getFriends({ limit = 12, offset = 0, search = "" } = {}) {
+    const { data } = await apiClient.get("/users/me/friends", {
+        params: {
+            ...getPaginationParams({ limit, offset }),
+            ...(search ? { search } : {}),
+        },
+    });
+
+    return {
+        ...data,
+        items: (data.items || []).map(normalizeUser),
+    };
+}
+
 export async function getFollowingStatus(publicId) {
     const { data } = await apiClient.get(
         `/users/${encodeURIComponent(publicId)}/following`,
         { _silent: true },
     );
     return Boolean(data?.is_following);
+}
+
+export async function getFriendshipStatus(publicId) {
+    const { data } = await apiClient.get(
+        `/users/${encodeURIComponent(publicId)}/friendship`,
+        { _silent: true },
+    );
+    return Boolean(data?.is_friend);
 }
 
 export async function followUser(publicId) {
@@ -89,6 +111,56 @@ export async function unfollowUser(publicId) {
         `/users/${encodeURIComponent(publicId)}/follow`,
     );
     return normalizeUser(data);
+}
+
+export async function addFriend(publicId) {
+    const { data } = await apiClient.post(
+        `/users/${encodeURIComponent(publicId)}/friend`,
+    );
+    return normalizeUser(data);
+}
+
+export async function removeFriend(publicId) {
+    const { data } = await apiClient.delete(
+        `/users/${encodeURIComponent(publicId)}/friend`,
+    );
+    return normalizeUser(data);
+}
+
+function normalizeChatMessage(message) {
+    return {
+        id: message.id,
+        message: message.message,
+        createdAt: message.created_at,
+        sender: normalizeUser(message.sender),
+        recipient: normalizeUser(message.recipient),
+    };
+}
+
+export function normalizeChatThread(thread) {
+    return {
+        user: normalizeUser(thread.user),
+        lastMessage: thread.last_message || "",
+        lastMessageAt: thread.last_message_at || null,
+    };
+}
+
+export async function getChatThreads() {
+    const { data } = await apiClient.get("/users/me/chats");
+    return (data || []).map(normalizeChatThread);
+}
+
+export async function getChatMessages(publicId) {
+    const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}/chat`);
+    return (data || []).map(normalizeChatMessage);
+}
+
+export async function sendChatMessage(publicId, message) {
+    const { data } = await apiClient.post(
+        `/users/${encodeURIComponent(publicId)}/chat`,
+        { message },
+    );
+    return normalizeChatMessage(data);
 }
 
 export async function blockUser(publicId, reason) {

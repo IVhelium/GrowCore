@@ -408,8 +408,8 @@ class CartService:
         schema: CheckoutDTO,
     ) -> CartModel:
         """
-        Completes a purchase from the current cart.
-        Stock is decreased only here, not when products are added to cart.
+        Creates a pending order from the current cart.
+        Stock and cart items are finalized only after successful payment.
         """
 
         try:
@@ -457,7 +457,6 @@ class CartService:
 
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)
-                product.quantity -= item.quantity
 
                 self.db.add(
                     OrderItemModel(
@@ -467,8 +466,6 @@ class CartService:
                         quantity=item.quantity,
                     )
                 )
-
-                await self.db.delete(item)
 
             await self.db.commit()
 
