@@ -45,11 +45,13 @@ async def ensure_staff_user(
     seed: StaffUserSeed,
 ) -> UserModel:
     """
-    Creates a staff user if one does not already exist
+    Creates a staff user if one does not already exist.
 
-    The user is searched for by email
-    If the user already exists and `UPDATE_SEEDED_USERS_PASSWORDS=true`,
-    their password is updated
+    Existing staff accounts are repaired instead of failing startup:
+    - if the email exists, the username is synced when possible
+    - if the username exists, that account is reused and the email is synced
+      when possible
+    - if `UPDATE_SEEDED_USERS_PASSWORDS=true`, the password is synced from env
     """
 
     username = seed.username.strip()
@@ -72,11 +74,13 @@ async def ensure_staff_user(
 
     if existing_by_email:
         if existing_by_email.username != username:
-            raise RuntimeError(
-                f"User with email '{email}' already exists, "
-                f"but username is '{existing_by_email.username}', "
-                f"expected '{username}'"
+            existing_by_username = await get_user_by_username(
+                db=db,
+                username=username,
             )
+
+            if existing_by_username is None:
+                existing_by_email.username = username
 
         if settings.UPDATE_SEEDED_USERS_PASSWORDS:
             existing_by_email.password_hash = hash_password(password)
@@ -89,9 +93,18 @@ async def ensure_staff_user(
     )
 
     if existing_by_username:
-        raise RuntimeError(
-            f"Username '{username}' already exists with another email"
+        existing_by_email = await get_user_by_email(
+            db=db,
+            email=email,
         )
+
+        if existing_by_email is None:
+            existing_by_username.email = email
+
+        if settings.UPDATE_SEEDED_USERS_PASSWORDS:
+            existing_by_username.password_hash = hash_password(password)
+
+        return existing_by_username
 
     user = UserModel(
         username=username,
