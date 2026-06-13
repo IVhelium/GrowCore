@@ -1,7 +1,27 @@
 import { QueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "/api";
+const configuredApiUrl = import.meta.env.VITE_API_URL || "/api";
+
+function normalizeApiUrl(url) {
+  return url.replace(/\/+$/, "");
+}
+
+function getApiUrl() {
+  const normalizedUrl = normalizeApiUrl(configuredApiUrl);
+
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname.endsWith("vercel.app") &&
+    /^https:\/\/growcore\.onrender\.com$/i.test(normalizedUrl)
+  ) {
+    return "/api";
+  }
+
+  return normalizedUrl;
+}
+
+export const API_URL = getApiUrl();
 
 export function getWebSocketUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
