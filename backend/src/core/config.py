@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import field_validator, model_validator
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.constants import BASE_DIR
 
@@ -8,12 +8,7 @@ class Settings(BaseSettings):
     ENV: str = "development"
 
     # Database
-    DATABASE_URL: str | None = None
-    POSTGRES_USER: str | None = None
-    POSTGRES_PASSWORD: str | None = None
-    POSTGRES_HOST: str | None = None
-    POSTGRES_PORT: int | None = None
-    POSTGRES_DB: str | None = None
+    DATABASE_URL: str
     DB_POOL_SIZE: int = 2
     DB_MAX_OVERFLOW: int = 3
     
@@ -45,10 +40,12 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_WEBHOOK_SECRET: str | None = None
     STRIPE_CURRENCY: str = "eur"
+    STRIPE_AUTOMATIC_TAX: bool = False
+    STRIPE_SHIPPING_ALLOWED_COUNTRIES: str | None = None
     
     # Seed
     RUN_STAFF_SEED: bool = False
-    RUN_CATALOG_SEED: bool = True
+    RUN_CATALOG_SEED: bool = False
 
     SEED_ADMIN_USERNAME: str | None = None
     SEED_ADMIN_EMAIL: str | None = None
@@ -72,55 +69,49 @@ class Settings(BaseSettings):
             raise ValueError("FILE_STORAGE_BACKEND must be 'cloudinary' or 'local'")
 
         return normalized
-    
-    
+
+    @field_validator("STRIPE_CURRENCY", mode="before")
+    @classmethod
+    def normalize_stripe_currency(cls, value):
+        value = str(value or "eur").strip().lower()
+
+        if len(value) != 3:
+            raise ValueError("STRIPE_CURRENCY must be a 3-letter currency code")
+
+        return value
+
+    @property
+    def STRIPE_SHIPPING_COUNTRY_LIST(self) -> list[str] | None:
+        if not self.STRIPE_SHIPPING_ALLOWED_COUNTRIES:
+            return None
+
+        countries = [
+            country.strip().upper()
+            for country in self.STRIPE_SHIPPING_ALLOWED_COUNTRIES.split(",")
+            if country.strip()
+        ]
+
+        return countries or None
+
     # Db URL
     @property
     def DATABASE_URL_asyncpg(self):
-        if self.DATABASE_URL:
-            if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
-                return self.DATABASE_URL
-            if self.DATABASE_URL.startswith("postgresql://"):
-                return self.DATABASE_URL.replace(
-                    "postgresql://",
-                    "postgresql+asyncpg://",
-                    1,
-                )
-            if self.DATABASE_URL.startswith("postgres://"):
-                return self.DATABASE_URL.replace(
-                    "postgres://",
-                    "postgresql+asyncpg://",
-                    1,
-                )
-
+        if self.DATABASE_URL.startswith("postgresql+asyncpg://"):
             return self.DATABASE_URL
-
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-
-    @model_validator(mode="after")
-    def validate_database_config(self):
-        if self.DATABASE_URL:
-            return self
-
-        missing = [
-            field
-            for field in (
-                "POSTGRES_USER",
-                "POSTGRES_PASSWORD",
-                "POSTGRES_HOST",
-                "POSTGRES_PORT",
-                "POSTGRES_DB",
+        if self.DATABASE_URL.startswith("postgresql://"):
+            return self.DATABASE_URL.replace(
+                "postgresql://",
+                "postgresql+asyncpg://",
+                1,
             )
-            if getattr(self, field) in (None, "")
-        ]
-
-        if missing:
-            raise ValueError(
-                "Set DATABASE_URL or all PostgreSQL fields: "
-                + ", ".join(missing)
+        if self.DATABASE_URL.startswith("postgres://"):
+            return self.DATABASE_URL.replace(
+                "postgres://",
+                "postgresql+asyncpg://",
+                1,
             )
 
-        return self
+        return self.DATABASE_URL
 
     @property
     def CORS_ORIGINS(self) -> list[str]:

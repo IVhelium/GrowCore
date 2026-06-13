@@ -64,6 +64,7 @@ export default function SupportPanelPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedTicketId, setExpandedTicketId] = useState(null);
+  const [responseDrafts, setResponseDrafts] = useState({});
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
   const queryStatus = searchParams.get("status") || "open";
@@ -167,12 +168,22 @@ export default function SupportPanelPage() {
     }
   }
 
-  function resolveTicket(ticket) {
-    const response = window.prompt("Support response for this ticket");
-    const trimmedResponse = response?.trim();
+  function getResponseDraft(ticket) {
+    return responseDrafts[ticket.id] ?? ticket.response ?? "";
+  }
+
+  function updateResponseDraft(ticketId, value) {
+    setResponseDrafts((current) => ({
+      ...current,
+      [ticketId]: value,
+    }));
+  }
+
+  function updateTicketWithResponse(ticket, status = ticket.status) {
+    const trimmedResponse = getResponseDraft(ticket).trim();
 
     if (!trimmedResponse) {
-      showToast("Response is required to resolve a ticket");
+      showToast("Response is required");
       return;
     }
 
@@ -181,9 +192,9 @@ export default function SupportPanelPage() {
       () =>
         updateSupportTicket(ticket.id, {
           response: trimmedResponse,
-          status: "resolved",
+          status,
         }),
-      "Ticket resolved",
+      status === "resolved" ? "Ticket resolved" : "Ticket updated",
     );
   }
 
@@ -345,10 +356,16 @@ export default function SupportPanelPage() {
                         size="sm"
                         style="secondary"
                         disabled={busyKey === `resolve-${ticket.id}`}
-                        onClick={() => resolveTicket(ticket)}
+                        onClick={() => {
+                          setExpandedTicketId(ticket.id);
+                          setResponseDrafts((current) => ({
+                            ...current,
+                            [ticket.id]: current[ticket.id] ?? ticket.response ?? "",
+                          }));
+                        }}
                       >
                         <CheckCircle2 size={16} />
-                        Resolve
+                        Reply
                       </Button>
                     )}
 
@@ -359,6 +376,10 @@ export default function SupportPanelPage() {
                         setExpandedTicketId((current) =>
                           current === ticket.id ? null : ticket.id,
                         );
+                        setResponseDrafts((current) => ({
+                          ...current,
+                          [ticket.id]: current[ticket.id] ?? ticket.response ?? "",
+                        }));
                       }}
                     >
                       <MessageSquare size={16} />
@@ -397,20 +418,58 @@ export default function SupportPanelPage() {
                       <p className="text-xs font-bold uppercase text-slate-400">
                         Full message
                       </p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      <p className="break-anywhere mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
                         {ticket.message}
                       </p>
                     </div>
-                    {ticket.response && (
-                      <div className="md:col-span-3">
-                        <p className="text-xs font-bold uppercase text-slate-400">
+                    <div className="md:col-span-3">
+                      <label className="grid gap-2">
+                        <span className="text-xs font-bold uppercase text-slate-400">
                           Support response
-                        </p>
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-green-700">
-                          {ticket.response}
-                        </p>
+                        </span>
+                        <textarea
+                          value={getResponseDraft(ticket)}
+                          onChange={(event) =>
+                            updateResponseDraft(ticket.id, event.target.value)
+                          }
+                          rows={5}
+                          maxLength={2000}
+                          className="break-anywhere resize-y rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#4F8A5B]"
+                          placeholder="Write a clear answer for the user..."
+                        />
+                      </label>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          disabled={busyKey === `resolve-${ticket.id}`}
+                          onClick={() =>
+                            updateTicketWithResponse(ticket, "in_progress")
+                          }
+                        >
+                          Save response
+                        </Button>
+                        <Button
+                          size="sm"
+                          style="secondary"
+                          disabled={busyKey === `resolve-${ticket.id}`}
+                          onClick={() =>
+                            updateTicketWithResponse(ticket, "resolved")
+                          }
+                        >
+                          Mark resolved
+                        </Button>
+                        <Button
+                          size="sm"
+                          style="ghost"
+                          disabled={busyKey === `resolve-${ticket.id}`}
+                          onClick={() =>
+                            updateTicketWithResponse(ticket, "closed")
+                          }
+                        >
+                          Close
+                        </Button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </article>

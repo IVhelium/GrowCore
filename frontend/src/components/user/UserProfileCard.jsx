@@ -32,7 +32,7 @@ export default function UserProfileCard({
       <aside className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 ${className}`}>
         <UserAvatar user={user} size="lg" />
 
-        <h2 className="mt-5 text-2xl font-bold text-slate-950">
+        <h2 className="break-anywhere mt-5 text-2xl font-bold text-slate-950">
           {user?.username}
         </h2>
 
@@ -41,7 +41,7 @@ export default function UserProfileCard({
             <div className="flex items-center gap-2 text-slate-500">
               <Hash size={15} /> Public ID
             </div>
-            <div className="mt-1 font-semibold">{user?.public_id}</div>
+            <div className="break-anywhere mt-1 font-semibold">{user?.public_id}</div>
           </div>
           <div className="rounded-lg bg-slate-50 p-4">
             <div className="flex items-center gap-2 text-slate-500">

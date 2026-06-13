@@ -217,4 +217,16 @@ class ChatService:
                 detail="Message was not created",
             )
 
+        try:
+            from src.api.routers.chat_ws import send_realtime_event
+
+            event = {
+                "type": "message",
+                "message": self.serialize_message(created_message),
+            }
+            await send_realtime_event(created_message.sender_id, event)
+            await send_realtime_event(created_message.recipient_id, event)
+        except Exception:
+            pass
+
         return created_message

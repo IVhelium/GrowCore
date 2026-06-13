@@ -46,6 +46,10 @@ class ChatConnectionManager:
 manager = ChatConnectionManager()
 
 
+async def send_realtime_event(user_id: UUID, payload: dict[str, Any]) -> None:
+    await manager.send_to_user(user_id, payload)
+
+
 async def get_websocket_user(websocket: WebSocket) -> UserModel | None:
     token = websocket.cookies.get(settings.JWT_ACCESS_COOKIE_NAME)
 
@@ -96,11 +100,7 @@ async def user_chat_websocket(websocket: WebSocket):
                 await websocket.send_json({"type": "error", "message": "Could not send message"})
                 continue
 
-            event = {
-                "type": "message",
-                "message": ChatService.serialize_message(chat_message),
-            }
-            await manager.send_to_user(chat_message.sender_id, event)
-            await manager.send_to_user(chat_message.recipient_id, event)
+            if not chat_message:
+                await websocket.send_json({"type": "error", "message": "Could not send message"})
     except WebSocketDisconnect:
         manager.disconnect(current_user.id, websocket)

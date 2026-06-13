@@ -9,9 +9,11 @@ import MobileMenu from "./MobileMenu";
 import UserAvatar from "../user/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
 import { getFriendRequestCount, getUnreadNotificationCount } from "../../api/userApi";
+import { createChatSocket } from "../../api/chatApi";
+import { showToast } from "../../utils/showToast";
 
 
-// Account popover menu for authenticated header users.
+// Account popover menu for authenticated header users
 function AccountPopover({
   user,
   onLogout
@@ -124,6 +126,62 @@ export default function Header({
     };
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return undefined;
+    }
+
+    const socket = createChatSocket();
+
+    socket.onmessage = (event) => {
+      let payload;
+
+      try {
+        payload = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (payload.type === "notification") {
+        const notification = payload.notification;
+        setNotificationCount((count) => count + 1);
+        window.dispatchEvent(
+          new CustomEvent("growcore:notification-received", {
+            detail: notification,
+          }),
+        );
+        window.dispatchEvent(new Event("growcore:notifications-updated"));
+        showToast(notification?.title || "New notification", "success");
+        return;
+      }
+
+      if (payload.type === "message") {
+        const message = payload.message;
+        const isOwnMessage = message?.sender?.public_id === user?.public_id;
+
+        window.dispatchEvent(
+          new CustomEvent("growcore:chat-message-received", {
+            detail: message,
+          }),
+        );
+        if (isOwnMessage) {
+          return;
+        }
+
+        showToast(
+          message?.sender?.username
+            ? `New message from ${message.sender.username}`
+            : "New chat message",
+          "success",
+        );
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [isAuthenticated, user?.public_id]);
+
   return (
     <>
       {isCatalogOpen && (
@@ -234,18 +292,6 @@ export default function Header({
                 )}
               </Link>
 
-              <Link
-                to="/favorites"
-                className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
-              >
-                <Heart size={20} />
-                {savedCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded bg-[#4F8A5B] px-1 text-[11px] font-bold text-white">
-                    {savedCount}
-                  </span>
-                )}
-              </Link>
-
               {isAuthenticated && (
                 <Link
                   to="/notifications"
@@ -260,6 +306,18 @@ export default function Header({
                   )}
                 </Link>
               )}
+
+              <Link
+                to="/favorites"
+                className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+              >
+                <Heart size={20} />
+                {savedCount > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded bg-[#4F8A5B] px-1 text-[11px] font-bold text-white">
+                    {savedCount}
+                  </span>
+                )}
+              </Link>
 
               <Link
                 to="/cart"
@@ -288,7 +346,7 @@ export default function Header({
                     aria-label="Account"
                     className="grid h-11 w-11 place-content-center overflow-hidden rounded-lg border border-slate-200 bg-white transition hover:border-[#4F8A5B]"
                   >
-                    <UserAvatar user={user} size="md"/>
+                    <UserAvatar user={user} size="md" />
                   </button>
                 </Popover>
               ) : (

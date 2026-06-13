@@ -45,12 +45,26 @@ export async function getOrders() {
   return (data || []).map(normalizeOrder);
 }
 
+export async function confirmStripeCheckout(sessionId) {
+  const { data } = await apiClient.post("/orders/stripe/confirm", null, {
+    params: {
+      session_id: sessionId,
+    },
+  });
+
+  return normalizeOrder(data);
+}
+
 export async function requestOrderReturn(orderId, reason) {
   const { data } = await apiClient.post(`/orders/${orderId}/returns`, {
     reason,
   });
 
   return normalizeOrder(data);
+}
+
+export async function deleteOrder(orderId) {
+  await apiClient.delete(`/orders/${orderId}`);
 }
 
 export async function payOrder(orderId, payload) {
@@ -65,7 +79,7 @@ export async function payOrder(orderId, payload) {
   return normalizeOrder(data);
 }
 
-export async function createStripeCheckout(orderId, payload) {
+export async function createStripeCheckout(orderId, payload = {}) {
   const { data } = await apiClient.post(`/orders/${orderId}/stripe-checkout`, {
     delivery_address: payload.deliveryAddress || undefined,
     customer_nif: payload.customerNif || undefined,

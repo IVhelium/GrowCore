@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, status
 
 from src.core.constants import SupportTicketStatus
 from src.core.dependencies import (
@@ -24,6 +24,7 @@ router = APIRouter(
 @router.post(
     "",
     response_model=ReadSupportTicketDTO,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_support_ticket(
     schema: CreateSupportTicketDTO,

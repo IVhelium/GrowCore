@@ -31,6 +31,8 @@ class ReadCartProductDTO(BaseModel):
     id: int
     title: str
     price: Decimal
+    discount_percent: Decimal = Decimal("0.00")
+    discounted_price: Decimal
     quantity: int
     enabled: bool
     

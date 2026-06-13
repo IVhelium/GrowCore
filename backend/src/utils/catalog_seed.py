@@ -251,6 +251,7 @@ async def _ensure_products(
                 title=seed.title,
                 description=seed.description,
                 price=Decimal(seed.price),
+                discount_percent=Decimal("0.00"),
                 quantity=seed.quantity,
                 enabled=True,
                 rating_avg=Decimal(seed.rating_avg),

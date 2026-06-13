@@ -2,6 +2,7 @@ import uuid
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path, PurePosixPath
+import time
 from urllib.parse import unquote, urlparse
 import aiofiles
 from fastapi import HTTPException, UploadFile, status
@@ -303,6 +304,55 @@ class FileStorageService:
         )
         
         filesystem_path.unlink(missing_ok=True)
+
+    def private_file_path(
+        self,
+        storage_key: str,
+        policy: UploadPolicy,
+    ) -> Path:
+        if settings.FILE_STORAGE_BACKEND == "cloudinary":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cloudinary files do not have a local path",
+            )
+
+        return self._resolve_storage_key(
+            storage_key=storage_key,
+            policy=policy,
+        )
+
+    def private_file_url(
+        self,
+        storage_key: str,
+        policy: UploadPolicy,
+        expires_in_seconds: int = 300,
+    ) -> str:
+        if policy.is_public:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Use public URLs for public files",
+            )
+
+        if settings.FILE_STORAGE_BACKEND != "cloudinary":
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Local files should be served by the API",
+            )
+
+        import cloudinary.utils
+
+        self._configure_cloudinary()
+        resource_type, public_id = self._split_cloudinary_storage_key(storage_key)
+        url, _ = cloudinary.utils.cloudinary_url(
+            public_id,
+            resource_type=resource_type,
+            type="authenticated",
+            sign_url=True,
+            secure=True,
+            expires_at=int(time.time()) + expires_in_seconds,
+        )
+
+        return url
             
     
     # Method for validate directory key    

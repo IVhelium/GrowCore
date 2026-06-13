@@ -8,7 +8,7 @@ from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, Retur
 
 
 class CheckoutDTO(BaseModel):
-    delivery_address: str = Field(min_length=5, max_length=300)
+    delivery_address: str | None = Field(default=None, min_length=5, max_length=300)
 
     @field_validator("delivery_address", mode="before")
     @classmethod
@@ -16,7 +16,7 @@ class CheckoutDTO(BaseModel):
         if isinstance(value, str):
             value = value.strip()
             if not value:
-                raise ValueError("Delivery address cannot be empty")
+                return None
         return value
 
     model_config = ConfigDict(extra="forbid")
@@ -99,6 +99,8 @@ class ReadOrderProductDTO(BaseModel):
     id: int
     title: str
     price: Decimal
+    discount_percent: Decimal = Decimal("0.00")
+    discounted_price: Decimal
     images: list[ReadOrderProductImageDTO] = []
 
     model_config = ConfigDict(extra="forbid", from_attributes=True)

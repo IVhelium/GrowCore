@@ -31,7 +31,14 @@ export default function CartItem({
                 >
                     {item.title}
                 </Link>
-                <p className="mt-1 text-sm text-slate-500">Unit price: {formatPrice(item.price)}</p>
+                <p className="mt-1 text-sm text-slate-500">
+                    Unit price: {formatPrice(item.price)}
+                    {item.oldPrice && (
+                        <span className="ml-2 text-slate-400 line-through">
+                            {formatPrice(item.oldPrice)}
+                        </span>
+                    )}
+                </p>
 
                 <div className="mt-4 inline-flex items-center rounded-lg border border-slate-200 bg-white p-1">
                     <button

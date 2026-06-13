@@ -14,6 +14,10 @@ class ProductModel(Base):
     title: Mapped[str]
     description: Mapped[str]
     price: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
+    discount_percent: Mapped[Decimal] = mapped_column(
+        Numeric(precision=5, scale=2),
+        default=Decimal("0.00"),
+    )
     quantity: Mapped[int]
     enabled: Mapped[bool] = mapped_column(default=True)
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -74,7 +78,23 @@ class ProductModel(Base):
     deleted_by: Mapped["UserModel | None"] = relationship(
         foreign_keys=[deleted_by_id]
     )
-    
+
+    @property
+    def discounted_price(self) -> Decimal:
+        discount = self.discount_percent or Decimal("0.00")
+
+        if discount <= 0:
+            return self.price
+
+        if discount >= 100:
+            return Decimal("0.00")
+
+        multiplier = (Decimal("100.00") - discount) / Decimal("100.00")
+        return (self.price * multiplier).quantize(Decimal("0.01"))
+
+    @property
+    def has_discount(self) -> bool:
+        return bool((self.discount_percent or Decimal("0.00")) > 0)
     
 
 class ProductImageModel(Base):
