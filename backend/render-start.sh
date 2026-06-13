@@ -7,7 +7,7 @@ attempt=1
 while [ "$attempt" -le "$max_attempts" ]; do
   echo "Running database migrations, attempt $attempt/$max_attempts..."
 
-  if alembic upgrade head; then
+  if python -m alembic upgrade head; then
     echo "Database migrations completed."
     break
   fi
@@ -23,4 +23,4 @@ while [ "$attempt" -le "$max_attempts" ]; do
 done
 
 echo "Starting Uvicorn on port ${PORT:-8000}..."
-exec uvicorn src.main:app --host 0.0.0.0 --port "${PORT:-8000}"
+exec python -m uvicorn src.main:app --host 0.0.0.0 --port "${PORT:-8000}"

@@ -31,6 +31,21 @@ Instance Type: Free
 The backend Dockerfile runs `/app/entrypoint.sh`, which applies Alembic
 migrations and then starts Uvicorn on Render's `PORT`.
 
+If you created the service as `Python` runtime instead of `Docker`, use these
+settings instead:
+
+```text
+Runtime: Python
+Root Directory: backend
+Build Command: pip install -r requirements.txt
+Start Command: sh render-start.sh
+Health Check Path: /health
+Instance Type: Free
+```
+
+Do not leave Render's default Python start command enabled. The app must bind to
+Render's `$PORT`.
+
 Environment variables:
 
 ```env
@@ -67,6 +82,7 @@ SEED_SUPPORT_USERNAME=support
 SEED_SUPPORT_EMAIL=
 SEED_SUPPORT_PASSWORD=
 UPDATE_SEEDED_USERS_PASSWORDS=false
+MIGRATION_MAX_ATTEMPTS=5
 ```
 
 Leave Stripe values empty if payments are not needed yet.
