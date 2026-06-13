@@ -177,19 +177,14 @@ export function useCart(initialItems = EMPTY_CART) {
     setCartError(null);
   }
 
-  async function checkout(deliveryAddress) {
+  async function checkout() {
     if (!isAuthenticated) {
       showToast("Please sign in to complete checkout");
       return null;
     }
 
-    if (!String(deliveryAddress || "").trim()) {
-      showToast("Delivery address is required");
-      return null;
-    }
-
     try {
-      const updatedCart = await checkoutCart(deliveryAddress.trim());
+      const updatedCart = await checkoutCart();
       setCart(updatedCart.items);
       setCartError(null);
       showToast("Order created. Choose payment to finish checkout", "success");

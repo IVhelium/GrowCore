@@ -512,8 +512,13 @@ export default function ProductPage({
 
             <div className="mt-6 rounded-xl bg-slate-50 p-5">
               {product.oldPrice && (
-                <div className="text-sm text-slate-400 line-through">
-                  {formatPrice(product.oldPrice)}
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-slate-400 line-through">
+                    {formatPrice(product.oldPrice)}
+                  </span>
+                  <span className="rounded bg-red-50 px-2 py-1 text-xs font-bold text-red-600">
+                    -{product.discountPercent}%
+                  </span>
                 </div>
               )}
               <div className="text-4xl font-black text-slate-950">

@@ -1,11 +1,14 @@
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from src.core.constants import RoleStatus, SellerRequestStatus
+from src.core.config import settings
 from src.core.pagination import PaginationParams, PaginationService
+from src.core.upload_policies import SELLER_DOCUMENT_POLICY
 from src.api.services.notification import NotificationService
 from src.models import (
     RoleModel,
@@ -33,6 +36,14 @@ class SellerRequestAdminService(SellerRequestBaseService):
     - Creating a store after approval
     """
 
+    def __init__(
+        self,
+        db,
+        file_storage_service,
+    ):
+        super().__init__(db)
+        self.file_storage_service = file_storage_service
+
     async def list_requests(
         self,
         request_status: SellerRequestStatus | None,
@@ -59,6 +70,42 @@ class SellerRequestAdminService(SellerRequestBaseService):
             db=self.db,
             query=query,
             pagination=pagination,
+        )
+
+    async def get_document_location(
+        self,
+        request_id: int,
+    ) -> tuple[str, Path | str, str, str]:
+        seller_request = await self._get_request_by_id(request_id)
+
+        if not seller_request.document_storage_key:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller request document not found",
+            )
+
+        filename = seller_request.document_name or "seller-document.pdf"
+        content_type = seller_request.document_content_type or "application/pdf"
+
+        if settings.FILE_STORAGE_BACKEND == "cloudinary":
+            return (
+                "redirect",
+                self.file_storage_service.private_file_url(
+                    storage_key=seller_request.document_storage_key,
+                    policy=SELLER_DOCUMENT_POLICY,
+                ),
+                filename,
+                content_type,
+            )
+
+        return (
+            "file",
+            self.file_storage_service.private_file_path(
+                storage_key=seller_request.document_storage_key,
+                policy=SELLER_DOCUMENT_POLICY,
+            ),
+            filename,
+            content_type,
         )
 
 

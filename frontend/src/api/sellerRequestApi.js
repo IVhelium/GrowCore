@@ -1,4 +1,4 @@
-import { apiClient, getPaginationParams } from "./apiClient";
+import { API_URL, apiClient, getPaginationParams } from "./apiClient";
 
 export function normalizeSellerRequest(request) {
   return {
@@ -91,4 +91,8 @@ export async function rejectSellerRequest(requestId, reason) {
   );
 
   return normalizeSellerRequest(data);
+}
+
+export function getSellerRequestDocumentUrl(requestId) {
+  return `${API_URL}/admin/seller-requests/${requestId}/document`;
 }

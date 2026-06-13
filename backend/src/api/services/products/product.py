@@ -65,6 +65,7 @@ class ProductService(ProductBaseService):
             title=schema.title.strip(),
             description=schema.description.strip(),
             price=schema.price,
+            discount_percent=schema.discount_percent,
             quantity=schema.quantity,
             attributes=self._clean_attributes(schema.attributes),
             category_id=schema.category_id,
@@ -193,6 +194,7 @@ class ProductService(ProductBaseService):
         moderation_fields = {
             "title",
             "price",
+            "discount_percent",
             "category_id",
             "attributes",
         }

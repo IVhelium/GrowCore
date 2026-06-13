@@ -1,4 +1,5 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { moveFavoriteToCart } from "./api/favoritesApi";
 import { getCart } from "./api/cartApi";
 import MainLayout from "./layout/MainLayout";
@@ -34,9 +35,11 @@ import DeliveryPage from "./pages/DeliveryPage";
 import ReturnsPage from "./pages/ReturnsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import FriendsPage from "./pages/FriendsPage";
+import AboutPage from "./pages/AboutPage";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const {
     products: backendProducts,
     productsError,
@@ -148,6 +151,22 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+
+    if (params.get("stripe") === "success") {
+      refreshCartAfterPayment();
+      const timers = [
+        window.setTimeout(refreshCartAfterPayment, 1500),
+        window.setTimeout(refreshCartAfterPayment, 4000),
+      ];
+
+      return () => {
+        timers.forEach(window.clearTimeout);
+      };
+    }
+  }, [location.search, isAuthenticated]);
+
   return (
     <Routes>
       <Route
@@ -235,7 +254,7 @@ export default function App() {
           <Route path="/friends" element={<FriendsPage />} />
           <Route
             path="/payment"
-            element={<PaymentPage items={cart} onPaid={refreshCartAfterPayment} />}
+            element={<PaymentPage items={cart} />}
           />
         </Route>
 
@@ -243,6 +262,7 @@ export default function App() {
         <Route path="/users/:publicId" element={<PublicUserProfilePage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
         <Route path="/returns" element={<ReturnsPage />} />
+        <Route path="/about" element={<AboutPage />} />
 
         <Route path="/seller-request" element={<SellerRequestPage/>}/>
 

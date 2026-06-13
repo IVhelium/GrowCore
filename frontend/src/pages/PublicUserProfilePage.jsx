@@ -388,7 +388,7 @@ export default function PublicUserProfilePage() {
                         maxLength={500}
                         rows={3}
                         placeholder="Write a short hello with your friend request"
-                        className="min-h-20 resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
+                        className="break-anywhere min-h-20 resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
                       />
                     )}
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -426,7 +426,7 @@ export default function PublicUserProfilePage() {
             </div>
             <div className="grid min-w-0 gap-4">
               {user?.isBlocked && (
-                <p className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                <p className="break-anywhere rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
                   Blocked: {user.blockReason || "No reason provided"}
                 </p>
               )}

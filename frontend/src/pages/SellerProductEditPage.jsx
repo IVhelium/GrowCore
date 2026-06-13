@@ -248,7 +248,17 @@ export default function SellerProductEditPage() {
                 required
                 min="0"
                 step="0.01"
-                defaultValue={product?.price || 0}
+                defaultValue={product?.originalPrice || product?.price || 0}
+              />
+
+              <FormField
+                label="Discount (%)"
+                name="discountPercent"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                defaultValue={product?.discountPercent || 0}
               />
 
               <FormField

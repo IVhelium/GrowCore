@@ -48,6 +48,37 @@ export default function NotificationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
+  useEffect(() => {
+    function handleNotificationReceived(event) {
+      const notification = event.detail;
+
+      if (!notification?.id) {
+        return;
+      }
+
+      setNotifications((currentItems) => {
+        if (currentItems.some((item) => item.id === notification.id)) {
+          return currentItems;
+        }
+
+        return [notification, ...currentItems].slice(0, PAGE_SIZE);
+      });
+      setTotal((count) => count + 1);
+    }
+
+    window.addEventListener(
+      "growcore:notification-received",
+      handleNotificationReceived,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "growcore:notification-received",
+        handleNotificationReceived,
+      );
+    };
+  }, []);
+
   async function handleMarkRead(notification) {
     setBusyId(notification.id);
 
@@ -156,19 +187,19 @@ export default function NotificationsPage() {
                     : "border-[#4F8A5B]/30 bg-[#4F8A5B]/5"
                 }`}
               >
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                  <div className="flex gap-4">
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                  <div className="flex min-w-0 gap-4">
                     <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
                       <Bell size={20} />
                     </span>
-                    <div>
-                      <h2 className="font-bold text-slate-950">
+                    <div className="min-w-0">
+                      <h2 className="break-anywhere font-bold text-slate-950">
                         {notification.title}
                       </h2>
                       <p className="mt-1 text-sm text-slate-500">
                         {formatDateTime(notification.created_at)}
                       </p>
-                      <p className="mt-3 text-sm leading-6 text-slate-600">
+                      <p className="break-anywhere mt-3 text-sm leading-6 text-slate-600">
                         {notification.message}
                       </p>
                     </div>

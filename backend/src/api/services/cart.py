@@ -424,13 +424,7 @@ class CartService:
                     detail="Cart is empty",
                 )
 
-            delivery_address = schema.delivery_address.strip()
-
-            if not delivery_address:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail="Delivery address cannot be empty",
-                )
+            delivery_address = schema.delivery_address.strip() if schema.delivery_address else None
 
             total_price = Decimal("0.00")
             company_fee_total = Decimal("0.00")
@@ -444,7 +438,7 @@ class CartService:
                         detail=f"Not enough quantity for {product.title}",
                     )
 
-                line_total = product.price * item.quantity
+                line_total = product.discounted_price * item.quantity
                 total_price += line_total
                 company_fee_total += (line_total * self.COMPANY_FEE_RATE).quantize(
                     Decimal("0.01"),
@@ -467,7 +461,7 @@ class CartService:
 
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)
-                line_total = product.price * item.quantity
+                line_total = product.discounted_price * item.quantity
                 company_fee = (line_total * self.COMPANY_FEE_RATE).quantize(
                     Decimal("0.01"),
                     rounding=ROUND_HALF_UP,
@@ -477,7 +471,7 @@ class CartService:
                     OrderItemModel(
                         order_id=order.id,
                         product_id=product.id,
-                        price=product.price,
+                        price=product.discounted_price,
                         quantity=item.quantity,
                         company_fee=company_fee,
                         seller_amount=line_total - company_fee,

@@ -82,6 +82,7 @@ class CreateProductDTO(BaseModel):
     title: str = Field(min_length=5, max_length=200)
     description: str = Field(min_length=20)
     price: Decimal = Field(ge=0)
+    discount_percent: Decimal = Field(default=Decimal("0.00"), ge=0, le=100)
     quantity: int = Field(ge=0)
     category_id: int
     attributes: dict[str, str] = Field(default_factory=dict)
@@ -109,7 +110,8 @@ class CreateProductDTO(BaseModel):
 class UpdateProductDTO(BaseModel):
     title: str | None = None
     description: str | None = None
-    price: Decimal | None = None
+    price: Decimal | None = Field(default=None, ge=0)
+    discount_percent: Decimal | None = Field(default=None, ge=0, le=100)
     quantity: int | None = None
     enabled: bool | None = None
     category_id: int | None = None
@@ -171,6 +173,8 @@ class ShortProductDTO(BaseModel):
     id: int
     title: str
     price: Decimal
+    discount_percent: Decimal = Decimal("0.00")
+    discounted_price: Decimal
     rating_avg: Decimal
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
@@ -183,6 +187,9 @@ class ReadProductDTO(BaseModel):
     description: str
     
     price: Decimal
+    discount_percent: Decimal = Decimal("0.00")
+    discounted_price: Decimal
+    has_discount: bool = False
     quantity: int
     attributes: dict[str, str] = Field(default_factory=dict)
     

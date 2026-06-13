@@ -11,7 +11,12 @@ function normalizeCartItem(item) {
     id: item.id,
     productId: product.id,
     title: product.title,
-    price: Number(product.price),
+    price: Number(product.discounted_price ?? product.price),
+    originalPrice: Number(product.price),
+    discountPercent: Number(product.discount_percent || 0),
+    oldPrice: Number(product.discount_percent || 0) > 0
+      ? Number(product.price)
+      : null,
     quantity: item.quantity,
     maxQuantity: product.quantity,
     image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
@@ -55,9 +60,7 @@ export async function removeCartItem(itemId) {
   return normalizeCart(data);
 }
 
-export async function checkoutCart(deliveryAddress) {
-  const { data } = await apiClient.post("/cart/checkout", {
-    delivery_address: deliveryAddress,
-  });
+export async function checkoutCart() {
+  const { data } = await apiClient.post("/cart/checkout", {});
   return normalizeCart(data);
 }

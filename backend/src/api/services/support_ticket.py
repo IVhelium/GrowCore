@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -224,7 +224,7 @@ class SupportTicketService:
                 or_(
                     SupportTicketModel.subject.ilike(value),
                     SupportTicketModel.message.ilike(value),
-                    SupportTicketModel.response.ilike(value),
+                    func.coalesce(SupportTicketModel.response, "").ilike(value),
                 )
             )
 

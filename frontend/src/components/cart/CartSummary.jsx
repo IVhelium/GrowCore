@@ -18,7 +18,7 @@ export default function CartSummary({
                 </div>
                 <div className="flex justify-between">
                     <span>Delivery</span>
-                    <span>Entered at payment</span>
+                    <span>Entered in Stripe</span>
                 </div>
             </div>
 
@@ -30,7 +30,7 @@ export default function CartSummary({
             </div>
 
             <Button
-                onClick={() => onCheckout?.("Pending payment address")}
+                onClick={() => onCheckout?.()}
                 size="lg"
                 className="mt-6 w-full"
             >

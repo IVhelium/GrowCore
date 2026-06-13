@@ -171,8 +171,14 @@ async def get_seller_request_service(
 SellerRequestServiceDependency = Annotated[SellerRequestService, Depends(get_seller_request_service)]
 
 # Get Seller Request Moderation Service
-async def get_seller_request_moderation_service(db: SessionDependency) -> SellerRequestAdminService:
-    return SellerRequestAdminService(db=db)
+async def get_seller_request_moderation_service(
+    db: SessionDependency,
+    file_storage_service: FileStorageServiceDependency,
+) -> SellerRequestAdminService:
+    return SellerRequestAdminService(
+        db=db,
+        file_storage_service=file_storage_service,
+    )
 
 SellerRequestAdminServiceDependency = Annotated[SellerRequestAdminService, Depends(get_seller_request_moderation_service)]
 

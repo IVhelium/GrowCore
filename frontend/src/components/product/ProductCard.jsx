@@ -69,8 +69,13 @@ export default function ProductCard({
         <div className="mt-auto flex items-end justify-between gap-3 pt-5">
           <div className="min-w-0">
             {product.oldPrice && (
-              <div className="text-sm text-slate-400 line-through">
-                {formatPrice(product.oldPrice)}
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-slate-400 line-through">
+                  {formatPrice(product.oldPrice)}
+                </span>
+                <span className="rounded bg-red-50 px-1.5 py-0.5 text-xs font-bold text-red-600">
+                  -{product.discountPercent}%
+                </span>
               </div>
             )}
             <div className="truncate text-xl font-bold text-slate-950">

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query
+from fastapi.responses import FileResponse, RedirectResponse
 
 from src.core.constants import SellerRequestStatus
 from src.core.dependencies import (
@@ -32,6 +33,27 @@ async def list_seller_requests(
     return await seller_request_admin_service.list_requests(
         request_status=request_status,
         pagination=pagination,
+    )
+
+
+@router.get("/{request_id}/document")
+async def open_seller_request_document(
+    request_id: int,
+    admin: AdminDependency,
+    seller_request_admin_service: SellerRequestAdminServiceDependency,
+):
+    location_type, location, filename, content_type = (
+        await seller_request_admin_service.get_document_location(request_id)
+    )
+
+    if location_type == "redirect":
+        return RedirectResponse(str(location))
+
+    return FileResponse(
+        path=location,
+        media_type=content_type,
+        filename=filename,
+        content_disposition_type="inline",
     )
 
 

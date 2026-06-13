@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response, status
 
 from src.core.dependencies import AdminDependency, CurrentUserDependency, OrderServiceDependency
 from src.schemas import CreateStripeCheckoutDTO, PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
@@ -46,6 +46,23 @@ async def pay_order(
     )
 
 
+@router.delete(
+    "/{order_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_order(
+    order_id: int,
+    current_user: CurrentUserDependency,
+    order_service: OrderServiceDependency,
+):
+    await order_service.delete_my_order(
+        current_user=current_user,
+        order_id=order_id,
+    )
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @router.post(
     "/{order_id}/stripe-checkout",
     response_model=dict[str, str],
@@ -61,6 +78,21 @@ async def create_stripe_checkout(
         order_id=order_id,
         delivery_address=schema.delivery_address,
         customer_nif=schema.customer_nif,
+    )
+
+
+@router.post(
+    "/stripe/confirm",
+    response_model=ReadOrderDTO,
+)
+async def confirm_stripe_checkout(
+    session_id: str,
+    current_user: CurrentUserDependency,
+    order_service: OrderServiceDependency,
+):
+    return await order_service.confirm_stripe_checkout_session(
+        current_user=current_user,
+        session_id=session_id,
     )
 
 

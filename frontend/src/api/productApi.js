@@ -13,8 +13,12 @@ export function normalizeProduct(product) {
     categoryId: product.category?.id ?? null,
     title: product.title,
     description: product.description,
-    price: Number(product.price),
-    oldPrice: null,
+    price: Number(product.discounted_price ?? product.price),
+    originalPrice: Number(product.price),
+    discountPercent: Number(product.discount_percent || 0),
+    oldPrice: Number(product.discount_percent || 0) > 0
+      ? Number(product.price)
+      : null,
     label: product.category?.name || "Product",
     category: product.category?.name || "",
     image: images[0] ||
@@ -166,6 +170,7 @@ export async function createSellerProduct(payload) {
     title: payload.title,
     description: payload.description,
     price: Number(payload.price),
+    discount_percent: Number(payload.discountPercent || 0),
     quantity: Number(payload.quantity),
     category_id: Number(payload.categoryId),
     attributes: payload.attributes || {},
@@ -179,6 +184,9 @@ export async function updateSellerProduct(productId, payload) {
     title: payload.title || undefined,
     description: payload.description || undefined,
     price: payload.price === "" ? undefined : Number(payload.price),
+    discount_percent: payload.discountPercent === ""
+      ? undefined
+      : Number(payload.discountPercent || 0),
     quantity: payload.quantity === "" ? undefined : Number(payload.quantity),
     category_id: payload.categoryId ? Number(payload.categoryId) : undefined,
     attributes: payload.attributes,

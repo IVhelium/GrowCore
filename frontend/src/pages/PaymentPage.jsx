@@ -1,34 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { CreditCard, ShieldCheck } from "lucide-react";
 import { createStripeCheckout, getOrders } from "../api/orderApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
-import FormField from "../components/common/FormField";
 import { formatPrice } from "../utils/formatPrice";
-import {
-  getTrimmedFormData,
-  getEmptyFieldMessage,
-  hasEmptyRequiredFields,
-} from "../utils/formSpaceValidation";
 
-const PAYMENT_METHODS = [
-  {
-    id: "stripe",
-    label: "Stripe",
-    note: "Secure Stripe checkout",
-  },
-];
-
-export default function PaymentPage({ items = [], onPaid }) {
+export default function PaymentPage({ items = [] }) {
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isPaying, setIsPaying] = useState(false);
-  const [deliveryCountry, setDeliveryCountry] = useState("Portugal");
 
   useEffect(() => {
     let isActive = true;
@@ -42,10 +28,21 @@ export default function PaymentPage({ items = [], onPaid }) {
         const pendingOrders = loadedOrders.filter(
           (order) => order.paymentStatus === "pending",
         );
+        const params = new URLSearchParams(location.search);
+        const requestedOrderId = params.get("order");
+        const requestedOrder = pendingOrders.find(
+          (order) => String(order.id) === requestedOrderId,
+        );
 
         if (isActive) {
           setOrders(pendingOrders);
-          setSelectedOrderId(pendingOrders[0]?.id ? String(pendingOrders[0].id) : "");
+          setSelectedOrderId(
+            requestedOrder?.id
+              ? String(requestedOrder.id)
+              : pendingOrders[0]?.id
+                ? String(pendingOrders[0].id)
+                : "",
+          );
         }
       } catch {
         if (isActive) {
@@ -63,7 +60,7 @@ export default function PaymentPage({ items = [], onPaid }) {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [location.search]);
 
   const selectedOrder = useMemo(
     () => orders.find((order) => String(order.id) === selectedOrderId) || null,
@@ -83,40 +80,11 @@ export default function PaymentPage({ items = [], onPaid }) {
       return;
     }
 
-    const data = getTrimmedFormData(event.currentTarget);
-
-    const requiredFields = ["deliveryStreet", "deliveryCity", "deliveryZip", "deliveryCountry"];
-
-    if (deliveryCountry === "Portugal") {
-      requiredFields.push("customerNif");
-    }
-
-    if (hasEmptyRequiredFields(data, requiredFields)) {
-      setError(getEmptyFieldMessage());
-      return;
-    }
-
-    if (deliveryCountry === "Portugal" && !/^\d{9}$/.test(data.customerNif || "")) {
-      setError("Enter a valid 9 digit Portuguese NIF.");
-      return;
-    }
-
-    const deliveryAddress = [
-      data.deliveryStreet,
-      data.deliveryCity,
-      data.deliveryZip,
-      data.deliveryCountry,
-    ].join(", ");
-
     setIsPaying(true);
 
     try {
-      const checkout = await createStripeCheckout(selectedOrder.id, {
-        deliveryAddress,
-        customerNif: data.customerNif,
-      });
+      const checkout = await createStripeCheckout(selectedOrder.id);
 
-      await onPaid?.();
       window.location.assign(checkout.url);
     } catch {
       setError("Could not complete payment.");
@@ -131,7 +99,7 @@ export default function PaymentPage({ items = [], onPaid }) {
         <PageHeader
           pretitle="Payment"
           title="Pay an order"
-          text="Choose an unpaid order, enter delivery details, then continue to Stripe Checkout."
+          text="Choose an unpaid order, then continue to Stripe Checkout."
         />
 
         {error && (
@@ -174,28 +142,6 @@ export default function PaymentPage({ items = [], onPaid }) {
                 </select>
               </div>
 
-              <div className="mb-6">
-                <label className="mb-3 block text-sm font-bold text-slate-700">
-                  Payment method
-                </label>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {PAYMENT_METHODS.map((method) => (
-                    <button
-                      key={method.id}
-                      type="button"
-                      className="rounded-lg border border-[#4F8A5B] bg-[#4F8A5B]/10 p-4 text-left"
-                    >
-                      <span className="block text-sm font-bold text-slate-950">
-                        {method.label}
-                      </span>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        {method.note}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="mb-6 flex items-center gap-3">
                 <div className="grid h-12 w-12 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
                   <CreditCard size={24} />
@@ -206,63 +152,14 @@ export default function PaymentPage({ items = [], onPaid }) {
                     Payment details
                   </h2>
                   <p className="text-sm text-slate-500">
-                    Stripe handles the card details on its secure checkout page.
+                    Stripe collects the card, name and delivery address on its secure checkout page.
                   </p>
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
-                  You will be redirected to Stripe Checkout after submitting.
-                </p>
-                <FormField
-                  label="Street address"
-                  name="deliveryStreet"
-                  required
-                  placeholder="221B Garden Street"
-                  wrapperClassName="md:col-span-2"
-                />
-                <FormField
-                  label="City"
-                  name="deliveryCity"
-                  required
-                  placeholder="Evora"
-                />
-                <FormField
-                  label="ZIP / postal code"
-                  name="deliveryZip"
-                  required
-                  placeholder="7005-469"
-                />
-                <div>
-                  <label className="mb-2 block text-sm font-bold text-slate-700">
-                    Country / region
-                  </label>
-                  <select
-                    name="deliveryCountry"
-                    required
-                    value={deliveryCountry}
-                    onChange={(event) => setDeliveryCountry(event.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
-                  >
-                    <option value="Portugal">Portugal</option>
-                    <option value="Spain">Spain</option>
-                    <option value="France">France</option>
-                    <option value="Germany">Germany</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                {deliveryCountry === "Portugal" && (
-                  <FormField
-                    label="NIF"
-                    name="customerNif"
-                    required
-                    inputMode="numeric"
-                    maxLength={9}
-                    placeholder="123456789"
-                  />
-                )}
-              </div>
+              <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                You will be redirected to Stripe Checkout to enter payment and delivery details.
+              </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button type="submit" disabled={!selectedOrder || isPaying}>
@@ -297,12 +194,6 @@ export default function PaymentPage({ items = [], onPaid }) {
               </div>
 
               <div className="mt-5 border-t border-slate-100 pt-5">
-                {selectedOrder?.companyFeeTotal > 0 && (
-                  <div className="mb-3 flex justify-between text-sm text-slate-500">
-                    <span>Company commission</span>
-                    <span>{formatPrice(selectedOrder.companyFeeTotal)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>

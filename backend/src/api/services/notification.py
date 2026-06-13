@@ -26,6 +26,33 @@ class NotificationService:
             message=message,
         )
         self.db.add(notification)
+        await self.db.flush()
+
+        try:
+            from src.api.routers.chat_ws import send_realtime_event
+
+            await send_realtime_event(
+                notification.user_id,
+                {
+                    "type": "notification",
+                    "notification": {
+                        "id": notification.id,
+                        "title": notification.title,
+                        "message": notification.message,
+                        "read_at": (
+                            notification.read_at.isoformat()
+                            if notification.read_at
+                            else None
+                        ),
+                        "created_at": (
+                            notification.created_at or datetime.utcnow()
+                        ).isoformat(),
+                    },
+                },
+            )
+        except Exception:
+            pass
+
         return notification
 
     async def list_notifications(

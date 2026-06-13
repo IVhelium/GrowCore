@@ -15,8 +15,8 @@ export default function CartPage({
 }) {
   const navigate = useNavigate();
 
-  async function handleCheckout(deliveryAddress) {
-    const result = await onCheckout?.(deliveryAddress);
+  async function handleCheckout() {
+    const result = await onCheckout?.();
 
     if (result) {
       navigate("/payment");

@@ -39,6 +39,11 @@ img {
   display: block;
 }
 
+.break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* Header Popover */
 .catalog-popover-centered {
   position: fixed !important;

@@ -167,6 +167,17 @@ export default function SellerProductRequestPage() {
               />
 
               <FormField
+                label="Discount (%)"
+                name="discountPercent"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                defaultValue="0"
+                placeholder="0"
+              />
+
+              <FormField
                 label="Quantity"
                 name="quantity"
                 type="number"
