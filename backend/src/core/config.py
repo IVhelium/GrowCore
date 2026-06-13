@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.constants import BASE_DIR
 
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     JWT_COOKIE_SAMESITE: str = "lax"
     
     # File Storage
-    FILE_STORAGE_BACKEND: str = "local"
+    FILE_STORAGE_BACKEND: str = "cloudinary"
     STORAGE_ROOT: Path = BASE_DIR / "storage"
     CLOUDINARY_URL: str | None = None
     CLOUDINARY_CLOUD_NAME: str | None = None
@@ -59,6 +59,19 @@ class Settings(BaseSettings):
     SEED_SUPPORT_PASSWORD: str | None = None
 
     UPDATE_SEEDED_USERS_PASSWORDS: bool = False
+
+    @field_validator("FILE_STORAGE_BACKEND", mode="before")
+    @classmethod
+    def normalize_file_storage_backend(cls, value):
+        if value is None or str(value).strip() == "":
+            return "cloudinary"
+
+        normalized = str(value).strip().lower()
+
+        if normalized not in {"cloudinary", "local"}:
+            raise ValueError("FILE_STORAGE_BACKEND must be 'cloudinary' or 'local'")
+
+        return normalized
     
     
     # Db URL
