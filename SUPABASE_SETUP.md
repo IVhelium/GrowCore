@@ -15,20 +15,9 @@ DATABASE_URL=postgres://postgres.<project-ref>:<database-password>@aws-<region>.
 The app automatically converts `postgres://` or `postgresql://` to the asyncpg
 driver URL required by SQLAlchemy.
 
-If you prefer separate variables instead of `DATABASE_URL`, use:
-
-```env
-POSTGRES_USER=postgres.<project-ref>
-POSTGRES_PASSWORD=<database-password>
-POSTGRES_HOST=aws-<region>.pooler.supabase.com
-POSTGRES_PORT=5432
-POSTGRES_DB=postgres
-DB_POOL_SIZE=2
-DB_MAX_OVERFLOW=3
-```
-
-Do not set both approaches unless they point to the same database.
-`DATABASE_URL` takes priority.
+Use only `DATABASE_URL` for the Supabase connection. Do not also set separate
+`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT`, or
+`POSTGRES_DB` variables in production.
 
 ## How to get the values
 

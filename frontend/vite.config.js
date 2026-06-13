@@ -20,7 +20,12 @@ export default defineConfig({
       },
 
       "/storage": {
-        target: "http://localhost:8000",
+        target: apiProxyTarget,
+        changeOrigin: true,
+      },
+
+      "/media": {
+        target: apiProxyTarget,
         changeOrigin: true,
       },
     },

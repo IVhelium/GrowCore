@@ -2,6 +2,7 @@ import uuid
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path, PurePosixPath
+from urllib.parse import unquote, urlparse
 import aiofiles
 from fastapi import HTTPException, UploadFile, status
 from starlette.concurrency import run_in_threadpool
@@ -399,7 +400,23 @@ class FileStorageService:
         import cloudinary
 
         if settings.CLOUDINARY_URL:
-            cloudinary.config(secure=True)
+            parsed_url = urlparse(settings.CLOUDINARY_URL)
+            cloud_name = parsed_url.hostname
+            api_key = unquote(parsed_url.username or "")
+            api_secret = unquote(parsed_url.password or "")
+
+            if not cloud_name or not api_key or not api_secret:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="CLOUDINARY_URL must be cloudinary://<api-key>:<api-secret>@<cloud-name>",
+                )
+
+            cloudinary.config(
+                cloud_name=cloud_name,
+                api_key=api_key,
+                api_secret=api_secret,
+                secure=True,
+            )
             return
 
         missing_values = [
@@ -493,20 +510,39 @@ class FileStorageService:
         return resource_type, public_id
 
     def _cloudinary_storage_key_from_url(self, public_url: str) -> str | None:
-        marker = "/upload/"
+        parsed_url = urlparse(public_url)
+        path_parts = [part for part in parsed_url.path.split("/") if part]
 
-        if marker not in public_url:
+        try:
+            upload_index = path_parts.index("upload")
+        except ValueError:
             return None
 
-        public_id = public_url.split(marker, 1)[1]
-        public_id_parts = public_id.split("/")
+        if upload_index == 0:
+            return None
+
+        resource_type = path_parts[upload_index - 1]
+
+        if resource_type not in {"image", "raw", "video"}:
+            return None
+
+        public_id_parts = path_parts[upload_index + 1 :]
+
+        if not public_id_parts:
+            return None
 
         if public_id_parts and public_id_parts[0].startswith("v") and public_id_parts[0][1:].isdigit():
-            public_id = "/".join(public_id_parts[1:])
+            public_id_parts = public_id_parts[1:]
 
-        public_id = public_id.rsplit(".", 1)[0]
+        public_id = "/".join(public_id_parts)
+
+        if resource_type in {"image", "video"}:
+            public_id = public_id.rsplit(".", 1)[0]
+
+        if resource_type == "raw" and "." in public_id_parts[-1]:
+            public_id = public_id.rsplit(".", 1)[0]
 
         if not public_id:
             return None
 
-        return f"image/{public_id}"
+        return f"{resource_type}/{public_id}"

@@ -50,7 +50,7 @@ Environment variables:
 
 ```env
 ENV=production
-DATABASE_URL=
+DATABASE_URL=postgres://postgres.<project-ref>:<database-password>@aws-<region>.pooler.supabase.com:5432/postgres
 DB_POOL_SIZE=2
 DB_MAX_OVERFLOW=3
 
@@ -64,6 +64,7 @@ FRONTEND_URL=https://your-frontend.vercel.app
 ADDITIONAL_CORS_ORIGINS=
 
 FILE_STORAGE_BACKEND=cloudinary
+CLOUDINARY_URL=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
@@ -86,6 +87,11 @@ MIGRATION_MAX_ATTEMPTS=5
 ```
 
 Leave Stripe values empty if payments are not needed yet.
+
+For Cloudinary you can use either `CLOUDINARY_URL` or the three separate
+variables `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and
+`CLOUDINARY_API_SECRET`. If `CLOUDINARY_URL` is set, the separate Cloudinary
+values are optional.
 
 ## 3. Vercel frontend
 
