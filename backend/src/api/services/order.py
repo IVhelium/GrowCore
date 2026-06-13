@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, ReturnStatus
 from src.core.config import settings
 from src.api.services.notification import NotificationService
-from src.api.services.orders import (
+from src.utils.orders import (
     create_payment_document,
     format_stripe_address,
     get_stripe_custom_field,
