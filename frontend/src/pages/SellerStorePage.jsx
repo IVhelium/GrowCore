@@ -16,6 +16,7 @@ import {
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
+import { useAuth } from "../hooks/useAuth";
 
 function StatusBadge({ status }) {
   const styles = {
@@ -38,6 +39,7 @@ function StatusBadge({ status }) {
 
 export default function SellerStorePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [store, setStore] = useState(null);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,6 +127,7 @@ export default function SellerStorePage() {
       .filter(Boolean)
       .some((value) => value.toLowerCase().includes(query));
   });
+  const isSellerBlocked = Boolean(user?.isBlocked || store?.user?.is_blocked);
 
   return (
     <main>
@@ -134,6 +137,7 @@ export default function SellerStorePage() {
           title="My store"
           text="Manage your storefront and product moderation queue."
           action={
+            !isSellerBlocked && (
             <Link
               to="/seller/products/new"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4F8A5B] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3F7148]"
@@ -141,8 +145,15 @@ export default function SellerStorePage() {
               <Plus size={18} />
               Add product
             </Link>
+            )
           }
         />
+
+        {isSellerBlocked && (
+          <p className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+            Your seller account is blocked. Store editing and product publishing are disabled. Contact support for help.
+          </p>
+        )}
 
         {errorMessage && (
           <p className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600">
@@ -174,7 +185,7 @@ export default function SellerStorePage() {
                 </div>
               </div>
 
-              <div className="grid gap-4">
+              <fieldset disabled={isSellerBlocked || isSaving} className="grid gap-4">
                 <FormField
                   label="Store name"
                   name="name"
@@ -191,9 +202,9 @@ export default function SellerStorePage() {
                   maxLength={300}
                   defaultValue={store?.description || ""}
                 />
-              </div>
+              </fieldset>
 
-              <Button type="submit" disabled={isSaving} className="mt-5 w-full">
+              <Button type="submit" disabled={isSaving || isSellerBlocked} className="mt-5 w-full">
                 <Save size={17} />
                 Save store
               </Button>
@@ -224,8 +235,8 @@ export default function SellerStorePage() {
                   <EmptyState
                     title="No products yet"
                     text="Create your first product and send it for moderation."
-                    actionText="Add product"
-                    onAction={() => navigate("/seller/products/new")}
+                    actionText={isSellerBlocked ? undefined : "Add product"}
+                    onAction={isSellerBlocked ? undefined : () => navigate("/seller/products/new")}
                   />
                 </div>
               ) : (
@@ -264,21 +275,25 @@ export default function SellerStorePage() {
                         </div>
 
                         <div className="flex shrink-0 flex-wrap gap-2">
-                          <Link
-                            to={`/seller/products/${product.id}/edit`}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
-                          >
-                            <Edit size={16} />
-                            Edit
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProduct(product)}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                          >
-                            <Trash2 size={16} />
-                            Delete
-                          </button>
+                          {!isSellerBlocked && (
+                            <>
+                              <Link
+                                to={`/seller/products/${product.id}/edit`}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                              >
+                                <Edit size={16} />
+                                Edit
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProduct(product)}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </article>

@@ -13,6 +13,7 @@ export default function ChatsPanel({
   isLoading,
   isChatLoading,
   isSending,
+  disabled = false,
   onSelectChat,
   onTextChange,
   onSendMessage,
@@ -81,6 +82,7 @@ export default function ChatsPanel({
                 onSubmit={onSendMessage}
                 isLoading={isChatLoading}
                 isSending={isSending}
+                disabled={disabled}
                 heightPx={720}
                 heightClassName=""
               />

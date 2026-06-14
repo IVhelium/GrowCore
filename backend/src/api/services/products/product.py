@@ -10,7 +10,7 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.files.file_storage import FileStorageService
 from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
-from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, UserModel
+from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, StoreModel, UserModel
 from src.schemas import CreateProductDTO, CreateReviewDTO, CreateReviewReplyDTO, DeleteProductDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
@@ -57,6 +57,7 @@ class ProductService(ProductBaseService):
         After a flush, generates an image_storage_prefix for future product images
         """
 
+        self._ensure_seller_active(seller)
         store = await self._get_seller_store(seller)
 
         await self._check_category(schema.category_id)
@@ -107,6 +108,7 @@ class ProductService(ProductBaseService):
         Returns the products from the current seller's store, paginated
         """
 
+        self._ensure_seller_active(seller)
         store = await self._get_seller_store(seller)
 
         query = (
@@ -131,6 +133,7 @@ class ProductService(ProductBaseService):
         Returns a specific product from the current seller
         """
 
+        self._ensure_seller_active(seller)
         return await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -148,6 +151,7 @@ class ProductService(ProductBaseService):
         Public-facing changes are sent to moderation.
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -232,6 +236,7 @@ class ProductService(ProductBaseService):
         The product must have at least one image
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -282,6 +287,7 @@ class ProductService(ProductBaseService):
         You can only change the availability of approved products
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -321,6 +327,7 @@ class ProductService(ProductBaseService):
         Published products are soft-deleted so historical orders stay intact.
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -373,11 +380,14 @@ class ProductService(ProductBaseService):
 
         query = (
             select(ProductModel)
+            .join(ProductModel.store)
+            .join(StoreModel.user)
             .options(*self._product_options())
             .where(
                 ProductModel.enabled.is_(True),
                 ProductModel.moderation_status
                 == ProductModerationStatus.approved,
+                UserModel.is_blocked.is_(False),
             )
         )
 
@@ -421,6 +431,7 @@ class ProductService(ProductBaseService):
         if (
             product.moderation_status != ProductModerationStatus.approved
             or not product.enabled
+            or product.store.user.is_blocked
         ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

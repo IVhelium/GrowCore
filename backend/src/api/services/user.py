@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile, status
 from datetime import datetime, timedelta
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -13,6 +13,8 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
 from src.models import (
     NotificationModel,
+    ProductModel,
+    StoreModel,
     UserFollowEventModel,
     UserFollowModel,
     UserFriendModel,
@@ -650,6 +652,15 @@ class UserService:
         user.block_reason = trimmed_reason if blocked else None
 
         if blocked:
+            await self.db.execute(
+                update(ProductModel)
+                .where(
+                    ProductModel.store_id.in_(
+                        select(StoreModel.id).where(StoreModel.user_id == user.id)
+                    )
+                )
+                .values(enabled=False)
+            )
             await NotificationService(self.db).create(
                 user_id=user.id,
                 title="Account blocked",

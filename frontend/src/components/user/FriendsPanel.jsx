@@ -24,7 +24,7 @@ export default function FriendsPanel({
       <h2 className="text-xl font-bold text-slate-950">Friends</h2>
 
       {!isAuthenticated ? (
-        <EmptyState title="Sign in to see friends" text="Your friends appear here." />
+        <EmptyState title="Sign in to see friends" text="Your friends appear here."/>
       ) : (
         <>
           {friendRequests.length > 0 && (
@@ -77,7 +77,7 @@ export default function FriendsPanel({
 
           <form
             onSubmit={onSearchSubmit}
-            className="mt-4 flex max-w-xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+            className="my-4 flex max-w-xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
           >
             <input
               value={search}
@@ -96,7 +96,7 @@ export default function FriendsPanel({
               Loading friends...
             </div>
           ) : friends.length === 0 ? (
-            <EmptyState title="No friends found" text="Add friends from public profiles." />
+            <EmptyState title="No friends found" text="Add friends from public profiles."/>
           ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {friends.map((friend) => (

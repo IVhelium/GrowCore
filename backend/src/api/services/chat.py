@@ -170,6 +170,12 @@ class ChatService:
         public_id: str,
         schema: CreateUserChatMessageDTO,
     ) -> UserChatMessageModel:
+        if current_user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account is blocked. You can only contact support.",
+            )
+
         target = await self._get_user_by_public_id(public_id)
 
         if target.id == current_user.id:

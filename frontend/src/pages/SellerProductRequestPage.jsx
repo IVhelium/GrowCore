@@ -24,9 +24,11 @@ import {
 } from "../utils/productDescriptionTemplate";
 import { createRequiredAttributeRows } from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
+import { useAuth } from "../hooks/useAuth";
 
 export default function SellerProductRequestPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { categories, isCategoriesLoading } = useCategories();
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -44,6 +46,11 @@ export default function SellerProductRequestPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (user?.isBlocked) {
+      setErrorMessage("Your seller account is blocked. Contact support to restore product publishing.");
+      return;
+    }
 
     if (!imageFile) {
       setErrorMessage("Add at least one product image before submission");
@@ -119,6 +126,12 @@ export default function SellerProductRequestPage() {
           className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
         >
           <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+            {user?.isBlocked && (
+              <p className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                Your seller account is blocked. Product publishing is disabled. Contact support for help.
+              </p>
+            )}
+
             {errorMessage && (
               <p className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600">
                 {errorMessage}
@@ -197,7 +210,7 @@ export default function SellerProductRequestPage() {
               />
             </div>
 
-            <Button type="submit" disabled={isSubmitting} className="mt-6">
+            <Button type="submit" disabled={isSubmitting || user?.isBlocked} className="mt-6">
               <Send size={17} />
               Send for moderation
             </Button>

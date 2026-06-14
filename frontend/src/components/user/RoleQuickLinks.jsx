@@ -23,6 +23,7 @@ export default function RoleQuickLinks({
   const isAdmin = roles.includes("admin");
   const isSupport = roles.includes("support");
   const isSeller = roles.includes("seller");
+  const isBlocked = Boolean(user.isBlocked || user.is_blocked);
   const links = [];
 
   if (isAdmin) {
@@ -52,12 +53,14 @@ export default function RoleQuickLinks({
       icon: Store,
       style: "bg-[#4F8A5B] text-white hover:bg-[#3F7148]",
     });
-    links.push({
-      to: "/seller/products/new",
-      label: "Add product",
-      icon: PackagePlus,
-      style: "border border-[#4F8A5B] bg-white text-[#4F8A5B] hover:bg-[#F2F8F3]",
-    });
+    if (!isBlocked) {
+      links.push({
+        to: "/seller/products/new",
+        label: "Add product",
+        icon: PackagePlus,
+        style: "border border-[#4F8A5B] bg-white text-[#4F8A5B] hover:bg-[#F2F8F3]",
+      });
+    }
     links.push({
       to: "/seller-request",
       label: "Seller status",

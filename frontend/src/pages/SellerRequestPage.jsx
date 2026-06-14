@@ -75,6 +75,7 @@ export default function SellerRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [documentName, setDocumentName] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState(null);
 
   useEffect(() => {
     let isActive = true;
@@ -121,6 +122,7 @@ export default function SellerRequestPage() {
     }
 
     const data = getTrimmedFormData(event.currentTarget);
+    data.set("document", selectedDocument || data.get("document"));
 
     if (
       hasEmptyRequiredFields(data, [
@@ -145,6 +147,8 @@ export default function SellerRequestPage() {
         : await createSellerRequest(data);
 
       setRequest(savedRequest);
+      setSelectedDocument(null);
+      setDocumentName("");
       showToast("Seller request submitted", "success");
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not submit seller request"));
@@ -258,9 +262,14 @@ export default function SellerRequestPage() {
                     type="file"
                     accept="application/pdf"
                     required
-                    onChange={(event) =>
-                      setDocumentName(event.target.files?.[0]?.name || "")
-                    }
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+
+                      if (!file) return;
+
+                      setSelectedDocument(file);
+                      setDocumentName(file.name);
+                    }}
                     className="sr-only"
                   />
                 </span>

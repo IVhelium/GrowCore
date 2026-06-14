@@ -355,6 +355,11 @@ export default function UsersSearchPage() {
     const message = chatText.trim();
     if (!message || !selectedChat) return;
 
+    if (currentUser?.isBlocked) {
+      setError("Your account is blocked. You can only contact support.");
+      return;
+    }
+
     setIsChatSending(true);
     setError("");
 
@@ -471,6 +476,7 @@ export default function UsersSearchPage() {
             isLoading={isChatsLoading}
             isChatLoading={isChatLoading}
             isSending={isChatSending}
+            disabled={currentUser?.isBlocked}
             onSelectChat={handleSelectChat}
             onTextChange={setChatText}
             onSendMessage={handleSendMessage}

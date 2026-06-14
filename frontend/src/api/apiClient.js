@@ -8,23 +8,20 @@ function normalizeApiUrl(url) {
 }
 
 function getApiUrl() {
-  const normalizedUrl = normalizeApiUrl(configuredApiUrl);
-
-  if (
-    typeof window !== "undefined" &&
-    window.location.hostname.endsWith("vercel.app") &&
-    /^https:\/\/growcore\.onrender\.com$/i.test(normalizedUrl)
-  ) {
-    return "/api";
-  }
-
-  return normalizedUrl;
+  return normalizeApiUrl(configuredApiUrl);
 }
 
 export const API_URL = getApiUrl();
 
 export function getWebSocketUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const configuredWebSocketUrl = import.meta.env.VITE_WS_URL;
+
+  if (configuredWebSocketUrl) {
+    const wsUrl = new URL(normalizeApiUrl(configuredWebSocketUrl));
+    wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}${normalizedPath}`;
+    return wsUrl.toString();
+  }
 
   if (/^https?:\/\//i.test(API_URL)) {
     const apiUrl = new URL(API_URL);
