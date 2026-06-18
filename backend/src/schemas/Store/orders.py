@@ -100,7 +100,9 @@ class ReadOrderProductDTO(BaseModel):
     title: str
     price: Decimal
     discount_percent: Decimal = Decimal("0.00")
+    discount_expires_at: datetime | None = None
     discounted_price: Decimal
+    has_discount: bool = False
     images: list[ReadOrderProductImageDTO] = []
 
     model_config = ConfigDict(extra="forbid", from_attributes=True)

@@ -16,7 +16,9 @@ export function normalizeProduct(product) {
     price: Number(product.discounted_price ?? product.price),
     originalPrice: Number(product.price),
     discountPercent: Number(product.discount_percent || 0),
-    oldPrice: Number(product.discount_percent || 0) > 0
+    discountExpiresAt: product.discount_expires_at || null,
+    hasDiscount: Boolean(product.has_discount),
+    oldPrice: product.has_discount
       ? Number(product.price)
       : null,
     label: product.category?.name || "Product",
@@ -171,6 +173,7 @@ export async function createSellerProduct(payload) {
     description: payload.description,
     price: Number(payload.price),
     discount_percent: Number(payload.discountPercent || 0),
+    discount_expires_at: payload.discountExpiresAt || null,
     quantity: Number(payload.quantity),
     category_id: Number(payload.categoryId),
     attributes: payload.attributes || {},
@@ -187,6 +190,9 @@ export async function updateSellerProduct(productId, payload) {
     discount_percent: payload.discountPercent === ""
       ? undefined
       : Number(payload.discountPercent || 0),
+    discount_expires_at: payload.discountExpiresAt === undefined
+      ? undefined
+      : payload.discountExpiresAt || null,
     quantity: payload.quantity === "" ? undefined : Number(payload.quantity),
     category_id: payload.categoryId ? Number(payload.categoryId) : undefined,
     attributes: payload.attributes,

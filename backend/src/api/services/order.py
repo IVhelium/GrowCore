@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core.constants import DeliveryStatus, OrderStatus, PaymentStatus, ReturnStatus
 from src.core.config import settings
+from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
 from src.utils.orders import (
     create_payment_document,
@@ -60,6 +61,26 @@ class OrderService:
 
         return list(result.scalars().unique().all())
 
+    async def list_admin_transactions(
+        self,
+        pagination: PaginationParams,
+        payment_status: PaymentStatus | None = None,
+    ):
+        query = (
+            select(OrderModel)
+            .options(*self._order_options(), selectinload(OrderModel.user))
+            .order_by(OrderModel.created_at.desc())
+        )
+
+        if payment_status is not None:
+            query = query.where(OrderModel.payment_status == payment_status)
+
+        return await PaginationService.paginate(
+            db=self.db,
+            query=query,
+            pagination=pagination,
+        )
+
     async def _get_user_order(
         self,
         current_user: UserModel,
@@ -84,6 +105,43 @@ class OrderService:
             )
 
         return order
+
+    async def _decrement_order_stock(self, order: OrderModel) -> None:
+        required_by_product_id: dict[int, int] = {}
+
+        for item in order.items:
+            required_by_product_id[item.product_id] = (
+                required_by_product_id.get(item.product_id, 0) + item.quantity
+            )
+
+        product_ids = list(required_by_product_id)
+
+        if not product_ids:
+            return
+
+        result = await self.db.execute(
+            select(ProductModel)
+            .where(ProductModel.id.in_(product_ids))
+            .with_for_update()
+        )
+        products_by_id = {product.id: product for product in result.scalars().all()}
+
+        for product_id, required_quantity in required_by_product_id.items():
+            product = products_by_id.get(product_id)
+
+            if not product or product.quantity < required_quantity:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"Not enough quantity for {product.title if product else 'product'}",
+                )
+
+        for product_id, required_quantity in required_by_product_id.items():
+            product = products_by_id[product_id]
+            product.quantity -= required_quantity
+
+            if product.quantity <= 0:
+                product.quantity = 0
+                product.enabled = False
 
     async def _get_order(self, order_id: int) -> OrderModel:
         query = (
@@ -189,17 +247,7 @@ class OrderService:
                 detail="NIF is required for Portugal payments",
             )
 
-        for item in order.items:
-            product = item.product
-
-            if not product or product.quantity < item.quantity:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Not enough quantity for {product.title if product else 'product'}",
-                )
-
-        for item in order.items:
-            item.product.quantity -= item.quantity
+        await self._decrement_order_stock(order)
 
         order.payment_status = PaymentStatus.paid
         order.payment_transaction_id = transaction_id
@@ -532,17 +580,7 @@ class OrderService:
         order: OrderModel,
         session: dict,
     ) -> dict[str, bool]:
-        for item in order.items:
-            product = item.product
-
-            if not product or product.quantity < item.quantity:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=f"Not enough quantity for {product.title if product else 'product'}",
-                )
-
-        for item in order.items:
-            item.product.quantity -= item.quantity
+        await self._decrement_order_stock(order)
 
         order.payment_status = PaymentStatus.paid
         order.payment_transaction_id = session["id"]

@@ -44,6 +44,24 @@ img {
   word-break: break-word;
 }
 
+.chat-message-bubble {
+  display: inline-block !important;
+  inline-size: auto !important;
+  max-inline-size: min(80%, 42rem) !important;
+  min-inline-size: 0 !important;
+  overflow: hidden !important;
+}
+
+.chat-message-text {
+  display: block !important;
+  inline-size: auto !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  line-break: anywhere !important;
+}
 /* Header Popover */
 .catalog-popover-centered {
   position: fixed !important;

@@ -242,6 +242,16 @@ class CartService:
                         quantity=quantity,
                     )
                 )
+            else:
+                next_quantity = existing_item.quantity + quantity
+
+                if next_quantity > product.quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="Not enough product quantity in stock",
+                    )
+
+                existing_item.quantity = next_quantity
 
             if commit:
                 await self.db.commit()

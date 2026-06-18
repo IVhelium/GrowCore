@@ -40,10 +40,21 @@ class ProductBaseService:
         return (
             selectinload(ProductModel.images),
             selectinload(ProductModel.category),
-            selectinload(ProductModel.store),
+            selectinload(ProductModel.store).selectinload(StoreModel.user),
             selectinload(ProductModel.reviews)
             .selectinload(ReviewModel.user),
         )
+
+
+    @staticmethod
+    def _ensure_seller_active(
+        seller: UserModel,
+    ) -> None:
+        if seller.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account is blocked. Contact support to restore seller access.",
+            )
 
 
     async def _get_seller_store(
@@ -57,6 +68,7 @@ class ProductBaseService:
 
         query = (
             select(StoreModel)
+            .options(selectinload(StoreModel.user))
             .where(StoreModel.user_id == seller.id)
         )
 
@@ -77,6 +89,12 @@ class ProductBaseService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Seller store not found",
+            )
+
+        if store.user and store.user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Seller store is blocked",
             )
 
         return store

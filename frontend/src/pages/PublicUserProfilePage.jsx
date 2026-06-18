@@ -12,8 +12,10 @@ import {
   unfollowUser,
 } from "../api/userApi";
 import {
+  appendUniqueChatMessage,
   createChatSocket,
   getChatMessages,
+  normalizeChatMessage,
   sendChatMessage,
 } from "../api/chatApi";
 import { getPublicUserStore, getPublicUserStoreProducts } from "../api/storeApi";
@@ -53,7 +55,11 @@ export default function PublicUserProfilePage() {
   const isAdmin = hasRole(currentUser, "admin");
   const isOwnProfile = currentUser?.public_id === user?.public_id;
   const isSellerProfile = hasRole(user, "seller");
-  const canChat = !isOwnProfile && currentUser?.public_id && (isFriend || isSellerProfile);
+  const canChat =
+    !currentUser?.isBlocked &&
+    !isOwnProfile &&
+    currentUser?.public_id &&
+    (isFriend || isSellerProfile);
   const [friendRequestMessage, setFriendRequestMessage] = useState("");
 
   useEffect(() => {
@@ -118,7 +124,7 @@ export default function PublicUserProfilePage() {
   }, [currentUser?.public_id, publicId]);
 
   useEffect(() => {
-    if (!currentUser?.public_id || !user?.public_id || isOwnProfile) {
+    if (!currentUser?.public_id || !user?.public_id || isOwnProfile || currentUser?.isBlocked) {
       return undefined;
     }
 
@@ -132,7 +138,7 @@ export default function PublicUserProfilePage() {
         return;
       }
 
-      const incomingMessage = payload.message;
+      const incomingMessage = normalizeChatMessage(payload.message);
       const senderId = incomingMessage.sender?.public_id;
       const recipientId = incomingMessage.recipient?.public_id;
       const belongsToOpenChat =
@@ -144,17 +150,7 @@ export default function PublicUserProfilePage() {
       }
 
       setChatMessages((currentMessages) => {
-        if (currentMessages.some((message) => message.id === incomingMessage.id)) {
-          return currentMessages;
-        }
-
-        return [
-          ...currentMessages,
-          {
-            ...incomingMessage,
-            createdAt: incomingMessage.created_at || incomingMessage.createdAt,
-          },
-        ];
+        return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
     };
 
@@ -168,7 +164,7 @@ export default function PublicUserProfilePage() {
         chatSocketRef.current = null;
       }
     };
-  }, [currentUser?.public_id, isOwnProfile, user?.public_id]);
+  }, [currentUser?.isBlocked, currentUser?.public_id, isOwnProfile, user?.public_id]);
 
   async function handleBlock() {
     const reason = window.prompt(`Reason for blocking ${user.username}`);
@@ -252,6 +248,11 @@ export default function PublicUserProfilePage() {
 
     if (!message || !user) return;
 
+    if (currentUser?.isBlocked) {
+      setErrorMessage("Your account is blocked. You can only contact support.");
+      return;
+    }
+
     setIsChatSending(true);
 
     try {
@@ -264,7 +265,9 @@ export default function PublicUserProfilePage() {
         );
       } else {
         const createdMessage = await sendChatMessage(user.public_id, message);
-        setChatMessages((currentMessages) => [...currentMessages, createdMessage]);
+        setChatMessages((currentMessages) =>
+          appendUniqueChatMessage(currentMessages, createdMessage),
+        );
       }
 
       setChatText("");

@@ -1,4 +1,4 @@
-import { apiClient, resolvestorageUrl } from "./apiClient";
+import { apiClient, getPaginationParams, resolvestorageUrl } from "./apiClient";
 
 const FALLBACK_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop";
@@ -36,6 +36,7 @@ export function normalizeOrder(order) {
     trackingNumber: order.tracking_number,
     returnReason: order.return_reason,
     date: order.created_at,
+    userId: order.user_id,
     items: (order.items || []).map(normalizeOrderItem),
   };
 }
@@ -43,6 +44,24 @@ export function normalizeOrder(order) {
 export async function getOrders() {
   const { data } = await apiClient.get("/orders");
   return (data || []).map(normalizeOrder);
+}
+
+export async function getAdminTransactions({
+  limit = 20,
+  offset = 0,
+  paymentStatus,
+} = {}) {
+  const { data } = await apiClient.get("/orders/admin/transactions", {
+    params: {
+      ...getPaginationParams({ limit, offset }),
+      payment_status: paymentStatus || undefined,
+    },
+  });
+
+  return {
+    ...data,
+    items: (data.items || []).map(normalizeOrder),
+  };
 }
 
 export async function confirmStripeCheckout(sessionId) {

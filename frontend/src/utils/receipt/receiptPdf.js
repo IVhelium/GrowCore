@@ -95,7 +95,7 @@ function buildReceiptLines(receipt) {
     "",
     "ITEMS",
     "----------------------------------------------------------------------------------------------",
-    `${pad("#", 4)}${pad("Product", 44)}${pad("Qty", 8, "right")}${pad("Unit", 16, "right")}${pad("Line total", 20, "right")}`,
+    `${pad("#", 4, "right")}${pad("Product", 44)}${pad("Qty", 8, "right")}${pad("Unit", 16, "right")}${pad("Line total", 20, "right")}`,
     "----------------------------------------------------------------------------------------------",
   ];
 
@@ -105,7 +105,7 @@ function buildReceiptLines(receipt) {
     const productLines = wrapText(item.title || "Product", 42);
 
     lines.push(
-      `${pad(index + 1, 4)}${pad(productLines[0], 44)}${pad(quantity, 8, "right")}${pad(money(unit), 16, "right")}${pad(money(unit * quantity), 20, "right")}`,
+      `${pad(index + 1, 4, "right")}${pad(productLines[0], 44)}${pad(quantity, 8, "right")}${pad(money(unit), 16, "right")}${pad(money(unit * quantity), 20, "right")}`,
     );
 
     productLines.slice(1).forEach((productLine) => {

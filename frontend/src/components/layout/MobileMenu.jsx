@@ -23,7 +23,7 @@ export default function MobileMenu({
       open={open}
       onClose={onClose}
       placement="left"
-      size={320}
+      size="min(22rem, calc(100vw - 1rem))"
       title={
         <Link
           to="/"
@@ -102,11 +102,11 @@ export default function MobileMenu({
         {user && (
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               onClose();
-              onLogout?.();
+              await onLogout?.();
             }}
-            className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50"
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
           >
             <LogOut size={18}/> Logout
           </button>

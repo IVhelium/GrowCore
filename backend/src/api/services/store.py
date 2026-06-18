@@ -86,6 +86,12 @@ class StoreService:
 
         store = await self.get_my_store(seller)
 
+        if seller.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account is blocked. Contact support to restore seller access.",
+            )
+
         data = schema.model_dump(exclude_unset=True)
 
         if not data:
@@ -151,6 +157,12 @@ class StoreService:
                 detail="Store not found",
             )
 
+        if store.user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Store not found",
+            )
+
         return store
 
     async def list_public_store_products(
@@ -164,7 +176,7 @@ class StoreService:
             .options(
                 selectinload(ProductModel.images),
                 selectinload(ProductModel.category),
-                selectinload(ProductModel.store),
+                selectinload(ProductModel.store).selectinload(StoreModel.user),
                 selectinload(ProductModel.reviews).selectinload(ReviewModel.user),
             )
             .where(

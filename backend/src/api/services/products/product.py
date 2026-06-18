@@ -10,7 +10,7 @@ from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.files.file_storage import FileStorageService
 from src.core.constants import ProductModerationStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
-from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, UserModel
+from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, StoreModel, UserModel
 from src.schemas import CreateProductDTO, CreateReviewDTO, CreateReviewReplyDTO, DeleteProductDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
@@ -57,6 +57,7 @@ class ProductService(ProductBaseService):
         After a flush, generates an image_storage_prefix for future product images
         """
 
+        self._ensure_seller_active(seller)
         store = await self._get_seller_store(seller)
 
         await self._check_category(schema.category_id)
@@ -66,6 +67,7 @@ class ProductService(ProductBaseService):
             description=schema.description.strip(),
             price=schema.price,
             discount_percent=schema.discount_percent,
+            discount_expires_at=schema.discount_expires_at,
             quantity=schema.quantity,
             attributes=self._clean_attributes(schema.attributes),
             category_id=schema.category_id,
@@ -107,6 +109,7 @@ class ProductService(ProductBaseService):
         Returns the products from the current seller's store, paginated
         """
 
+        self._ensure_seller_active(seller)
         store = await self._get_seller_store(seller)
 
         query = (
@@ -131,6 +134,7 @@ class ProductService(ProductBaseService):
         Returns a specific product from the current seller
         """
 
+        self._ensure_seller_active(seller)
         return await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -148,6 +152,7 @@ class ProductService(ProductBaseService):
         Public-facing changes are sent to moderation.
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -191,6 +196,14 @@ class ProductService(ProductBaseService):
         if "attributes" in data:
             data["attributes"] = self._clean_attributes(data["attributes"])
 
+        next_quantity = data.get("quantity", product.quantity)
+
+        if data.get("enabled") is True and next_quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot enable a product with zero stock",
+            )
+
         moderation_fields = {
             "title",
             "price",
@@ -205,6 +218,15 @@ class ProductService(ProductBaseService):
                 needs_moderation = True
 
             setattr(product, field, value)
+
+        if "quantity" in data:
+            if product.quantity <= 0:
+                product.enabled = False
+            elif (
+                product.moderation_status == ProductModerationStatus.approved
+                and "enabled" not in data
+            ):
+                product.enabled = True
 
         if needs_moderation:
             self._send_product_to_moderation(product)
@@ -232,6 +254,7 @@ class ProductService(ProductBaseService):
         The product must have at least one image
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -282,6 +305,7 @@ class ProductService(ProductBaseService):
         You can only change the availability of approved products
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -293,6 +317,12 @@ class ProductService(ProductBaseService):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Only approved products can change availability",
+            )
+
+        if schema.enabled and product.quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot enable a product with zero stock",
             )
 
         product.enabled = schema.enabled
@@ -321,6 +351,7 @@ class ProductService(ProductBaseService):
         Published products are soft-deleted so historical orders stay intact.
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -373,11 +404,14 @@ class ProductService(ProductBaseService):
 
         query = (
             select(ProductModel)
+            .join(ProductModel.store)
+            .join(StoreModel.user)
             .options(*self._product_options())
             .where(
                 ProductModel.enabled.is_(True),
                 ProductModel.moderation_status
                 == ProductModerationStatus.approved,
+                UserModel.is_blocked.is_(False),
             )
         )
 
@@ -421,6 +455,7 @@ class ProductService(ProductBaseService):
         if (
             product.moderation_status != ProductModerationStatus.approved
             or not product.enabled
+            or product.store.user.is_blocked
         ):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

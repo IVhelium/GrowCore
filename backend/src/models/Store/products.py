@@ -18,6 +18,7 @@ class ProductModel(Base):
         Numeric(precision=5, scale=2),
         default=Decimal("0.00"),
     )
+    discount_expires_at: Mapped[datetime | None] = mapped_column(nullable=True)
     quantity: Mapped[int]
     enabled: Mapped[bool] = mapped_column(default=True)
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)
@@ -83,7 +84,7 @@ class ProductModel(Base):
     def discounted_price(self) -> Decimal:
         discount = self.discount_percent or Decimal("0.00")
 
-        if discount <= 0:
+        if discount <= 0 or not self.has_discount:
             return self.price
 
         if discount >= 100:
@@ -94,7 +95,13 @@ class ProductModel(Base):
 
     @property
     def has_discount(self) -> bool:
-        return bool((self.discount_percent or Decimal("0.00")) > 0)
+        if (self.discount_percent or Decimal("0.00")) <= 0:
+            return False
+
+        if self.discount_expires_at and self.discount_expires_at <= datetime.utcnow():
+            return False
+
+        return True
     
 
 class ProductImageModel(Base):

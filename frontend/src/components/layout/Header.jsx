@@ -131,54 +131,72 @@ export default function Header({
       return undefined;
     }
 
-    const socket = createChatSocket();
+    let socket = null;
+    let reconnectTimer = null;
+    let isStopped = false;
 
-    socket.onmessage = (event) => {
-      let payload;
+    function connectSocket() {
+      socket = createChatSocket();
 
-      try {
-        payload = JSON.parse(event.data);
-      } catch {
-        return;
-      }
+      socket.onmessage = (event) => {
+        let payload;
 
-      if (payload.type === "notification") {
-        const notification = payload.notification;
-        setNotificationCount((count) => count + 1);
-        window.dispatchEvent(
-          new CustomEvent("growcore:notification-received", {
-            detail: notification,
-          }),
-        );
-        window.dispatchEvent(new Event("growcore:notifications-updated"));
-        showToast(notification?.title || "New notification", "success");
-        return;
-      }
-
-      if (payload.type === "message") {
-        const message = payload.message;
-        const isOwnMessage = message?.sender?.public_id === user?.public_id;
-
-        window.dispatchEvent(
-          new CustomEvent("growcore:chat-message-received", {
-            detail: message,
-          }),
-        );
-        if (isOwnMessage) {
+        try {
+          payload = JSON.parse(event.data);
+        } catch {
           return;
         }
 
-        showToast(
-          message?.sender?.username
-            ? `New message from ${message.sender.username}`
-            : "New chat message",
-          "success",
-        );
-      }
-    };
+        if (payload.type === "notification") {
+          const notification = payload.notification;
+          setNotificationCount((count) => count + 1);
+          window.dispatchEvent(
+            new CustomEvent("growcore:notification-received", {
+              detail: notification,
+            }),
+          );
+          window.dispatchEvent(new Event("growcore:notifications-updated"));
+          showToast(notification?.title || "New notification", "success");
+          return;
+        }
+
+        if (payload.type === "message") {
+          const message = payload.message;
+          const isOwnMessage = message?.sender?.public_id === user?.public_id;
+
+          window.dispatchEvent(
+            new CustomEvent("growcore:chat-message-received", {
+              detail: message,
+            }),
+          );
+          if (isOwnMessage) {
+            return;
+          }
+
+          showToast(
+            message?.sender?.username
+              ? `New message from ${message.sender.username}`
+              : "New chat message",
+            "success",
+          );
+        }
+      };
+
+      socket.onclose = () => {
+        if (isStopped) return;
+
+        reconnectTimer = window.setTimeout(connectSocket, 2500);
+      };
+    }
+
+    connectSocket();
 
     return () => {
-      socket.close();
+      isStopped = true;
+      if (reconnectTimer) {
+        window.clearTimeout(reconnectTimer);
+      }
+      socket?.close();
     };
   }, [isAuthenticated, user?.public_id]);
 
@@ -197,7 +215,7 @@ export default function Header({
           <div className="lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <button
-                type="submit"
+                type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
                 aria-label="Open Menu"
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
@@ -370,6 +388,7 @@ export default function Header({
         savedCount={savedCount}
         notificationCount={notificationCount}
         categories={categories}
+        onLogout={handleLogout}
       />
     </>
   );

@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import APIRouter, Query, Request, Response, status
 
 from src.core.dependencies import AdminDependency, CurrentUserDependency, OrderServiceDependency
-from src.schemas import CreateStripeCheckoutDTO, PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
+from src.core.constants import PaymentStatus
+from src.core.pagination import PaginationDependency
+from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
 
 
 router = APIRouter(
@@ -23,6 +25,22 @@ async def list_my_orders(
     """
 
     return await order_service.list_my_orders(current_user)
+
+
+@router.get(
+    "/admin/transactions",
+    response_model=PaginationDTO[ReadOrderDTO],
+)
+async def list_admin_transactions(
+    admin: AdminDependency,
+    order_service: OrderServiceDependency,
+    pagination: PaginationDependency,
+    payment_status: PaymentStatus | None = Query(default=None),
+):
+    return await order_service.list_admin_transactions(
+        pagination=pagination,
+        payment_status=payment_status,
+    )
 
 
 @router.post(

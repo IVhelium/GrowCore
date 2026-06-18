@@ -37,6 +37,7 @@ class ProductImageService(ProductBaseService):
         If the database record is not saved, the file is deleted
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,
@@ -119,6 +120,7 @@ class ProductImageService(ProductBaseService):
         First deletes the record from the database, then deletes the physical file
         """
 
+        self._ensure_seller_active(seller)
         product = await self._get_seller_product(
             seller=seller,
             product_id=product_id,

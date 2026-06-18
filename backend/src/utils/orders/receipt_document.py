@@ -7,17 +7,17 @@ from src.models import OrderModel
 def create_payment_document(order: OrderModel, session: dict) -> str:
     rows = []
     for index, item in enumerate(order.items, start=1):
-        title = escape(item.product.title if item.product else f"Product #{item.product_id}")
-        line_total = Decimal(item.price) * item.quantity
-        rows.append(
-            "<tr>"
-            f"<td>{index}</td>"
-            f"<td>{title}</td>"
-            f"<td>{item.quantity}</td>"
-            f"<td>{item.price}</td>"
-            f"<td>{line_total}</td>"
-            "</tr>"
-        )
+      title = escape(item.product.title if item.product else f"Product #{item.product_id}")
+      line_total = Decimal(item.price) * item.quantity
+      rows.append(
+        "<tr>"
+        f"<td>{index}</td>"
+        f"<td>{title}</td>"
+        f"<td>{item.quantity}</td>"
+        f"<td>{item.price}</td>"
+        f"<td>{line_total}</td>"
+        "</tr>"
+      )
 
     customer_details = session.get("customer_details") or {}
     receipt_email = escape(customer_details.get("email") or "")
