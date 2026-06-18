@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { MessageCircle, UserRoundCheck, Users } from "lucide-react";
 import {
+  appendUniqueChatMessage,
   createChatSocket,
   getChatMessages,
   getChatThreads,
+  normalizeChatMessage,
   sendChatMessage,
 } from "../api/chatApi";
 import {
@@ -256,7 +258,7 @@ export default function UsersSearchPage() {
         return;
       }
 
-      const incomingMessage = payload.message;
+      const incomingMessage = normalizeChatMessage(payload.message);
       const peer =
         incomingMessage.sender.public_id === currentUser?.public_id
           ? incomingMessage.recipient
@@ -272,7 +274,7 @@ export default function UsersSearchPage() {
         const updatedChat = {
           user: chatUser,
           lastMessage: incomingMessage.message,
-          lastMessageAt: incomingMessage.created_at,
+          lastMessageAt: incomingMessage.createdAt,
         };
 
         return [
@@ -291,19 +293,7 @@ export default function UsersSearchPage() {
           incomingMessage.recipient.public_id === selectedChat.public_id;
 
         if (!belongsToSelectedChat) return currentMessages;
-        if (
-          currentMessages.some((message) => message.id === incomingMessage.id)
-        ) {
-          return currentMessages;
-        }
-
-        return [
-          ...currentMessages,
-          {
-            ...incomingMessage,
-            createdAt: incomingMessage.created_at || incomingMessage.createdAt,
-          },
-        ];
+        return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
     };
 
@@ -369,10 +359,9 @@ export default function UsersSearchPage() {
         message,
       );
 
-      setChatMessages((currentMessages) => [
-        ...currentMessages,
-        createdMessage,
-      ]);
+      setChatMessages((currentMessages) =>
+        appendUniqueChatMessage(currentMessages, createdMessage),
+      );
       setChats((currentChats) => {
         const updatedChat = {
           user: selectedChat,

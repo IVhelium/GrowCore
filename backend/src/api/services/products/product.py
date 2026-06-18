@@ -67,6 +67,7 @@ class ProductService(ProductBaseService):
             description=schema.description.strip(),
             price=schema.price,
             discount_percent=schema.discount_percent,
+            discount_expires_at=schema.discount_expires_at,
             quantity=schema.quantity,
             attributes=self._clean_attributes(schema.attributes),
             category_id=schema.category_id,
@@ -195,6 +196,14 @@ class ProductService(ProductBaseService):
         if "attributes" in data:
             data["attributes"] = self._clean_attributes(data["attributes"])
 
+        next_quantity = data.get("quantity", product.quantity)
+
+        if data.get("enabled") is True and next_quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot enable a product with zero stock",
+            )
+
         moderation_fields = {
             "title",
             "price",
@@ -209,6 +218,15 @@ class ProductService(ProductBaseService):
                 needs_moderation = True
 
             setattr(product, field, value)
+
+        if "quantity" in data:
+            if product.quantity <= 0:
+                product.enabled = False
+            elif (
+                product.moderation_status == ProductModerationStatus.approved
+                and "enabled" not in data
+            ):
+                product.enabled = True
 
         if needs_moderation:
             self._send_product_to_moderation(product)
@@ -299,6 +317,12 @@ class ProductService(ProductBaseService):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Only approved products can change availability",
+            )
+
+        if schema.enabled and product.quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Cannot enable a product with zero stock",
             )
 
         product.enabled = schema.enabled

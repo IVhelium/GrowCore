@@ -37,6 +37,19 @@ function StatusBadge({ status }) {
   );
 }
 
+function formatDateTime(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleString("de-DE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 export default function SellerStorePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -262,6 +275,13 @@ export default function SellerStorePage() {
                             {product.category || "No category"} ·{" "}
                             {formatPrice(product.price)} · {product.quantity} pcs.
                           </p>
+                          {product.discountPercent > 0 && (
+                            <p className="mt-1 text-xs font-semibold text-[#4F8A5B]">
+                              Discount {product.discountExpiresAt
+                                ? `until ${formatDateTime(product.discountExpiresAt)}`
+                                : "without expiry"}
+                            </p>
+                          )}
 
                           <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
                             {product.description}

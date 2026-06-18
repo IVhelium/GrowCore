@@ -13,6 +13,25 @@ function formatMessageTime(value) {
   });
 }
 
+function renderMessageText(value) {
+  const parts = String(value || "").split(/(\s+)/);
+
+  return parts.flatMap((part, partIndex) => {
+    if (!part || /\s+/.test(part)) {
+      return part;
+    }
+
+    const chunks = part.match(/.{1,18}/gu) || [part];
+
+    return chunks.flatMap((chunk, chunkIndex) => [
+      <span key={`${partIndex}-${chunkIndex}`}>{chunk}</span>,
+      chunkIndex < chunks.length - 1
+        ? <wbr key={`${partIndex}-${chunkIndex}-break`} />
+        : null,
+    ]);
+  });
+}
+
 export default function ChatWindow({
   peer,
   currentUser,
@@ -100,25 +119,33 @@ export default function ChatWindow({
           <EmptyState title="No messages yet" text="Start the conversation." />
         ) : (
           <div className="grid min-w-0 gap-3">
-            {messages.map((message) => {
-              const isMine = message.sender.public_id === currentUser?.public_id;
+            {messages.map((message, index) => {
+              const isMine = message.sender?.public_id === currentUser?.public_id;
+              const messageKeyBase = message.clientKey || [
+                message.id,
+                message.sender?.public_id,
+                message.recipient?.public_id,
+                message.createdAt,
+              ].filter(Boolean).join(":");
+              const messageKey = `${messageKeyBase || "message"}:${index}`;
 
               return (
                 <div
-                  key={message.id}
-                  className={`min-w-0 overflow-hidden ${isMine ? "flex justify-end" : "grid grid-cols-[auto_minmax(0,1fr)] gap-3"}`}
+                  key={messageKey}
+                  className={`w-full min-w-0 max-w-full overflow-hidden ${
+                    isMine ? "flex justify-end" : "grid grid-cols-[auto_minmax(0,1fr)] gap-3"
+                  }`}
                 >
                   {!isMine && <UserAvatar user={message.sender} size="sm" />}
                   <div
-                    className={`min-w-0 max-w-[80%] overflow-hidden rounded-lg px-4 py-3 text-sm shadow-sm ${
+                    className={`chat-message-bubble rounded-lg px-4 py-3 text-sm shadow-sm ${isMine ? "" : "justify-self-start"} ${
                       isMine ? "bg-[#4F8A5B] text-white" : "bg-white text-slate-700"
                     }`}
                   >
                     <p
-                      className="min-w-0 max-w-full whitespace-pre-wrap wrap-break-words leading-5"
-                      style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+                      className="chat-message-text leading-5"
                     >
-                      {message.message}
+                      {renderMessageText(message.message)}
                     </p>
                     <p className={`mt-1 text-[11px] ${isMine ? "text-white/75" : "text-slate-400"}`}>
                       {formatMessageTime(message.createdAt)}
@@ -132,7 +159,7 @@ export default function ChatWindow({
       </div>
 
       {!disabled && (
-        <form onSubmit={handleSubmit} className="flex h-32 shrink-0 items-center gap-3 border-t border-slate-200 bg-white p-4">
+        <form onSubmit={handleSubmit} className="grid h-32 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-slate-200 bg-white p-3 md:gap-3 md:p-4">
           <textarea
             ref={textareaRef}
             value={value}
@@ -140,11 +167,18 @@ export default function ChatWindow({
             onKeyDown={handleKeyDown}
             placeholder="Write a message"
             rows={1}
-            className="max-h-24 min-h-11 min-w-0 flex-1 resize-none self-center whitespace-pre-wrap rounded-lg border border-slate-200 px-4 py-3 text-sm leading-5 outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
+            className="max-h-24 min-h-11 min-w-0 flex-1 resize-none self-center overflow-x-hidden whitespace-pre-wrap break-anywhere rounded-lg border border-slate-200 px-4 py-3 text-sm leading-5 outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
+            style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
           />
-          <Button type="submit" disabled={isSending || !value.trim()} className="self-center">
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isSending || !value.trim()}
+            className="h-11 w-11 shrink-0 self-center p-0 md:w-auto md:px-4"
+            aria-label="Send message"
+          >
             <Send size={17} />
-            Send
+            <span className="hidden md:inline">Send</span>
           </Button>
         </form>
       )}

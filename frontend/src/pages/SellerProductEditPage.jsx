@@ -30,6 +30,17 @@ import {
 } from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
 
+function toDateTimeLocalValue(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
+}
+
 export default function SellerProductEditPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -259,6 +270,13 @@ export default function SellerProductEditPage() {
                 max="100"
                 step="0.01"
                 defaultValue={product?.discountPercent || 0}
+              />
+
+              <FormField
+                label="Discount expires"
+                name="discountExpiresAt"
+                type="datetime-local"
+                defaultValue={toDateTimeLocalValue(product?.discountExpiresAt)}
               />
 
               <FormField

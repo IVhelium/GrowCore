@@ -105,7 +105,7 @@ class ProductModerationService(ProductBaseService):
 
         # The product becomes publicly available only after it is approved
         product.moderation_status = ProductModerationStatus.approved
-        product.enabled = True
+        product.enabled = product.quantity > 0
         product.rejection_reason = None
         product.moderated_at = datetime.utcnow()
         product.moderator_id = admin.id

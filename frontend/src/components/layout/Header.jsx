@@ -215,7 +215,7 @@ export default function Header({
           <div className="lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <button
-                type="submit"
+                type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
                 aria-label="Open Menu"
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
@@ -388,6 +388,7 @@ export default function Header({
         savedCount={savedCount}
         notificationCount={notificationCount}
         categories={categories}
+        onLogout={handleLogout}
       />
     </>
   );

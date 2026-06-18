@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -32,7 +33,9 @@ class ReadCartProductDTO(BaseModel):
     title: str
     price: Decimal
     discount_percent: Decimal = Decimal("0.00")
+    discount_expires_at: datetime | None = None
     discounted_price: Decimal
+    has_discount: bool = False
     quantity: int
     enabled: bool
     

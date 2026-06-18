@@ -191,6 +191,12 @@ export default function SellerProductRequestPage() {
               />
 
               <FormField
+                label="Discount expires"
+                name="discountExpiresAt"
+                type="datetime-local"
+              />
+
+              <FormField
                 label="Quantity"
                 name="quantity"
                 type="number"

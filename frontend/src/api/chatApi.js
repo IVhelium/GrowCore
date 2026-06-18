@@ -2,13 +2,55 @@ import { apiClient, getWebSocketUrl } from "./apiClient";
 import { normalizeUser } from "./userApi";
 
 export function normalizeChatMessage(message) {
+  const createdAt = message.created_at || message.createdAt || null;
+  const sender = normalizeUser(message.sender);
+  const recipient = normalizeUser(message.recipient);
+  const id = message.id ?? [
+    sender?.public_id,
+    recipient?.public_id,
+    createdAt,
+    message.message,
+  ].filter(Boolean).join(":");
+
   return {
-    id: message.id,
+    id,
+    clientKey: [
+      id,
+      sender?.public_id || "unknown-sender",
+      recipient?.public_id || "unknown-recipient",
+      createdAt || "unknown-time",
+    ].join(":"),
     message: message.message,
-    createdAt: message.created_at,
-    sender: normalizeUser(message.sender),
-    recipient: normalizeUser(message.recipient),
+    createdAt,
+    sender,
+    recipient,
   };
+}
+
+export function appendUniqueChatMessage(currentMessages, nextMessage) {
+  if (
+    currentMessages.some(
+      (message) =>
+        (message.id !== undefined &&
+          nextMessage.id !== undefined &&
+          String(message.id) === String(nextMessage.id)) ||
+        (message.clientKey && message.clientKey === nextMessage.clientKey),
+    )
+  ) {
+    return currentMessages;
+  }
+
+  return [...currentMessages, nextMessage];
+}
+
+export function normalizeChatMessages(messages) {
+  return (messages || [])
+    .map(normalizeChatMessage)
+    .reduce(
+      (uniqueMessages, message) =>
+        appendUniqueChatMessage(uniqueMessages, message),
+      [],
+    );
 }
 
 export function normalizeChatThread(thread) {
@@ -26,7 +68,7 @@ export async function getChatThreads() {
 
 export async function getChatMessages(publicId) {
   const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}/chat`);
-  return (data || []).map(normalizeChatMessage);
+  return normalizeChatMessages(data);
 }
 
 export async function sendChatMessage(publicId, message) {

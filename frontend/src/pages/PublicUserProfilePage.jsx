@@ -12,8 +12,10 @@ import {
   unfollowUser,
 } from "../api/userApi";
 import {
+  appendUniqueChatMessage,
   createChatSocket,
   getChatMessages,
+  normalizeChatMessage,
   sendChatMessage,
 } from "../api/chatApi";
 import { getPublicUserStore, getPublicUserStoreProducts } from "../api/storeApi";
@@ -136,7 +138,7 @@ export default function PublicUserProfilePage() {
         return;
       }
 
-      const incomingMessage = payload.message;
+      const incomingMessage = normalizeChatMessage(payload.message);
       const senderId = incomingMessage.sender?.public_id;
       const recipientId = incomingMessage.recipient?.public_id;
       const belongsToOpenChat =
@@ -148,17 +150,7 @@ export default function PublicUserProfilePage() {
       }
 
       setChatMessages((currentMessages) => {
-        if (currentMessages.some((message) => message.id === incomingMessage.id)) {
-          return currentMessages;
-        }
-
-        return [
-          ...currentMessages,
-          {
-            ...incomingMessage,
-            createdAt: incomingMessage.created_at || incomingMessage.createdAt,
-          },
-        ];
+        return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
     };
 
@@ -273,7 +265,9 @@ export default function PublicUserProfilePage() {
         );
       } else {
         const createdMessage = await sendChatMessage(user.public_id, message);
-        setChatMessages((currentMessages) => [...currentMessages, createdMessage]);
+        setChatMessages((currentMessages) =>
+          appendUniqueChatMessage(currentMessages, createdMessage),
+        );
       }
 
       setChatText("");

@@ -10,6 +10,7 @@ import {
   XCircle,
   Eye,
   FileSearch,
+  CreditCard,
   X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -29,6 +30,7 @@ import {
 } from "../api/sellerRequestApi";
 import { blockUser, getUsers, unblockUser } from "../api/userApi";
 import { createCategory } from "../api/categoriesApi";
+import { getAdminTransactions } from "../api/orderApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
@@ -42,6 +44,7 @@ import { showToast } from "../utils/showToast";
 const adminTabs = [
   { id: "moderation", label: "Product moderation" },
   { id: "controls", label: "Product controls" },
+  { id: "transactions", label: "Transactions" },
   { id: "sellerRequests", label: "Seller requests" },
   { id: "users", label: "Users" },
   { id: "categories", label: "Categories" },
@@ -49,6 +52,7 @@ const adminTabs = [
 
 const ADMIN_PAGE_SIZE = 8;
 const ADMIN_USERS_PAGE_SIZE = 39;
+const paymentStatusOptions = ["", "pending", "paid", "refunded", "failed"];
 
 function AdminTabs({ activeTab, onChange }) {
   return (
@@ -77,10 +81,18 @@ function StatusBadge({ status }) {
     open: "bg-blue-50 text-blue-700",
     in_progress: "bg-indigo-50 text-indigo-700",
     assigned: "bg-indigo-50 text-indigo-700",
+    paid: "bg-green-50 text-green-700",
     approved: "bg-green-50 text-green-700",
+    refunded: "bg-sky-50 text-sky-700",
+    failed: "bg-red-50 text-red-700",
     rejected: "bg-red-50 text-red-700",
     blocked: "bg-orange-50 text-orange-700",
     deleted: "bg-slate-200 text-slate-700",
+    preparing: "bg-amber-50 text-amber-700",
+    delivered: "bg-green-50 text-green-700",
+    delayed: "bg-red-50 text-red-700",
+    none: "bg-slate-100 text-slate-600",
+    requested: "bg-amber-50 text-amber-700",
     resolved: "bg-green-50 text-green-700",
     closed: "bg-slate-100 text-slate-600",
   };
@@ -145,6 +157,19 @@ function DetailRow({ label, value }) {
       </p>
     </div>
   );
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleString("de-DE", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 }
 
 function ReviewModal({ detail, onClose }) {
@@ -266,6 +291,10 @@ function ReviewModal({ detail, onClose }) {
               <div className="grid gap-4 rounded-lg bg-slate-50 p-4 md:grid-cols-3">
                 <DetailRow label="Category" value={item.category} />
                 <DetailRow label="Price" value={formatPrice(item.price)} />
+                <DetailRow
+                  label="Discount ends"
+                  value={item.discountExpiresAt ? formatDateTime(item.discountExpiresAt) : "No expiry"}
+                />
                 <DetailRow label="Quantity" value={item.quantity} />
                 <DetailRow label="Enabled" value={item.enabled ? "Yes" : "No"} />
                 <DetailRow label="Store" value={item.store?.name} />
@@ -295,9 +324,11 @@ export default function AdminPanelPage() {
   const [productTotal, setProductTotal] = useState(0);
   const [sellerRequests, setSellerRequests] = useState([]);
   const [adminProducts, setAdminProducts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
   const [sellerRequestTotal, setSellerRequestTotal] = useState(0);
   const [adminProductTotal, setAdminProductTotal] = useState(0);
+  const [transactionTotal, setTransactionTotal] = useState(0);
   const [adminUserTotal, setAdminUserTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -305,6 +336,8 @@ export default function AdminPanelPage() {
   const [activeTab, setActiveTab] = useState("moderation");
   const [moderationPage, setModerationPage] = useState(1);
   const [controlsPage, setControlsPage] = useState(1);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const [transactionStatusFilter, setTransactionStatusFilter] = useState("");
   const [requestsPage, setRequestsPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
   const [categoryName, setCategoryName] = useState("");
@@ -312,6 +345,7 @@ export default function AdminPanelPage() {
   const [tabSearch, setTabSearch] = useState({
     moderation: "",
     controls: "",
+    transactions: "",
     sellerRequests: "",
     users: "",
     categories: "",
@@ -322,7 +356,13 @@ export default function AdminPanelPage() {
     setIsLoading(true);
     setErrorMessage("");
 
-    const [productResult, requestResult, adminProductResult, usersResult] = await Promise.allSettled([
+    const [
+      productResult,
+      requestResult,
+      adminProductResult,
+      transactionResult,
+      usersResult,
+    ] = await Promise.allSettled([
       getPendingProducts({
         limit: ADMIN_PAGE_SIZE,
         offset: (moderationPage - 1) * ADMIN_PAGE_SIZE,
@@ -335,6 +375,11 @@ export default function AdminPanelPage() {
       getAdminProducts({
         limit: ADMIN_PAGE_SIZE,
         offset: (controlsPage - 1) * ADMIN_PAGE_SIZE,
+      }),
+      getAdminTransactions({
+        limit: ADMIN_PAGE_SIZE,
+        offset: (transactionsPage - 1) * ADMIN_PAGE_SIZE,
+        paymentStatus: transactionStatusFilter,
       }),
       getUsers({
         limit: ADMIN_USERS_PAGE_SIZE,
@@ -368,6 +413,14 @@ export default function AdminPanelPage() {
       setAdminProductTotal(0);
     }
 
+    if (transactionResult.status === "fulfilled") {
+      setTransactions(transactionResult.value.items);
+      setTransactionTotal(transactionResult.value.total);
+    } else {
+      setTransactions([]);
+      setTransactionTotal(0);
+    }
+
     if (usersResult.status === "fulfilled") {
       setAdminUsers(usersResult.value.items);
       setAdminUserTotal(usersResult.value.total);
@@ -380,6 +433,7 @@ export default function AdminPanelPage() {
       productResult,
       requestResult,
       adminProductResult,
+      transactionResult,
       usersResult,
     ].filter((result) => result.status === "rejected");
 
@@ -399,7 +453,14 @@ export default function AdminPanelPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAdminData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [controlsPage, moderationPage, requestsPage, usersPage]);
+  }, [
+    controlsPage,
+    moderationPage,
+    requestsPage,
+    transactionStatusFilter,
+    transactionsPage,
+    usersPage,
+  ]);
 
   const metrics = useMemo(
     () => [
@@ -416,14 +477,19 @@ export default function AdminPanelPage() {
         text: "New seller applications",
       },
       {
-        title: "Admin queues",
-        value: productTotal + sellerRequestTotal,
-        icon: ShieldAlert,
-        text: "Items awaiting administrator review",
+        title: "Transactions",
+        value: transactionTotal,
+        icon: CreditCard,
+        text: "Orders across payment statuses",
       },
       {
         title: "Visible queues",
-        value: products.length + sellerRequests.length + adminProducts.length + adminUsers.length,
+        value:
+          products.length +
+          sellerRequests.length +
+          adminProducts.length +
+          transactions.length +
+          adminUsers.length,
         icon: ShieldAlert,
         text: "Items loaded on this dashboard",
       },
@@ -433,6 +499,8 @@ export default function AdminPanelPage() {
       products.length,
       adminProducts.length,
       adminUsers.length,
+      transactionTotal,
+      transactions.length,
       sellerRequestTotal,
       sellerRequests.length,
     ],
@@ -518,6 +586,21 @@ export default function AdminPanelPage() {
     matchesSearch(
       [product.title, product.store?.name, product.category, product.moderationStatus],
       tabSearch.controls,
+    ),
+  );
+  const visibleTransactions = transactions.filter((transaction) =>
+    matchesSearch(
+      [
+        transaction.id,
+        transaction.paymentStatus,
+        transaction.deliveryStatus,
+        transaction.returnStatus,
+        transaction.transactionId,
+        transaction.paymentMethod,
+        transaction.customerNif,
+        transaction.userId,
+      ],
+      tabSearch.transactions,
     ),
   );
   const visibleSellerRequests = sellerRequests.filter((request) =>
@@ -999,6 +1082,104 @@ export default function AdminPanelPage() {
                   total={adminUserTotal}
                   pageSize={ADMIN_USERS_PAGE_SIZE}
                   onChange={setUsersPage}
+                />
+              </div>
+            </section>
+
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "transactions" ? "" : "hidden"}`}>
+              <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-950">
+                    Transactions
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    All orders by payment, delivery and return status
+                  </p>
+                </div>
+
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                  Payment status
+                  <select
+                    value={transactionStatusFilter}
+                    onChange={(event) => {
+                      setTransactionsPage(1);
+                      setTransactionStatusFilter(event.target.value);
+                    }}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none transition focus:border-[#4F8A5B]"
+                  >
+                    {paymentStatusOptions.map((status) => (
+                      <option key={status || "all"} value={status}>
+                        {status ? status.replace("_", " ") : "All statuses"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {visibleTransactions.length === 0 && (
+                  <p className="p-5 text-sm text-slate-500">
+                    No transactions loaded.
+                  </p>
+                )}
+
+                {visibleTransactions.map((transaction) => (
+                  <article key={transaction.id} className="p-5">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="font-bold text-slate-950">
+                            Order #{transaction.id}
+                          </h3>
+                          <StatusBadge status={transaction.paymentStatus} />
+                          <StatusBadge status={transaction.deliveryStatus} />
+                          <StatusBadge status={transaction.returnStatus} />
+                        </div>
+
+                        <p className="mt-1 text-sm text-slate-500">
+                          {formatPrice(transaction.total)} · {formatDateTime(transaction.date)}
+                        </p>
+                        <p className="break-anywhere mt-2 text-sm text-slate-600">
+                          User: {transaction.userId || "-"} · Method:{" "}
+                          {transaction.paymentMethod || "-"} · Transaction:{" "}
+                          {transaction.transactionId || "-"}
+                        </p>
+                        <p className="break-anywhere mt-2 text-sm text-slate-600">
+                          NIF: {transaction.customerNif || "-"} · Tracking:{" "}
+                          {transaction.trackingNumber || "-"}
+                        </p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {transaction.items.map((item) => (
+                            <span
+                              key={item.id}
+                              className="rounded-lg bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+                            >
+                              {item.title} x {item.quantity}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2 text-right">
+                        <p className="text-xs font-bold uppercase text-slate-400">
+                          Platform fee
+                        </p>
+                        <p className="font-bold text-slate-950">
+                          {formatPrice(transaction.companyFeeTotal)}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="px-5 pb-5">
+                <PaginationBar
+                  current={transactionsPage}
+                  total={transactionTotal}
+                  pageSize={ADMIN_PAGE_SIZE}
+                  onChange={setTransactionsPage}
                 />
               </div>
             </section>

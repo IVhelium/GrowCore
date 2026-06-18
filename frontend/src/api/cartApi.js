@@ -14,7 +14,9 @@ function normalizeCartItem(item) {
     price: Number(product.discounted_price ?? product.price),
     originalPrice: Number(product.price),
     discountPercent: Number(product.discount_percent || 0),
-    oldPrice: Number(product.discount_percent || 0) > 0
+    discountExpiresAt: product.discount_expires_at || null,
+    hasDiscount: Boolean(product.has_discount),
+    oldPrice: product.has_discount
       ? Number(product.price)
       : null,
     quantity: item.quantity,
