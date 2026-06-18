@@ -38,6 +38,7 @@ from .User.users import (
     UpdateUserDTO,
     UserChatThreadDTO,
     UserFriendRequestDTO,
+    BlockUserDTO
 )
 from .User.notifications import ReadNotificationDTO
 from .User.auth import RegisterDTO, LoginDTO, TokenResponseDTO
