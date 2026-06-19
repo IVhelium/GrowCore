@@ -75,6 +75,7 @@ export async function sendChatMessage(publicId, message) {
   const { data } = await apiClient.post(
     `/users/${encodeURIComponent(publicId)}/chat`,
     { message },
+    { _silent: true },
   );
   return normalizeChatMessage(data);
 }

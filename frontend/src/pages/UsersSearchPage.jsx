@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { MessageCircle, UserRoundCheck, Users } from "lucide-react";
 import {
   appendUniqueChatMessage,
-  createChatSocket,
   getChatMessages,
   getChatThreads,
   normalizeChatMessage,
@@ -250,19 +249,8 @@ export default function UsersSearchPage() {
       return undefined;
     }
 
-    let socket;
-    let cancelled = false;
-    createChatSocket().then((createdSocket) => {
-      if (cancelled) { createdSocket.close(); return; }
-      socket = createdSocket;
-      socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-
-      if (payload.type !== "message") {
-        return;
-      }
-
-      const incomingMessage = normalizeChatMessage(payload.message);
+    function handleIncomingMessage(event) {
+      const incomingMessage = normalizeChatMessage(event.detail);
       const peer =
         incomingMessage.sender.public_id === currentUser?.public_id
           ? incomingMessage.recipient
@@ -299,12 +287,11 @@ export default function UsersSearchPage() {
         if (!belongsToSelectedChat) return currentMessages;
         return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
-      };
-    }).catch(() => {});
+    }
+    window.addEventListener("growcore:chat-message-received", handleIncomingMessage);
 
     return () => {
-      cancelled = true;
-      socket?.close();
+      window.removeEventListener("growcore:chat-message-received", handleIncomingMessage);
     };
   }, [activeTab, currentUser?.public_id, isAuthenticated, selectedChat]);
 
@@ -358,7 +345,7 @@ export default function UsersSearchPage() {
     }
 
     setIsChatSending(true);
-    messageCooldownRef.current = Date.now() + 1000;
+    messageCooldownRef.current = Date.now() + 1500;
     setError("");
 
     try {
@@ -386,7 +373,9 @@ export default function UsersSearchPage() {
       });
       setChatText("");
     } catch (requestError) {
-      setError(getApiError(requestError, "Could not send message"));
+      if (requestError?.response?.status !== 429) {
+        setError(getApiError(requestError, "Could not send message"));
+      }
     } finally {
       window.setTimeout(() => setIsChatSending(false), Math.max(0, messageCooldownRef.current - Date.now()));
     }

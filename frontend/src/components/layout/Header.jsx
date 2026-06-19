@@ -98,15 +98,20 @@ export default function Header({
     let reconnectTimer = null;
     let isStopped = false;
     let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+
+    function scheduleReconnect() {
+      if (isStopped || reconnectAttempts >= maxReconnectAttempts) return;
+      reconnectAttempts += 1;
+      const delay = Math.min(30000, 2500 * (2 ** Math.min(reconnectAttempts - 1, 4)));
+      reconnectTimer = window.setTimeout(connectSocket, delay);
+    }
 
     async function connectSocket() {
       try {
         socket = await createChatSocket();
       } catch {
-        if (!isStopped) {
-          reconnectAttempts += 1;
-          reconnectTimer = window.setTimeout(connectSocket, Math.min(30000, 2500 * (2 ** Math.min(reconnectAttempts - 1, 4))));
-        }
+        scheduleReconnect();
         return;
       }
       if (isStopped) {
@@ -166,10 +171,7 @@ export default function Header({
       };
 
       socket.onclose = () => {
-        if (isStopped) return;
-        reconnectAttempts += 1;
-        const reconnectDelay = Math.min(30000, 2500 * (2 ** Math.min(reconnectAttempts - 1, 4)));
-        reconnectTimer = window.setTimeout(connectSocket, reconnectDelay);
+        scheduleReconnect();
       };
     }
 
