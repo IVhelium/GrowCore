@@ -19,6 +19,8 @@ export function getWebSocketUrl(path) {
 
   if (configuredWebSocketUrl) {
     const wsUrl = new URL(normalizeApiUrl(configuredWebSocketUrl));
+    if (wsUrl.protocol === "https:") wsUrl.protocol = "wss:";
+    if (wsUrl.protocol === "http:") wsUrl.protocol = "ws:";
     wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}${normalizedPath}`;
     return wsUrl.toString();
   }

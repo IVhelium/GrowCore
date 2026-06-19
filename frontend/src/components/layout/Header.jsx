@@ -97,9 +97,14 @@ export default function Header({
     let socket = null;
     let reconnectTimer = null;
     let isStopped = false;
+    let reconnectAttempts = 0;
 
     function connectSocket() {
       socket = createChatSocket();
+
+      socket.onopen = () => {
+        reconnectAttempts = 0;
+      };
 
       socket.onmessage = (event) => {
         let payload;
@@ -150,8 +155,9 @@ export default function Header({
 
       socket.onclose = () => {
         if (isStopped) return;
-
-        reconnectTimer = window.setTimeout(connectSocket, 2500);
+        reconnectAttempts += 1;
+        const reconnectDelay = Math.min(30000, 2500 * (2 ** Math.min(reconnectAttempts - 1, 4)));
+        reconnectTimer = window.setTimeout(connectSocket, reconnectDelay);
       };
     }
 
