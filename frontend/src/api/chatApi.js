@@ -79,6 +79,9 @@ export async function sendChatMessage(publicId, message) {
   return normalizeChatMessage(data);
 }
 
-export function createChatSocket() {
-  return new WebSocket(getWebSocketUrl("/users/ws/chats"));
+export async function createChatSocket() {
+  const { data } = await apiClient.post("/users/ws-ticket", null, { _silent: true });
+  const socketUrl = new URL(getWebSocketUrl("/users/ws/chats"));
+  socketUrl.searchParams.set("ticket", data.ticket);
+  return new WebSocket(socketUrl.toString());
 }

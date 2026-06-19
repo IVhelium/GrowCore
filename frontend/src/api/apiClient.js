@@ -15,7 +15,13 @@ export const API_URL = getApiUrl();
 
 export function getWebSocketUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  const configuredWebSocketUrl = import.meta.env.VITE_WS_URL;
+  const isLocalHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const configuredWebSocketUrl =
+    import.meta.env.VITE_WS_URL;
+
+  if (!configuredWebSocketUrl && !isLocalHost && API_URL.startsWith("/")) {
+    throw new Error("VITE_WS_URL must be configured for production WebSockets");
+  }
 
   if (configuredWebSocketUrl) {
     const wsUrl = new URL(normalizeApiUrl(configuredWebSocketUrl));

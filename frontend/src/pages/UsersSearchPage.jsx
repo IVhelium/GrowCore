@@ -250,9 +250,12 @@ export default function UsersSearchPage() {
       return undefined;
     }
 
-    const socket = createChatSocket();
-
-    socket.onmessage = (event) => {
+    let socket;
+    let cancelled = false;
+    createChatSocket().then((createdSocket) => {
+      if (cancelled) { createdSocket.close(); return; }
+      socket = createdSocket;
+      socket.onmessage = (event) => {
       const payload = JSON.parse(event.data);
 
       if (payload.type !== "message") {
@@ -296,10 +299,12 @@ export default function UsersSearchPage() {
         if (!belongsToSelectedChat) return currentMessages;
         return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
-    };
+      };
+    }).catch(() => {});
 
     return () => {
-      socket.close();
+      cancelled = true;
+      socket?.close();
     };
   }, [activeTab, currentUser?.public_id, isAuthenticated, selectedChat]);
 

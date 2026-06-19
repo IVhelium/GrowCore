@@ -129,10 +129,13 @@ export default function PublicUserProfilePage() {
       return undefined;
     }
 
-    const socket = createChatSocket();
-    chatSocketRef.current = socket;
-
-    socket.onmessage = (event) => {
+    let socket;
+    let cancelled = false;
+    createChatSocket().then((createdSocket) => {
+      if (cancelled) { createdSocket.close(); return; }
+      socket = createdSocket;
+      chatSocketRef.current = socket;
+      socket.onmessage = (event) => {
       const payload = JSON.parse(event.data);
 
       if (payload.type !== "message") {
@@ -153,14 +156,14 @@ export default function PublicUserProfilePage() {
       setChatMessages((currentMessages) => {
         return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
-    };
+      };
 
-    socket.onerror = () => {
-      chatSocketRef.current = null;
-    };
+      socket.onerror = () => { chatSocketRef.current = null; };
+    }).catch(() => {});
 
     return () => {
-      socket.close();
+      cancelled = true;
+      socket?.close();
       if (chatSocketRef.current === socket) {
         chatSocketRef.current = null;
       }
