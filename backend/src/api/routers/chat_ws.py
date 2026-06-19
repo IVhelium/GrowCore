@@ -2,6 +2,7 @@ from collections import defaultdict
 from json import JSONDecodeError
 from typing import Any
 from uuid import UUID
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
@@ -10,11 +11,25 @@ from sqlalchemy import select
 from src.api.services.chat import ChatService
 from src.core.config import settings
 from src.core.database import new_session
+from src.core.dependencies import CurrentUserDependency
 from src.models import UserModel
 from src.schemas import CreateUserChatMessageDTO
 
 
 router = APIRouter(tags=["Chats"])
+
+@router.post("/users/ws-ticket", response_model=dict[str, str])
+async def create_websocket_ticket(current_user: CurrentUserDependency):
+    ticket = jwt.encode(
+        {
+            "sub": str(current_user.id),
+            "purpose": "chat_websocket",
+            "exp": datetime.now(timezone.utc) + timedelta(seconds=60),
+        },
+        settings.JWT_SECRET,
+        algorithm="HS256",
+    )
+    return {"ticket": ticket}
 
 
 class ChatConnectionManager:
@@ -51,13 +66,15 @@ async def send_realtime_event(user_id: UUID, payload: dict[str, Any]) -> None:
 
 
 async def get_websocket_user(websocket: WebSocket) -> UserModel | None:
-    token = websocket.cookies.get(settings.JWT_ACCESS_COOKIE_NAME)
+    token = websocket.query_params.get("ticket") or websocket.cookies.get(settings.JWT_ACCESS_COOKIE_NAME)
 
     if not token:
         return None
 
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        if websocket.query_params.get("ticket") and payload.get("purpose") != "chat_websocket":
+            return None
         user_id = UUID(str(payload.get("sub")))
     except Exception:
         return None

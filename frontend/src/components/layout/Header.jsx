@@ -99,8 +99,20 @@ export default function Header({
     let isStopped = false;
     let reconnectAttempts = 0;
 
-    function connectSocket() {
-      socket = createChatSocket();
+    async function connectSocket() {
+      try {
+        socket = await createChatSocket();
+      } catch {
+        if (!isStopped) {
+          reconnectAttempts += 1;
+          reconnectTimer = window.setTimeout(connectSocket, Math.min(30000, 2500 * (2 ** Math.min(reconnectAttempts - 1, 4))));
+        }
+        return;
+      }
+      if (isStopped) {
+        socket.close();
+        return;
+      }
 
       socket.onopen = () => {
         reconnectAttempts = 0;
