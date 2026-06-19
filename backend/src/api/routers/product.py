@@ -1,4 +1,5 @@
 from typing import Annotated
+from decimal import Decimal
 
 from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
@@ -36,6 +37,13 @@ async def list_public_products(
     pagination: PaginationDependency,
     search: str | None = Query(default=None, max_length=100),
     category_id: int | None = Query(default=None),
+    min_price: Decimal | None = Query(default=None, ge=0),
+    max_price: Decimal | None = Query(default=None, ge=0),
+    seller: list[str] | None = Query(default=None),
+    availability: list[str] | None = Query(default=None),
+    label: list[str] | None = Query(default=None),
+    attributes: list[str] | None = Query(default=None),
+    sort: str = Query(default="new", pattern="^(popular|price-asc|price-des|new|random)$"),
 ):
     """
     Returns the public product catalog
@@ -46,6 +54,13 @@ async def list_public_products(
     return await product_service.list_public_products(
         search=search,
         category_id=category_id,
+        min_price=min_price,
+        max_price=max_price,
+        sellers=seller,
+        availability=availability,
+        labels=label,
+        attribute_filters=attributes,
+        sort=sort,
         pagination=pagination,
     )
 

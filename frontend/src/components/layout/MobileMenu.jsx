@@ -120,7 +120,7 @@ export default function MobileMenu({
         <nav className="grid gap-1">
           {categories.map((category) => {
             // Category icon selection from shared mapping.
-            const Icon = getCategoryIcon(category.name);
+            const Icon = getCategoryIcon(category);
 
             return (
             <Link

@@ -8,6 +8,7 @@ from src.core.constants import ProductModerationStatus
 from src.core.pagination import PaginationParams, PaginationService
 from src.models import ProductModel, ReviewModel, StoreModel, UserModel, UserRoleModel
 from src.schemas import UpdateStoreDTO
+from uuid import UUID
 
 
 class StoreService:
@@ -31,6 +32,26 @@ class StoreService:
 
         except SQLAlchemyError:
             pass
+
+    async def list_filter_stores(self, featured_only: bool) -> list[StoreModel]:
+        query = select(StoreModel).join(StoreModel.user).where(UserModel.is_blocked.is_(False))
+        if featured_only:
+            query = query.where(StoreModel.show_in_filters.is_(True))
+        result = await self.db.execute(query.order_by(StoreModel.name))
+        return list(result.scalars().all())
+
+    async def update_filter_store(self, store_id: str, show_in_filters: bool) -> StoreModel:
+        try:
+            parsed_id = UUID(store_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="Invalid store ID") from exc
+        store = await self.db.get(StoreModel, parsed_id)
+        if not store:
+            raise HTTPException(status_code=404, detail="Store not found")
+        store.show_in_filters = show_in_filters
+        await self.db.commit()
+        await self.db.refresh(store)
+        return store
 
 
     async def get_my_store(

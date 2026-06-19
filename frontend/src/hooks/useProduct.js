@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getProducts } from "../api/productApi";
-import { filterProducts, sortProducts } from "../utils/productCatalog";
 
 const CATALOG_PAGE_SIZE = 32;
 
@@ -49,10 +48,7 @@ export function useProducts() {
   };
 }
 
-export function useProductCatalog({
-  products = [],
-  categories = [],
-}) {
+export function useProductCatalog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({});
   const [sortValue, setSortValue] = useState("random");
@@ -81,6 +77,8 @@ export function useProductCatalog({
           offset: (currentPage - 1) * CATALOG_PAGE_SIZE,
           search: searchValue,
           categoryId,
+          filters,
+          sort: sortValue,
         });
 
         if (isActive) {
@@ -119,46 +117,10 @@ export function useProductCatalog({
     return () => {
       isActive = false;
     };
-  }, [categoryId, currentPage, searchValue]);
+  }, [categoryId, currentPage, filters, searchValue, sortValue]);
 
-  const fallbackCatalogProducts = useMemo(() => {
-    const filteredProducts = filterProducts({
-      products,
-      categories,
-      categoryValue,
-      filters,
-      searchValue,
-    });
-
-    return sortProducts(filteredProducts, sortValue);
-  }, [categories, categoryValue, filters, products, searchValue, sortValue]);
-
-  const fallbackPageProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * CATALOG_PAGE_SIZE;
-    return fallbackCatalogProducts.slice(
-      startIndex,
-      startIndex + CATALOG_PAGE_SIZE,
-    );
-  }, [currentPage, fallbackCatalogProducts]);
-
-  const hasClientOnlyCategory = categoryValue && categoryId === null;
-  const hasClientOnlyFilters =
-    hasClientOnlyCategory ||
-    filters.minPrice ||
-    filters.maxPrice ||
-    filters.label ||
-    filters.seller ||
-    filters.availability ||
-    filters.attributes ||
-    sortValue !== "random";
-
-  const shouldUseFallbackCatalog = catalogError || hasClientOnlyFilters;
-  const catalogProducts = shouldUseFallbackCatalog
-    ? fallbackPageProducts
-    : backendCatalogPage.items;
-  const catalogTotal = shouldUseFallbackCatalog
-    ? fallbackCatalogProducts.length
-    : backendCatalogPage.total;
+  const catalogProducts = backendCatalogPage.items;
+  const catalogTotal = backendCatalogPage.total;
 
   function searchCatalog(query) {
     const params = new URLSearchParams(searchParams);

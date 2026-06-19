@@ -56,6 +56,7 @@ class Settings(BaseSettings):
     SEED_SUPPORT_PASSWORD: str | None = None
 
     UPDATE_SEEDED_USERS_PASSWORDS: bool = False
+    CATEGORY_MANAGEMENT_SECRET: str | None = None
 
     @field_validator("FILE_STORAGE_BACKEND", mode="before")
     @classmethod

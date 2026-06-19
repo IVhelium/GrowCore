@@ -7,6 +7,8 @@ function normalizeCategory(category) {
     name: category.name,
     image: resolvestorageUrl(category.image_url),
     imageUrl: resolvestorageUrl(category.image_url),
+    iconName: category.icon_name || "SlidersHorizontal",
+    sortOrder: category.sort_order || 0,
   };
 }
 
@@ -19,11 +21,25 @@ export async function getCategories() {
   return (data || []).map(normalizeCategory);
 }
 
-export async function createCategory(payload) {
+export async function createCategory(payload, secret) {
   const { data } = await apiClient.post("/admin/categories", {
     name: payload.name,
-    image_url: payload.imageUrl,
-  });
+    icon_name: payload.iconName,
+    sort_order: Number(payload.sortOrder || 0),
+  }, { headers: { "X-Category-Secret": secret } });
 
   return normalizeCategory(data);
+}
+
+export async function updateCategory(categoryId, payload, secret) {
+  const { data } = await apiClient.patch(`/admin/categories/${categoryId}`, {
+    name: payload.name,
+    icon_name: payload.iconName,
+    sort_order: Number(payload.sortOrder || 0),
+  }, { headers: { "X-Category-Secret": secret } });
+  return normalizeCategory(data);
+}
+
+export async function deleteCategory(categoryId, secret) {
+  await apiClient.delete(`/admin/categories/${categoryId}`, { headers: { "X-Category-Secret": secret } });
 }

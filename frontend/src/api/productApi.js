@@ -56,13 +56,23 @@ export async function getProducts({
   offset = 0,
   search,
   categoryId,
+  filters = {},
+  sort = "new",
 } = {}) {
   const { data } = await apiClient.get("/products", {
     params: {
       ...getPaginationParams({ limit, offset }),
       search: search || undefined,
       category_id: categoryId || undefined,
+      min_price: filters.minPrice || undefined,
+      max_price: filters.maxPrice || undefined,
+      seller: filters.seller || undefined,
+      availability: filters.availability || undefined,
+      label: filters.label || undefined,
+      attributes: Object.entries(filters.attributes || {}).flatMap(([name, values]) => (Array.isArray(values) ? values : [values]).map((value) => `${name}:${value}`)),
+      sort,
     },
+    paramsSerializer: { indexes: null },
   });
 
   return {

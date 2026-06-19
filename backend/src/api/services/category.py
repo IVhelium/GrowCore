@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import CategoryModel
-from src.schemas import CreateCategoryDTO
+from src.schemas import CreateCategoryDTO, UpdateCategoryDTO
 from src.utils.catalog_seed import CATEGORIES
 
 
@@ -64,12 +64,9 @@ class CategoryService:
 
 
     async def list_categories(self) -> list[CategoryModel]:
-        await self._ensure_default_categories()
-
-        category_names = [seed.name for seed in CATEGORIES]
         query = (
             select(CategoryModel)
-            .order_by(CategoryModel.id)
+            .order_by(CategoryModel.sort_order, CategoryModel.name)
         )
 
         try:
@@ -81,29 +78,14 @@ class CategoryService:
                 detail="Could not load categories",
             ) from exc
 
-        categories_by_name = {}
-
-        for category in result.scalars().all():
-            categories_by_name.setdefault(category.name, category)
-
-        return [
-            categories_by_name[name]
-            for name in category_names
-            if name in categories_by_name
-        ] + [
-            category
-            for category in categories_by_name.values()
-            if category.name not in category_names
-        ]
+        return list(result.scalars().all())
 
     async def create_category(self, schema: CreateCategoryDTO) -> CategoryModel:
         name = schema.name.strip()
-        image_url = schema.image_url.strip()
-
-        if not name or not image_url:
+        if not name:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Category name and image URL are required",
+                detail="Category name is required",
             )
 
         existing_result = await self.db.execute(
@@ -116,7 +98,8 @@ class CategoryService:
                 detail="Category already exists",
             )
 
-        category = CategoryModel(name=name, image_url=image_url)
+        last_order = await self.db.scalar(select(func.max(CategoryModel.sort_order))) or 0
+        category = CategoryModel(name=name, image_url="", icon_name=schema.icon_name, sort_order=last_order + 10)
 
         try:
             self.db.add(category)
@@ -135,3 +118,33 @@ class CategoryService:
             ) from exc
 
         return category
+
+    async def update_category(self, category_id: int, schema: UpdateCategoryDTO) -> CategoryModel:
+        category = await self.db.get(CategoryModel, category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+        data = schema.model_dump(exclude_unset=True)
+        if "name" in data:
+            data["name"] = data["name"].strip()
+            if not data["name"]:
+                raise HTTPException(status_code=422, detail="Category name is required")
+        for field, value in data.items():
+            setattr(category, field, value)
+        try:
+            await self.db.commit()
+            await self.db.refresh(category)
+        except IntegrityError as exc:
+            await self.db.rollback()
+            raise HTTPException(status_code=409, detail="Category already exists") from exc
+        return category
+
+    async def delete_category(self, category_id: int) -> None:
+        category = await self.db.get(CategoryModel, category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+        try:
+            await self.db.delete(category)
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail="Could not delete category") from exc

@@ -12,7 +12,11 @@ import {
   FileSearch,
   CreditCard,
   X,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { createElement } from "react";
 import { Link } from "react-router-dom";
 import {
   approveProduct,
@@ -29,8 +33,10 @@ import {
   rejectSellerRequest,
 } from "../api/sellerRequestApi";
 import { blockUser, getUsers, unblockUser } from "../api/userApi";
-import { createCategory } from "../api/categoriesApi";
+import { createCategory, deleteCategory, getCategories, updateCategory } from "../api/categoriesApi";
+import { categoryIconOptions, getCategoryIcon } from "../utils/categoryIcons";
 import { getAdminTransactions } from "../api/orderApi";
+import { getAdminStoreFilterOptions, updateAdminStoreFilterOption } from "../api/storeApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
@@ -40,6 +46,7 @@ import UserAvatar from "../components/user/UserAvatar";
 import { formatPrice } from "../utils/formatPrice";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+import CategorySecretDialog from "../components/admin/CategorySecretDialog";
 
 const adminTabs = [
   { id: "moderation", label: "Product moderation" },
@@ -48,6 +55,7 @@ const adminTabs = [
   { id: "sellerRequests", label: "Seller requests" },
   { id: "users", label: "Users" },
   { id: "categories", label: "Categories" },
+  { id: "filterSellers", label: "Filter sellers" },
 ];
 
 const ADMIN_PAGE_SIZE = 8;
@@ -341,7 +349,11 @@ export default function AdminPanelPage() {
   const [requestsPage, setRequestsPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
   const [categoryName, setCategoryName] = useState("");
-  const [categoryImageUrl, setCategoryImageUrl] = useState("");
+  const [categoryIconName, setCategoryIconName] = useState("SlidersHorizontal");
+  const [categorySecretRequest, setCategorySecretRequest] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [filterStores, setFilterStores] = useState([]);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
   const [tabSearch, setTabSearch] = useState({
     moderation: "",
     controls: "",
@@ -349,6 +361,7 @@ export default function AdminPanelPage() {
     sellerRequests: "",
     users: "",
     categories: "",
+    filterSellers: "",
   });
   const [reviewDetail, setReviewDetail] = useState(null);
 
@@ -362,6 +375,8 @@ export default function AdminPanelPage() {
       adminProductResult,
       transactionResult,
       usersResult,
+      categoriesResult,
+      filterStoresResult,
     ] = await Promise.allSettled([
       getPendingProducts({
         limit: ADMIN_PAGE_SIZE,
@@ -385,6 +400,8 @@ export default function AdminPanelPage() {
         limit: ADMIN_USERS_PAGE_SIZE,
         offset: (usersPage - 1) * ADMIN_USERS_PAGE_SIZE,
       }),
+      getCategories(),
+      getAdminStoreFilterOptions(),
     ]);
 
     if (productResult.status === "fulfilled") {
@@ -428,6 +445,8 @@ export default function AdminPanelPage() {
       setAdminUsers([]);
       setAdminUserTotal(0);
     }
+    if (categoriesResult.status === "fulfilled") setCategories(categoriesResult.value);
+    if (filterStoresResult.status === "fulfilled") setFilterStores(filterStoresResult.value);
 
     const failedResults = [
       productResult,
@@ -435,6 +454,8 @@ export default function AdminPanelPage() {
       adminProductResult,
       transactionResult,
       usersResult,
+      categoriesResult,
+      filterStoresResult,
     ].filter((result) => result.status === "rejected");
 
     if (failedResults.length > 0) {
@@ -548,22 +569,69 @@ export default function AdminPanelPage() {
   async function handleCategorySubmit(event) {
     event.preventDefault();
 
-    if (!categoryName.trim() || !categoryImageUrl.trim()) {
-      showToast("Category name and image URL are required");
+    if (!categoryName.trim()) {
+      showToast("Category name is required");
       return;
     }
+    const payload = { name: categoryName.trim(), iconName: categoryIconName };
+    requestCategorySecret("Enter the secret to create this category.", async (secret) => {
+      await runAction("category-create", () => createCategory(payload, secret), "Category created");
+      setCategoryName("");
+      setCategoryIconName("SlidersHorizontal");
+    });
+  }
 
-    await runAction(
-      "category-create",
-      () =>
-        createCategory({
-          name: categoryName.trim(),
-          imageUrl: categoryImageUrl.trim(),
-        }),
-      "Category created",
-    );
-    setCategoryName("");
-    setCategoryImageUrl("");
+  function requestCategorySecret(title, action) {
+    setCategorySecretRequest({ title, action });
+  }
+
+  async function confirmCategorySecret(secret) {
+    const action = categorySecretRequest?.action;
+    setCategorySecretRequest(null);
+    if (action) await action(secret);
+  }
+
+  async function saveCategory(category) {
+    requestCategorySecret(`Enter the secret to save “${category.name}”.`, async (secret) => {
+      await runAction(`category-update-${category.id}`, () => updateCategory(category.id, {
+        name: category.name, iconName: category.iconName, sortOrder: category.sortOrder,
+      }, secret), "Category updated");
+      setEditingCategoryId(null);
+    });
+  }
+
+  async function removeCategory(category) {
+    if (!window.confirm(`Delete category “${category.name}”? Products will keep working without a category.`)) return;
+    requestCategorySecret(`Enter the secret to delete “${category.name}”.`, (secret) =>
+      runAction(`category-delete-${category.id}`, () => deleteCategory(category.id, secret), "Category deleted"));
+  }
+
+  async function moveCategory(category, direction) {
+    const index = categories.findIndex((item) => item.id === category.id);
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= categories.length) return;
+    const normalized = categories.map((item, itemIndex) => ({ ...item, sortOrder: (itemIndex + 1) * 10 }));
+    const current = normalized[index];
+    const target = normalized[targetIndex];
+    requestCategorySecret(`Enter the secret to move “${category.name}”.`, (secret) =>
+      runAction(`category-move-${category.id}`, () => Promise.all([
+        updateCategory(current.id, { ...current, sortOrder: target.sortOrder }, secret),
+        updateCategory(target.id, { ...target, sortOrder: current.sortOrder }, secret),
+      ]), "Category position updated"));
+  }
+
+  async function toggleFilterStore(store) {
+    const key = `filter-store-${store.id}`;
+    setBusyKey(key);
+    try {
+      const updated = await updateAdminStoreFilterOption(store.id, !store.showInFilters);
+      setFilterStores((items) => items.map((item) => item.id === updated.id ? updated : item));
+      showToast("Seller filter updated", "success");
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not update seller filter"));
+    } finally {
+      setBusyKey("");
+    }
   }
 
   function matchesSearch(values, query) {
@@ -612,11 +680,13 @@ export default function AdminPanelPage() {
   const visibleAdminUsers = adminUsers.filter((user) =>
     matchesSearch([user.username, user.public_id, user.email], tabSearch.users),
   );
+  const visibleFilterStores = filterStores.filter((store) => matchesSearch([store.name], tabSearch.filterSellers));
 
   return (
     <main>
       <Container className="py-8">
         <ReviewModal detail={reviewDetail} onClose={() => setReviewDetail(null)} />
+        <CategorySecretDialog request={categorySecretRequest} onCancel={() => setCategorySecretRequest(null)} onConfirm={confirmCategorySecret} />
         <PageHeader
           pretitle="Admin"
           title="Admin panel"
@@ -1149,16 +1219,24 @@ export default function AdminPanelPage() {
                           {transaction.trackingNumber || "-"}
                         </p>
 
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <details className="group mt-4 rounded-lg border border-slate-200 bg-slate-50">
+                          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-bold text-slate-700">
+                            <span>Products ({transaction.items.length})</span>
+                            <ChevronDown size={17} className="transition group-open:rotate-180" />
+                          </summary>
+                        <div className="grid gap-2 border-t border-slate-200 p-3 sm:grid-cols-2 xl:grid-cols-3">
                           {transaction.items.map((item) => (
-                            <span
+                            <Link
                               key={item.id}
-                              className="rounded-lg bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
+                              to={item.productId ? `/product/${item.productId}` : "#"}
+                              className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2 transition hover:border-[#4F8A5B]/40"
                             >
-                              {item.title} x {item.quantity}
-                            </span>
+                              <img src={item.image} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
+                              <span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-700">{item.title}</span><span className="text-xs text-slate-500">{item.quantity} × {formatPrice(item.price)}</span></span>
+                            </Link>
                           ))}
                         </div>
+                        </details>
                       </div>
 
                       <div className="grid gap-2 text-right">
@@ -1189,14 +1267,12 @@ export default function AdminPanelPage() {
                 <h2 className="text-xl font-bold text-slate-950">
                   Categories
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Add catalog categories for seller products
-                </p>
+                <p className="mt-1 text-sm text-slate-500">Create, order and maintain catalog categories. Editing and deletion always require the secret.</p>
               </div>
 
               <form
                 onSubmit={handleCategorySubmit}
-                className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end"
+                className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5rem_auto] lg:items-end"
               >
                 <label className="grid gap-2">
                   <span className="text-sm font-semibold text-slate-700">
@@ -1213,16 +1289,18 @@ export default function AdminPanelPage() {
 
                 <label className="grid gap-2">
                   <span className="text-sm font-semibold text-slate-700">
-                    Image URL
+                    Lucide icon
                   </span>
-                  <input
-                    value={categoryImageUrl}
-                    onChange={(event) => setCategoryImageUrl(event.target.value)}
+                  <select
+                    value={categoryIconName}
+                    onChange={(event) => setCategoryIconName(event.target.value)}
                     className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                    placeholder="/media/category/example.jpg"
-                    required
-                  />
+                  >
+                    {categoryIconOptions.map(([name]) => <option key={name} value={name}>{name}</option>)}
+                  </select>
                 </label>
+
+                <div className="grid gap-2"><span className="text-sm font-semibold text-slate-700">Preview</span><span className="grid h-11 w-11 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">{createElement(getCategoryIcon({ iconName: categoryIconName }), { size: 24 })}</span></div>
 
                 <Button
                   type="submit"
@@ -1231,6 +1309,33 @@ export default function AdminPanelPage() {
                   Add category
                 </Button>
               </form>
+
+              <div className="divide-y divide-slate-100 border-t border-slate-200">
+                {categories.map((category) => {
+                  const editing = editingCategoryId === category.id;
+                  return (
+                    <article key={category.id} className="grid gap-3 p-5 md:grid-cols-[3rem_minmax(0,1fr)_12rem_auto] md:items-center">
+                      <span className="text-[#4F8A5B]">{createElement(getCategoryIcon(category), { size: 22 })}</span>
+                      <input disabled={!editing} value={category.name} onChange={(event) => setCategories((items) => items.map((item) => item.id === category.id ? { ...item, name: event.target.value } : item))} className="min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:border-transparent disabled:bg-transparent" />
+                      <select disabled={!editing} value={category.iconName} onChange={(event) => setCategories((items) => items.map((item) => item.id === category.id ? { ...item, iconName: event.target.value } : item))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:border-transparent disabled:bg-transparent">{categoryIconOptions.map(([name]) => <option key={name}>{name}</option>)}</select>
+                      <div className="flex gap-2 md:justify-end">
+                        <button type="button" disabled={categories[0]?.id === category.id || busyKey === `category-move-${category.id}`} onClick={() => moveCategory(category, -1)} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-30" aria-label="Move category up"><ChevronUp size={16} /></button>
+                        <button type="button" disabled={categories.at(-1)?.id === category.id || busyKey === `category-move-${category.id}`} onClick={() => moveCategory(category, 1)} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-30" aria-label="Move category down"><ChevronDown size={16} /></button>
+                        {editing ? <Button size="sm" onClick={() => saveCategory(category)}>Save</Button> : <Button size="sm" style="secondary" onClick={() => setEditingCategoryId(category.id)}><Pencil size={15} /> Edit</Button>}
+                        <Button size="sm" style="danger" onClick={() => removeCategory(category)}><Trash2 size={15} /></Button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "filterSellers" ? "" : "hidden"}`}>
+              <div className="border-b border-slate-200 px-5 py-4"><h2 className="text-xl font-bold text-slate-950">Seller filter options</h2><p className="mt-1 text-sm text-slate-500">Selected stores appear by name; every other store remains available through “Other”.</p></div>
+              <div className="divide-y divide-slate-100">
+                {visibleFilterStores.map((store) => <label key={store.id} className="flex cursor-pointer items-center justify-between gap-4 p-5"><span className="font-semibold text-slate-700">{store.name}</span><input type="checkbox" checked={store.showInFilters} disabled={busyKey === `filter-store-${store.id}`} onChange={() => toggleFilterStore(store)} className="h-5 w-5 accent-[#4F8A5B]" /></label>)}
+                {!visibleFilterStores.length && <p className="p-5 text-sm text-slate-500">No stores found.</p>}
+              </div>
             </section>
           </div>
         </div>

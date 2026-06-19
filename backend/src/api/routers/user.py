@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from fastapi import Response
-from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
     AdminDependency,

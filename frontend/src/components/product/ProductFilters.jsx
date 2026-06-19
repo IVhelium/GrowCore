@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { getStoreFilterOptions } from "../../api/storeApi";
 
 const FILTER_CHANGE_DELAY_MS = 300;
 
@@ -92,6 +93,13 @@ export default function ProductFilters({
   onSortChange,
 }) {
   const filterTimer = useRef(null);
+  const [filterStores, setFilterStores] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    getStoreFilterOptions().then((items) => active && setFilterStores(items)).catch(() => active && setFilterStores([]));
+    return () => { active = false; };
+  }, []);
 
   const categoryCounts = useMemo(
     () => countBy(products, (product) => String(product.categoryId || "")),
@@ -191,21 +199,20 @@ export default function ProductFilters({
         </select>
       </FilterSection>
 
-      {Object.keys(sellerCounts).length > 0 && (
-        <FilterSection title="Seller" count={Object.keys(sellerCounts).length}>
+      <FilterSection title="Seller" count={filterStores.length + 1}>
           <div className="grid gap-1">
-            {Object.entries(sellerCounts).map(([seller, count]) => (
+            {filterStores.map((store) => (
               <FilterOption
-                key={seller}
+                key={store.id}
                 name="seller"
-                value={seller}
-                label={seller}
-                count={count}
+                value={store.name}
+                label={store.name}
+                count={sellerCounts[store.name] || 0}
               />
             ))}
+            <FilterOption name="seller" value="__other__" label="Other" />
           </div>
         </FilterSection>
-      )}
 
       <FilterSection title="Category" count={categories.length}>
         <div className="grid gap-1">

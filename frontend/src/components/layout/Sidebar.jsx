@@ -6,7 +6,7 @@ import { getCategoryIcon } from "../../utils/categoryIcons";
 // Sidebar category row with icon and catalog filter link.
 function CatalogLink({ item }) {
   // Category-specific icon from shared mapping.
-  const Icon = getCategoryIcon(item.name);
+  const Icon = getCategoryIcon(item);
 
   return (
     <Link
