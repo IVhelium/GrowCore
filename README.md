@@ -73,6 +73,7 @@ Cloudinary can be configured through `CLOUDINARY_URL` or the separate cloud name
 
 - Backend: deploy `backend/` as a Docker service, use `/health`, and provide PostgreSQL, JWT, storage, Stripe, CORS, and seed variables.
 - Frontend: deploy `frontend/` as a Vite application and route `/api` to the backend.
+- Configure `VITE_WS_URL=wss://<backend-host>` so chat WebSockets connect directly to the backend; serverless HTTP rewrites such as Vercel `/api` do not proxy WebSocket upgrades.
 - Cross-site cookie deployments require HTTPS, `JWT_COOKIE_SECURE=true`, and an appropriate `JWT_COOKIE_SAMESITE` value.
 - Use a persistent PostgreSQL database and Cloudinary in environments without persistent disks.
 
