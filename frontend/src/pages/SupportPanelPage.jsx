@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CheckCircle2, MessageSquare, UserCheck } from "lucide-react";
+import { MessageSquare, UserCheck } from "lucide-react";
 import {
   assignSupportTicket,
   getSupportTickets,
@@ -351,24 +351,6 @@ export default function SupportPanelPage() {
                       </Button>
                     )}
 
-                    {ticket.status !== "resolved" && ticket.status !== "closed" && (
-                      <Button
-                        size="sm"
-                        style="secondary"
-                        disabled={busyKey === `resolve-${ticket.id}`}
-                        onClick={() => {
-                          setExpandedTicketId(ticket.id);
-                          setResponseDrafts((current) => ({
-                            ...current,
-                            [ticket.id]: current[ticket.id] ?? ticket.response ?? "",
-                          }));
-                        }}
-                      >
-                        <CheckCircle2 size={16} />
-                        Reply
-                      </Button>
-                    )}
-
                     <Button
                       size="sm"
                       style="ghost"
@@ -422,6 +404,7 @@ export default function SupportPanelPage() {
                         {ticket.message}
                       </p>
                     </div>
+                    {ticket.status !== "resolved" && ticket.status !== "closed" && (
                     <div className="md:col-span-3">
                       <label className="grid gap-2">
                         <span className="text-xs font-bold uppercase text-slate-400">
@@ -470,6 +453,7 @@ export default function SupportPanelPage() {
                         </Button>
                       </div>
                     </div>
+                    )}
                   </div>
                 )}
               </article>

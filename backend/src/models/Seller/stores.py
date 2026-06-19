@@ -10,6 +10,7 @@ class StoreModel(Base):
     id: Mapped[uuidPk]
     name: Mapped[str]
     description: Mapped[str | None]
+    show_in_filters: Mapped[bool] = mapped_column(default=False, index=True)
        
     created_at: Mapped[createdAt]
     

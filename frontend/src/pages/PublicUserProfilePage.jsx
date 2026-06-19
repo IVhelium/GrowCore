@@ -50,6 +50,7 @@ export default function PublicUserProfilePage() {
   const [chatText, setChatText] = useState("");
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isChatSending, setIsChatSending] = useState(false);
+  const messageCooldownRef = useRef(0);
   const chatSocketRef = useRef(null);
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
@@ -247,6 +248,7 @@ export default function PublicUserProfilePage() {
     const message = chatText.trim();
 
     if (!message || !user) return;
+    if (Date.now() < messageCooldownRef.current) return;
 
     if (currentUser?.isBlocked) {
       setErrorMessage("Your account is blocked. You can only contact support.");
@@ -254,6 +256,7 @@ export default function PublicUserProfilePage() {
     }
 
     setIsChatSending(true);
+    messageCooldownRef.current = Date.now() + 1000;
 
     try {
       if (chatSocketRef.current?.readyState === WebSocket.OPEN) {
@@ -274,7 +277,7 @@ export default function PublicUserProfilePage() {
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not send message"));
     } finally {
-      setIsChatSending(false);
+      window.setTimeout(() => setIsChatSending(false), Math.max(0, messageCooldownRef.current - Date.now()));
     }
   }
 

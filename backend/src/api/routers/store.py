@@ -1,17 +1,30 @@
 from fastapi import APIRouter
 
 from src.core.dependencies import (
+    AdminDependency,
     SellerDependency,
     StoreServiceDependency,
 )
 from src.core.pagination import PaginationDependency
-from src.schemas import PaginationDTO, ReadProductDTO, ReadStoreDTO, UpdateStoreDTO
+from src.schemas import PaginationDTO, ReadProductDTO, ReadStoreDTO, ShortStoreDTO, UpdateStoreDTO, UpdateStoreFilterDTO
 
 
 router = APIRouter(
     prefix="/stores",
     tags=["Stores"],
 )
+
+@router.get("/filter-options", response_model=list[ShortStoreDTO])
+async def list_store_filter_options(store_service: StoreServiceDependency):
+    return await store_service.list_filter_stores(featured_only=True)
+
+@router.get("/admin/filter-options", response_model=list[ShortStoreDTO])
+async def list_admin_store_filter_options(admin: AdminDependency, store_service: StoreServiceDependency):
+    return await store_service.list_filter_stores(featured_only=False)
+
+@router.patch("/admin/filter-options/{store_id}", response_model=ShortStoreDTO)
+async def update_admin_store_filter_option(store_id: str, schema: UpdateStoreFilterDTO, admin: AdminDependency, store_service: StoreServiceDependency):
+    return await store_service.update_filter_store(store_id, schema.show_in_filters)
 
 
 @router.get(

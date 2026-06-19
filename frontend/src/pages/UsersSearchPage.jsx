@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, UserRoundCheck, Users } from "lucide-react";
 import {
   appendUniqueChatMessage,
@@ -61,6 +61,7 @@ export default function UsersSearchPage() {
   const [isFriendsLoading, setIsFriendsLoading] = useState(false);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isChatSending, setIsChatSending] = useState(false);
+  const messageCooldownRef = useRef(0);
 
   useEffect(() => {
     let isActive = true;
@@ -344,6 +345,7 @@ export default function UsersSearchPage() {
 
     const message = chatText.trim();
     if (!message || !selectedChat) return;
+    if (Date.now() < messageCooldownRef.current) return;
 
     if (currentUser?.isBlocked) {
       setError("Your account is blocked. You can only contact support.");
@@ -351,6 +353,7 @@ export default function UsersSearchPage() {
     }
 
     setIsChatSending(true);
+    messageCooldownRef.current = Date.now() + 1000;
     setError("");
 
     try {
@@ -380,7 +383,7 @@ export default function UsersSearchPage() {
     } catch (requestError) {
       setError(getApiError(requestError, "Could not send message"));
     } finally {
-      setIsChatSending(false);
+      window.setTimeout(() => setIsChatSending(false), Math.max(0, messageCooldownRef.current - Date.now()));
     }
   }
 

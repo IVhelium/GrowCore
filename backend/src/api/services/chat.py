@@ -1,4 +1,5 @@
 from typing import Any
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, or_, select
@@ -176,6 +177,19 @@ class ChatService:
                 detail="Your account is blocked. You can only contact support.",
             )
 
+        last_sent_at = await self.db.scalar(
+            select(UserChatMessageModel.created_at)
+            .where(UserChatMessageModel.sender_id == current_user.id)
+            .order_by(UserChatMessageModel.created_at.desc())
+            .limit(1)
+        )
+        if last_sent_at and last_sent_at >= datetime.utcnow() - timedelta(seconds=1):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Please wait a moment before sending another message",
+                headers={"Retry-After": "1"},
+            )
+
         target = await self._get_user_by_public_id(public_id)
 
         if target.id == current_user.id:
@@ -195,6 +209,8 @@ class ChatService:
             user_id=target.id,
             title="New chat message",
             message=f"{current_user.username} sent you a message.",
+            link_url=f"/users?chat={current_user.public_id}",
+            group_key=f"chat:{current_user.id}",
         )
 
         try:

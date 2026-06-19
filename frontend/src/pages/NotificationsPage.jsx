@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell, CheckCircle2, Trash2 } from "lucide-react";
 import {
   deleteAllNotifications,
@@ -17,7 +18,9 @@ import { getApiError } from "../utils/getApiError";
 const PAGE_SIZE = 10;
 
 export default function NotificationsPage() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
+  const notificationsRef = useRef([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +36,8 @@ export default function NotificationsPage() {
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
       });
-      setNotifications(data.items || []);
+      notificationsRef.current = data.items || [];
+      setNotifications(notificationsRef.current);
       setTotal(data.total || 0);
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not load notifications"));
@@ -56,14 +60,12 @@ export default function NotificationsPage() {
         return;
       }
 
-      setNotifications((currentItems) => {
-        if (currentItems.some((item) => item.id === notification.id)) {
-          return currentItems;
-        }
-
-        return [notification, ...currentItems].slice(0, PAGE_SIZE);
-      });
-      setTotal((count) => count + 1);
+      const exists = notificationsRef.current.some((item) => item.id === notification.id);
+      notificationsRef.current = exists
+        ? notificationsRef.current.map((item) => item.id === notification.id ? notification : item)
+        : [notification, ...notificationsRef.current].slice(0, PAGE_SIZE);
+      setNotifications(notificationsRef.current);
+      if (!exists) setTotal((count) => count + 1);
     }
 
     window.addEventListener(
@@ -84,11 +86,13 @@ export default function NotificationsPage() {
 
     try {
       const updatedNotification = await markNotificationRead(notification.id);
-      setNotifications((currentItems) =>
-        currentItems.map((item) =>
+      setNotifications((currentItems) => {
+        const nextItems = currentItems.map((item) =>
           item.id === updatedNotification.id ? updatedNotification : item,
-        ),
-      );
+        );
+        notificationsRef.current = nextItems;
+        return nextItems;
+      });
       window.dispatchEvent(new Event("growcore:notifications-updated"));
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not update notification"));
@@ -97,17 +101,24 @@ export default function NotificationsPage() {
     }
   }
 
+  async function openNotification(notification) {
+    if (!notification.read_at) await handleMarkRead(notification);
+    if (notification.link_url?.startsWith("/")) navigate(notification.link_url);
+  }
+
   async function handleMarkAllRead() {
     setBusyId("all");
 
     try {
       await markAllNotificationsRead();
-      setNotifications((currentItems) =>
-        currentItems.map((item) => ({
+      setNotifications((currentItems) => {
+        const nextItems = currentItems.map((item) => ({
           ...item,
           read_at: item.read_at || new Date().toISOString(),
-        })),
-      );
+        }));
+        notificationsRef.current = nextItems;
+        return nextItems;
+      });
       window.dispatchEvent(new Event("growcore:notifications-updated"));
     } catch (error) {
       setErrorMessage(getApiError(error, "Could not update notifications"));
@@ -123,6 +134,7 @@ export default function NotificationsPage() {
 
     try {
       await deleteAllNotifications();
+      notificationsRef.current = [];
       setNotifications([]);
       setTotal(0);
       setCurrentPage(1);
@@ -195,6 +207,9 @@ export default function NotificationsPage() {
                     <div className="min-w-0">
                       <h2 className="break-anywhere font-bold text-slate-950">
                         {notification.title}
+                        {notification.occurrence_count > 1 && (
+                          <span className="ml-2 rounded-full bg-[#4F8A5B] px-2 py-0.5 text-xs text-white">×{notification.occurrence_count}</span>
+                        )}
                       </h2>
                       <p className="mt-1 text-sm text-slate-500">
                         {formatDateTime(notification.created_at)}
@@ -205,6 +220,10 @@ export default function NotificationsPage() {
                     </div>
                   </div>
 
+                  <div className="flex flex-wrap gap-2">
+                  {notification.link_url && (
+                    <Button type="button" size="sm" onClick={() => openNotification(notification)}>Open</Button>
+                  )}
                   {notification.read_at ? (
                     <span className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500">
                       <CheckCircle2 size={16} />
@@ -221,6 +240,7 @@ export default function NotificationsPage() {
                       Mark read
                     </Button>
                   )}
+                  </div>
                 </div>
               </article>
             ))}

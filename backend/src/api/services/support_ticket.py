@@ -107,6 +107,7 @@ class SupportTicketService:
         self,
         support_user: UserModel,
         ticket: SupportTicketModel,
+        is_admin: bool,
     ) -> None:
         """
         Checks whether support/admin can handle the request
@@ -114,7 +115,7 @@ class SupportTicketService:
         Support cannot modify a request assigned to another support agent
         """
 
-        if self._has_role(support_user, RoleStatus.admin):
+        if is_admin:
             return
 
         if (
@@ -247,11 +248,15 @@ class SupportTicketService:
         If the ticket is already closed or resolved, assignment is not allowed
         """
 
+        # Read the eagerly loaded roles before the ticket query refreshes shared
+        # User objects in the identity map (which previously caused MissingGreenlet).
+        is_admin = self._has_role(support_user, RoleStatus.admin)
         ticket = await self._get_ticket_by_id(ticket_id)
 
         self._ensure_can_work_with_ticket(
             support_user=support_user,
             ticket=ticket,
+            is_admin=is_admin,
         )
 
         if ticket.status in {
@@ -265,13 +270,15 @@ class SupportTicketService:
 
         ticket.assigned_support_id = support_user.id
         ticket.status = SupportTicketStatus.in_progress
-        await NotificationService(self.db).create(
-            user_id=ticket.user_id,
-            title="Support ticket assigned",
-            message=f"Your support ticket #{ticket.id} is now being reviewed.",
-        )
 
         try:
+            await NotificationService(self.db).create(
+                user_id=ticket.user_id,
+                title="Support ticket assigned",
+                message=f"Your support ticket #{ticket.id} is now being reviewed.",
+                link_url="/support",
+                group_key=f"support:{ticket.id}:assigned",
+            )
             await self.db.commit()
 
         except SQLAlchemyError as exc:
@@ -296,11 +303,13 @@ class SupportTicketService:
         You can add a response and change the status
         """
 
+        is_admin = self._has_role(support_user, RoleStatus.admin)
         ticket = await self._get_ticket_by_id(ticket_id)
 
         self._ensure_can_work_with_ticket(
             support_user=support_user,
             ticket=ticket,
+            is_admin=is_admin,
         )
 
         data = schema.model_dump(exclude_unset=True)
@@ -322,6 +331,8 @@ class SupportTicketService:
                 user_id=ticket.user_id,
                 title="Support response",
                 message=f"Support replied to ticket #{ticket.id}: {response}",
+                link_url="/support",
+                group_key=f"support:{ticket.id}:response",
             )
 
         if "status" in data and data["status"] is not None:
@@ -330,6 +341,8 @@ class SupportTicketService:
                 user_id=ticket.user_id,
                 title="Support ticket updated",
                 message=f"Your support ticket #{ticket.id} status changed to {ticket.status.value}.",
+                link_url="/support",
+                group_key=f"support:{ticket.id}:status",
             )
 
             if ticket.status in {

@@ -1,4 +1,5 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Header from "../components/layout/Header";
 import TopBar from "../components/layout/TopBar"
 import Footer from "../components/layout/Footer";
@@ -13,7 +14,12 @@ export default function MainLayout({
   categories = [],
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
 
   // Header search navigation into catalog query params.
   function handleSearch(query) {

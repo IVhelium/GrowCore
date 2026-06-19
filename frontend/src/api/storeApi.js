@@ -8,8 +8,26 @@ export function normalizeStore(store) {
     description: store.description || "",
     createdAt: store.created_at,
     user: store.user || null,
+    showInFilters: Boolean(store.show_in_filters),
     raw: store,
   };
+}
+
+export async function getStoreFilterOptions() {
+  const { data } = await apiClient.get("/stores/filter-options", { _silent: true });
+  return (data || []).map(normalizeStore);
+}
+
+export async function getAdminStoreFilterOptions() {
+  const { data } = await apiClient.get("/stores/admin/filter-options");
+  return (data || []).map(normalizeStore);
+}
+
+export async function updateAdminStoreFilterOption(storeId, showInFilters) {
+  const { data } = await apiClient.patch(`/stores/admin/filter-options/${storeId}`, {
+    show_in_filters: showInFilters,
+  });
+  return normalizeStore(data);
 }
 
 export async function getMyStore() {

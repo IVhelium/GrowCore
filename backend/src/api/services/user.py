@@ -238,6 +238,8 @@ class UserService:
                 user_id=target.id,
                 title="New follower",
                 message=follow_message,
+                link_url=f"/users/{current_user.public_id}",
+                group_key=f"follow:{current_user.id}",
             )
 
         try:
@@ -390,6 +392,8 @@ class UserService:
             user_id=target.id,
             title="Friend request",
             message=notification_message,
+            link_url="/friends?tab=requests",
+            group_key=f"friend-request:{current_user.id}",
         )
 
         try:
@@ -481,6 +485,8 @@ class UserService:
             user_id=friend_request.requester_id,
             title="Friend request accepted",
             message=f"{current_user.username} accepted your friend request.",
+            link_url="/friends",
+            group_key=f"friend-accepted:{current_user.id}",
         )
 
         try:

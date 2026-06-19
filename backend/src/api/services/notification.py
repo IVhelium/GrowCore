@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, func, select, update
@@ -19,13 +19,35 @@ class NotificationService:
         user_id,
         title: str,
         message: str,
+        link_url: str | None = None,
+        group_key: str | None = None,
+        group_window: timedelta = timedelta(minutes=5),
     ) -> NotificationModel:
-        notification = NotificationModel(
-            user_id=user_id,
-            title=title,
-            message=message,
-        )
-        self.db.add(notification)
+        notification = None
+        if group_key:
+            notification = await self.db.scalar(
+                select(NotificationModel).where(
+                    NotificationModel.user_id == user_id,
+                    NotificationModel.group_key == group_key,
+                    NotificationModel.created_at >= datetime.utcnow() - group_window,
+                ).order_by(NotificationModel.created_at.desc()).limit(1)
+            )
+
+        if notification:
+            notification.occurrence_count += 1
+            notification.message = message
+            notification.link_url = link_url or notification.link_url
+            notification.created_at = datetime.utcnow()
+            notification.read_at = None
+        else:
+            notification = NotificationModel(
+                user_id=user_id,
+                title=title,
+                message=message,
+                link_url=link_url,
+                group_key=group_key,
+            )
+            self.db.add(notification)
         await self.db.flush()
 
         try:
@@ -39,6 +61,8 @@ class NotificationService:
                         "id": notification.id,
                         "title": notification.title,
                         "message": notification.message,
+                        "link_url": notification.link_url,
+                        "occurrence_count": notification.occurrence_count,
                         "read_at": (
                             notification.read_at.isoformat()
                             if notification.read_at

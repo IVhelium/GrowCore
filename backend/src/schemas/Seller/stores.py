@@ -33,8 +33,14 @@ class UpdateStoreDTO(BaseModel):
 class ShortStoreDTO(BaseModel):
     id: UUID
     name: str = Field(max_length=100)
+    show_in_filters: bool = False
     
     model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+class UpdateStoreFilterDTO(BaseModel):
+    show_in_filters: bool
+
+    model_config = ConfigDict(extra="forbid")
 
 
 # Store Read Schema 

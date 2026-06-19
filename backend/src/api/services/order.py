@@ -648,6 +648,8 @@ class OrderService:
             user_id=order.user_id,
             title="Return approved",
             message=f"Return for order #{order.id} was approved and refunded.",
+            link_url="/orders",
+            group_key=f"order:{order.id}:return",
         )
 
         try:

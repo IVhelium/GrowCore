@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -395,6 +395,13 @@ class ProductService(ProductBaseService):
         search: str | None,
         category_id: int | None,
         pagination: PaginationParams,
+        min_price=None,
+        max_price=None,
+        sellers: list[str] | None = None,
+        availability: list[str] | None = None,
+        labels: list[str] | None = None,
+        attribute_filters: list[str] | None = None,
+        sort: str = "new",
     ) -> PaginationDTO:
         """
         Returns the public product catalog
@@ -420,6 +427,49 @@ class ProductService(ProductBaseService):
                 ProductModel.category_id == category_id,
             )
 
+        if min_price is not None:
+            query = query.where(ProductModel.price >= min_price)
+        if max_price is not None:
+            query = query.where(ProductModel.price <= max_price)
+        if sellers:
+            selected_sellers = [value for value in sellers if value != "__other__"]
+            seller_conditions = []
+            if selected_sellers:
+                seller_conditions.append(StoreModel.name.in_(selected_sellers))
+            if "__other__" in sellers:
+                seller_conditions.append(StoreModel.show_in_filters.is_(False))
+            if seller_conditions:
+                query = query.where(or_(*seller_conditions))
+        if labels:
+            label_conditions = []
+            if "Deal" in labels:
+                label_conditions.append(ProductModel.discount_percent > 0)
+            if "New" in labels:
+                label_conditions.append(ProductModel.created_at >= datetime.utcnow() - timedelta(days=30))
+            if "Hot" in labels:
+                label_conditions.append(ProductModel.rating_avg >= 4)
+            if "Popular" in labels:
+                label_conditions.append(ProductModel.rating_count >= 10)
+            if label_conditions:
+                query = query.where(or_(*label_conditions))
+        if availability:
+            stock_conditions = []
+            if "ready" in availability:
+                stock_conditions.append(ProductModel.quantity > 0)
+            if "out" in availability:
+                stock_conditions.append(ProductModel.quantity <= 0)
+            if stock_conditions:
+                query = query.where(or_(*stock_conditions))
+        parsed_attributes = {}
+        for item in attribute_filters or []:
+            if ":" not in item:
+                continue
+            name, value = item.split(":", 1)
+            if name and value:
+                parsed_attributes.setdefault(name, []).append(value)
+        for name, values in parsed_attributes.items():
+            query = query.where(ProductModel.attributes[name].as_string().in_(values))
+
         if search:
             search_value = search.strip()
 
@@ -433,7 +483,13 @@ class ProductService(ProductBaseService):
                     )
                 )
 
-        query = query.order_by(ProductModel.created_at.desc())
+        ordering = {
+            "popular": ProductModel.rating_avg.desc(),
+            "price-asc": ProductModel.price.asc(),
+            "price-des": ProductModel.price.desc(),
+            "random": func.random(),
+        }.get(sort, ProductModel.created_at.desc())
+        query = query.order_by(ordering, ProductModel.id.desc())
 
         return await PaginationService.paginate(
             db=self.db,

@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from fastapi import Response
-from pydantic import BaseModel, ConfigDict, Field, field_validator
 from src.core.constants import PUBLIC_ID_RE
 from src.core.dependencies import (
     AdminDependency,
@@ -25,20 +24,8 @@ from src.schemas import (
     UserFriendRequestDTO,
     UpdateUserDTO,
     UserChatThreadDTO,
+    BlockUserDTO
 )
-
-
-class BlockUserDTO(BaseModel):
-    reason: str = Field(min_length=10, max_length=400)
-
-    @field_validator("reason", mode="before")
-    @classmethod
-    def trim_reason(cls, value):
-        if isinstance(value, str):
-            value = value.strip()
-        return value
-
-    model_config = ConfigDict(extra="forbid")
 
 
 router = APIRouter(

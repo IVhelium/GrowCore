@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO, RejectSellerRequestDTO, ResubmitSellerRequestDTO
-from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO
+from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO, UpdateStoreFilterDTO
 from .Store.carts import ReadCartDTO, AddCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO, ReadCartProductDTO, ReadCartProductImageDTO
-from .Store.categories import CreateCategoryDTO, ReadCategoryDTO
+from .Store.categories import CreateCategoryDTO, ReadCategoryDTO, UpdateCategoryDTO
 from .Store.orders import CheckoutDTO, CreateStripeCheckoutDTO, PayOrderDTO, ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO, RequestReturnDTO, UpdateDeliveryDTO
 from .Store.products import (
     CreateProductDTO,
@@ -38,6 +38,7 @@ from .User.users import (
     UpdateUserDTO,
     UserChatThreadDTO,
     UserFriendRequestDTO,
+    BlockUserDTO
 )
 from .User.notifications import ReadNotificationDTO
 from .User.auth import RegisterDTO, LoginDTO, TokenResponseDTO

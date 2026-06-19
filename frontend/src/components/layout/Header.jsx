@@ -11,56 +11,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getFriendRequestCount, getUnreadNotificationCount } from "../../api/userApi";
 import { createChatSocket } from "../../api/chatApi";
 import { showToast } from "../../utils/showToast";
-
-
-// Account popover menu for authenticated header users
-function AccountPopover({
-  user,
-  onLogout
-}) {
-  return (
-    <div className="w-64 rounded-lg bg-white p-2">
-      <div className="flex items-center gap-3 border-b border-slate-100 px-3 py-3">
-        <UserAvatar user={user} size="sm"/>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-bold text-slate-950">{user.username}</p>
-          <p className="truncate text-xs text-slate-500">{user.email}</p>
-        </div>
-      </div>
-      <Link
-        to="/profile"
-        className="mt-2 block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        Profile
-      </Link>
-      <Link
-        to="/orders"
-        className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        Orders
-      </Link>
-      <Link
-        to="/notifications"
-        className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        Notifications
-      </Link>
-      <Link
-        to="/users"
-        className="block rounded-md px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-      >
-        Find members
-      </Link>
-      <button
-        type="button"
-        onClick={onLogout}
-        className="block w-full rounded-md px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
-      >
-        Logout
-      </button>
-    </div>
-  );
-}
+import AccountPopover from "./AccountPopover";
 
 
 // Responsive site header with catalog popover, search, and account actions.
@@ -94,7 +45,11 @@ export default function Header({
 
     let isActive = true;
 
+    let refreshTimer = null;
+    let requestInFlight = false;
     async function loadCount() {
+      if (requestInFlight) return;
+      requestInFlight = true;
       try {
         const [count, requests] = await Promise.all([
           getUnreadNotificationCount(),
@@ -109,20 +64,28 @@ export default function Header({
           setNotificationCount(0);
           setFriendRequestCount(0);
         }
+      } finally {
+        requestInFlight = false;
       }
+    }
+
+    function scheduleCountLoad() {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(loadCount, 800);
     }
 
     loadCount();
 
-    window.addEventListener("focus", loadCount);
-    window.addEventListener("growcore:notifications-updated", loadCount);
-    window.addEventListener("growcore:friend-requests-updated", loadCount);
+    window.addEventListener("focus", scheduleCountLoad);
+    window.addEventListener("growcore:notifications-updated", scheduleCountLoad);
+    window.addEventListener("growcore:friend-requests-updated", scheduleCountLoad);
 
     return () => {
       isActive = false;
-      window.removeEventListener("focus", loadCount);
-      window.removeEventListener("growcore:notifications-updated", loadCount);
-      window.removeEventListener("growcore:friend-requests-updated", loadCount);
+      window.clearTimeout(refreshTimer);
+      window.removeEventListener("focus", scheduleCountLoad);
+      window.removeEventListener("growcore:notifications-updated", scheduleCountLoad);
+      window.removeEventListener("growcore:friend-requests-updated", scheduleCountLoad);
     };
   }, [isAuthenticated]);
 
@@ -149,14 +112,17 @@ export default function Header({
 
         if (payload.type === "notification") {
           const notification = payload.notification;
-          setNotificationCount((count) => count + 1);
+          if ((notification?.occurrence_count || 1) === 1) {
+            setNotificationCount((count) => count + 1);
+          }
           window.dispatchEvent(
             new CustomEvent("growcore:notification-received", {
               detail: notification,
             }),
           );
-          window.dispatchEvent(new Event("growcore:notifications-updated"));
-          showToast(notification?.title || "New notification", "success");
+          if (notification?.title !== "New chat message") {
+            showToast(notification?.title || "New notification", "success");
+          }
           return;
         }
 

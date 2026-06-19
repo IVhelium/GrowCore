@@ -1,5 +1,7 @@
 import { ChevronRight } from "lucide-react";
+import { createElement } from "react";
 import { Link } from "react-router-dom";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 
 
 export default function CategoryCard({ category }) {
@@ -8,12 +10,8 @@ export default function CategoryCard({ category }) {
         to={`/catalog?category=${category.id}`}
         className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:translate-y-1 hover:shadow-xl"
       >
-        <div className="aspect-4/3 overflow-hidden bg-slate-100">
-          <img
-            src={category.image}
-            alt={category.name}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
+        <div className="grid aspect-4/3 place-items-center overflow-hidden bg-linear-to-br from-[#4F8A5B]/15 to-emerald-50 text-[#4F8A5B]">
+          <span className="transition duration-300 group-hover:scale-110">{createElement(getCategoryIcon(category), { size: 64, strokeWidth: 1.5 })}</span>
         </div>
 
         <div className="flex items-center justify-between gap-4 p-5">
