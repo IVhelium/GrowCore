@@ -13,7 +13,6 @@ import {
 } from "../api/userApi";
 import {
   appendUniqueChatMessage,
-  createChatSocket,
   getChatMessages,
   normalizeChatMessage,
   sendChatMessage,
@@ -51,7 +50,6 @@ export default function PublicUserProfilePage() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isChatSending, setIsChatSending] = useState(false);
   const messageCooldownRef = useRef(0);
-  const chatSocketRef = useRef(null);
   const { user: currentUser } = useAuth();
   const isAdmin = hasRole(currentUser, "admin");
   const isOwnProfile = currentUser?.public_id === user?.public_id;
@@ -129,20 +127,8 @@ export default function PublicUserProfilePage() {
       return undefined;
     }
 
-    let socket;
-    let cancelled = false;
-    createChatSocket().then((createdSocket) => {
-      if (cancelled) { createdSocket.close(); return; }
-      socket = createdSocket;
-      chatSocketRef.current = socket;
-      socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-
-      if (payload.type !== "message") {
-        return;
-      }
-
-      const incomingMessage = normalizeChatMessage(payload.message);
+    function handleIncomingMessage(event) {
+      const incomingMessage = normalizeChatMessage(event.detail);
       const senderId = incomingMessage.sender?.public_id;
       const recipientId = incomingMessage.recipient?.public_id;
       const belongsToOpenChat =
@@ -156,17 +142,11 @@ export default function PublicUserProfilePage() {
       setChatMessages((currentMessages) => {
         return appendUniqueChatMessage(currentMessages, incomingMessage);
       });
-      };
-
-      socket.onerror = () => { chatSocketRef.current = null; };
-    }).catch(() => {});
+    }
+    window.addEventListener("growcore:chat-message-received", handleIncomingMessage);
 
     return () => {
-      cancelled = true;
-      socket?.close();
-      if (chatSocketRef.current === socket) {
-        chatSocketRef.current = null;
-      }
+      window.removeEventListener("growcore:chat-message-received", handleIncomingMessage);
     };
   }, [currentUser?.isBlocked, currentUser?.public_id, isOwnProfile, user?.public_id]);
 
@@ -259,26 +239,19 @@ export default function PublicUserProfilePage() {
     }
 
     setIsChatSending(true);
-    messageCooldownRef.current = Date.now() + 1000;
+    messageCooldownRef.current = Date.now() + 1500;
 
     try {
-      if (chatSocketRef.current?.readyState === WebSocket.OPEN) {
-        chatSocketRef.current.send(
-          JSON.stringify({
-            recipient_public_id: user.public_id,
-            message,
-          }),
-        );
-      } else {
-        const createdMessage = await sendChatMessage(user.public_id, message);
-        setChatMessages((currentMessages) =>
-          appendUniqueChatMessage(currentMessages, createdMessage),
-        );
-      }
+      const createdMessage = await sendChatMessage(user.public_id, message);
+      setChatMessages((currentMessages) =>
+        appendUniqueChatMessage(currentMessages, createdMessage),
+      );
 
       setChatText("");
     } catch (error) {
-      setErrorMessage(getApiError(error, "Could not send message"));
+      if (error?.response?.status !== 429) {
+        setErrorMessage(getApiError(error, "Could not send message"));
+      }
     } finally {
       window.setTimeout(() => setIsChatSending(false), Math.max(0, messageCooldownRef.current - Date.now()));
     }
