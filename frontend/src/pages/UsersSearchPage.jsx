@@ -28,6 +28,7 @@ import UsersGridSection from "../components/user/UsersGridSection";
 import UsersSearchBox from "../components/user/UsersSearchBox";
 import UsersTabs from "../components/user/UsersTabs";
 import { showToast } from "../utils/showToast";
+import { getChatMessageTooLongText, isChatMessageTooLong } from "../utils/chatMessage";
 import { randomUsers } from "../utils/randomArray";
 
 const PAGE_SIZE = 39;
@@ -337,6 +338,10 @@ export default function UsersSearchPage() {
 
     const message = chatText.trim();
     if (!message || !selectedChat) return;
+    if (isChatMessageTooLong(message)) {
+      showToast(getChatMessageTooLongText());
+      return;
+    }
     if (Date.now() < messageCooldownRef.current) return;
 
     if (currentUser?.isBlocked) {
