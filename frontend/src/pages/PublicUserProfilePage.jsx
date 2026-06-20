@@ -27,6 +27,7 @@ import PublicProfileTabsPanel from "../components/user/PublicProfileTabsPanel";
 import { useAuth } from "../hooks/useAuth";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
+import { getChatMessageTooLongText, isChatMessageTooLong } from "../utils/chatMessage";
 
 function hasRole(user, role) {
   return (user?.roles || []).some((item) => item.role?.role === role || item.role === role);
@@ -231,6 +232,10 @@ export default function PublicUserProfilePage() {
     const message = chatText.trim();
 
     if (!message || !user) return;
+    if (isChatMessageTooLong(message)) {
+      showToast(getChatMessageTooLongText());
+      return;
+    }
     if (Date.now() < messageCooldownRef.current) return;
 
     if (currentUser?.isBlocked) {

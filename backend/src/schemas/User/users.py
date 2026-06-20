@@ -35,7 +35,7 @@ class PublicUserDTO(ShortUserDTO):
 
 
 class CreateUserChatMessageDTO(BaseModel):
-    message: str = Field(min_length=1, max_length=1000)
+    message: str = Field(min_length=1, max_length=15000)
 
     @field_validator("message", mode="before")
     @classmethod

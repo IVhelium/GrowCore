@@ -3,6 +3,13 @@ import { Send } from "lucide-react";
 import Button from "../common/Button";
 import EmptyState from "../common/EmptyState";
 import UserAvatar from "../user/UserAvatar";
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  getChatMessageLength,
+  getChatMessageTooLongText,
+  isChatMessageTooLong,
+} from "../../utils/chatMessage";
+import { showToast } from "../../utils/showToast";
 
 function formatMessageTime(value) {
   if (!value) return "";
@@ -70,6 +77,13 @@ export default function ChatWindow({
   }, [value]);
 
   function handleSubmit(event) {
+    if (isChatMessageTooLong(value)) {
+      event.preventDefault();
+      showToast(getChatMessageTooLongText());
+      textareaRef.current?.focus();
+      return;
+    }
+
     onSubmit(event);
     window.setTimeout(() => {
       textareaRef.current?.focus();
@@ -84,9 +98,17 @@ export default function ChatWindow({
     event.preventDefault();
 
     if (!isSending && value.trim()) {
+      if (isChatMessageTooLong(value)) {
+        showToast(getChatMessageTooLongText());
+        return;
+      }
+
       event.currentTarget.form?.requestSubmit();
     }
   }
+
+  const messageLength = getChatMessageLength(value);
+  const isOverLimit = messageLength > CHAT_MESSAGE_MAX_LENGTH;
 
   return (
     <div
@@ -160,16 +182,30 @@ export default function ChatWindow({
 
       {!disabled && (
         <form onSubmit={handleSubmit} className="grid h-32 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-slate-200 bg-white p-3 md:gap-3 md:p-4">
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Write a message"
-            rows={1}
-            className="max-h-24 min-h-11 min-w-0 flex-1 resize-none self-center overflow-x-hidden whitespace-pre-wrap break-anywhere rounded-lg border border-slate-200 px-4 py-3 text-sm leading-5 outline-none scrollbar-width:thin focus:border-[#4F8A5B]"
-            style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-          />
+          <div className="min-w-0 self-center">
+            <textarea
+              ref={textareaRef}
+              value={value}
+              onChange={(event) => onChange(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Write a message"
+              rows={1}
+              aria-invalid={isOverLimit}
+              aria-describedby="chat-message-length"
+              className={`max-h-24 min-h-11 w-full min-w-0 resize-none overflow-x-hidden whitespace-pre-wrap break-anywhere rounded-lg border px-4 py-3 text-sm leading-5 outline-none scrollbar-width:thin ${
+                isOverLimit
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-slate-200 focus:border-[#4F8A5B]"
+              }`}
+              style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+            />
+            <p
+              id="chat-message-length"
+              className={`mt-1 text-right text-xs ${isOverLimit ? "font-semibold text-red-600" : "text-slate-400"}`}
+            >
+              {messageLength.toLocaleString("en-US")} / {CHAT_MESSAGE_MAX_LENGTH.toLocaleString("en-US")}
+            </p>
+          </div>
           <Button
             type="submit"
             size="sm"
