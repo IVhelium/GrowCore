@@ -123,7 +123,7 @@ class StoreService:
 
             if not data["name"]:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Store name cannot be empty",
                 )
 

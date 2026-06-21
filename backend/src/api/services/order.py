@@ -243,7 +243,7 @@ class OrderService:
         final_customer_nif = (customer_nif or order.customer_nif or "").strip()
         if "portugal" in final_delivery_address.lower() and not final_customer_nif:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="NIF is required for Portugal payments",
             )
 
@@ -301,7 +301,7 @@ class OrderService:
         final_customer_nif = (customer_nif or order.customer_nif or "").strip()
         if "portugal" in final_delivery_address.lower() and not final_customer_nif:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="NIF is required for Portugal payments",
             )
 
@@ -590,7 +590,7 @@ class OrderService:
 
         if shipping_country == "PT" and not customer_nif:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="NIF is required for Portugal payments",
             )
 
