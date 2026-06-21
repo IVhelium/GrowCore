@@ -8,12 +8,13 @@ from sqlalchemy.orm import selectinload
 from src.utils.storage_paths import avatar_directory_key
 from src.api.services.files.file_storage import FileStorageService
 from src.core.upload_policies import AVATAR_POLICY
-from src.core.constants import PUBLIC_ID_RE
+from src.core.constants import PUBLIC_ID_RE, RoleStatus
 from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.notification import NotificationService
 from src.models import (
     NotificationModel,
     ProductModel,
+    RoleModel,
     StoreModel,
     UserFollowEventModel,
     UserFollowModel,
@@ -612,6 +613,7 @@ class UserService:
         self,
         pagination: PaginationParams,
         search: str | None = None,
+        role: RoleStatus | None = None,
     ):
         query = (
             select(UserModel)
@@ -623,6 +625,13 @@ class UserService:
         )
 
         search_value = search.strip() if search else ""
+
+        if role is not None:
+            query = query.where(
+                UserModel.roles.any(
+                    UserRoleModel.role.has(RoleModel.role == role)
+                )
+            )
 
         if search_value:
             normalized_public_id = search_value.upper()

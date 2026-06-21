@@ -29,6 +29,7 @@ import {
   REQUIRED_ATTRIBUTE_NAMES,
 } from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
+import { validateFile } from "../utils/fileValidation";
 
 function toDateTimeLocalValue(value) {
   if (!value) return "";
@@ -117,6 +118,19 @@ export default function SellerProductEditPage() {
 
   function handleImageChange(event) {
     const file = event.target.files?.[0] || null;
+    if (file) {
+      const validationError = validateFile(file, {
+        allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+        maxSizeMb: 8,
+        label: "Product image",
+      });
+      if (validationError) {
+        setErrorMessage(validationError);
+        event.target.value = "";
+        return;
+      }
+    }
+    setErrorMessage("");
     setImageFile(file);
     setPreviewUrl(file ? URL.createObjectURL(file) : product?.image || "");
   }

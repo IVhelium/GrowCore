@@ -6,7 +6,7 @@ from uuid import UUID
 
 # User Create Schema
 class CreateUserDTO(BaseModel):
-    username: str = Field(min_length=3 ,max_length=32)
+    username: str = Field(min_length=3, max_length=32)
     email: EmailStr
     password: str
 

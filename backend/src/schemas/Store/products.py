@@ -109,8 +109,8 @@ class CreateProductDTO(BaseModel):
 
 # Product Update Schema
 class UpdateProductDTO(BaseModel):
-    title: str | None = None
-    description: str | None = None
+    title: str | None = Field(default=None, min_length=5, max_length=200)
+    description: str | None = Field(default=None, min_length=20)
     price: Decimal | None = Field(default=None, ge=0)
     discount_percent: Decimal | None = Field(default=None, ge=0, le=100)
     discount_expires_at: datetime | None = None
@@ -134,7 +134,7 @@ class UpdateProductDTO(BaseModel):
         if isinstance(value, str):
             return validate_product_description(value)
         return value
-    
+
     model_config = ConfigDict(extra="forbid")
     
     
@@ -145,7 +145,7 @@ class UpdateProductAvailabilityDTO(BaseModel):
  
  
 class RejectProductDTO(BaseModel):
-    reason: str = Field(min_length=10)
+    reason: str = Field(min_length=10, max_length=400)
 
     @field_validator("reason", mode="before")
     @classmethod

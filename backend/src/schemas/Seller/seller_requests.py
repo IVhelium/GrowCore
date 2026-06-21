@@ -6,11 +6,11 @@ from src.schemas.User.users import ShortUserDTO
 
 # Seller Request Create Schema
 class CreateSellerRequestDTO(BaseModel):
-    passport_id: str = Field(min_length=8, max_length=10)
-    full_name: str
-    phone_number: str
-    country: str
-    message: str
+    passport_id: str = Field(min_length=8, max_length=10, pattern=r"^[A-Za-z0-9]+$")
+    full_name: str = Field(min_length=2, max_length=100)
+    phone_number: str = Field(min_length=7, max_length=20, pattern=r"^\+?[0-9][0-9 ()-]+$")
+    country: str = Field(min_length=2, max_length=100)
+    message: str = Field(min_length=20, max_length=2000)
 
     @field_validator("passport_id", "full_name", "phone_number", "country", "message", mode="before")
     @classmethod
@@ -48,11 +48,11 @@ class ReadSellerRequestDTO(BaseModel):
     
 # Resubmit Seller Request Schema
 class ResubmitSellerRequestDTO(BaseModel):
-    passport_id: str | None = Field(default=None, min_length=8, max_length=10)
-    full_name: str | None = None
-    phone_number: str | None = None
-    country: str | None = None
-    message: str | None = None
+    passport_id: str | None = Field(default=None, min_length=8, max_length=10, pattern=r"^[A-Za-z0-9]+$")
+    full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    phone_number: str | None = Field(default=None, min_length=7, max_length=20, pattern=r"^\+?[0-9][0-9 ()-]+$")
+    country: str | None = Field(default=None, min_length=2, max_length=100)
+    message: str | None = Field(default=None, min_length=20, max_length=2000)
 
     @field_validator("passport_id", "full_name", "phone_number", "country", "message", mode="before")
     @classmethod
@@ -68,7 +68,7 @@ class ResubmitSellerRequestDTO(BaseModel):
     
 # Reject Seller Request Schema
 class RejectSellerRequestDTO(BaseModel):
-    reason: str = Field(min_length=10)
+    reason: str = Field(min_length=10, max_length=400)
 
     @field_validator("reason", mode="before")
     @classmethod

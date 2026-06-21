@@ -3,9 +3,9 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 
 # Register Schema
 class RegisterDTO(BaseModel):
-    username: str = Field(min_length=1, max_length=25)
+    username: str = Field(min_length=3, max_length=25)
     email: EmailStr
-    password: str = Field(min_length=6, max_length=72)
+    password: str = Field(min_length=8, max_length=72)
 
     @field_validator("username", "email", "password", mode="before")
     @classmethod

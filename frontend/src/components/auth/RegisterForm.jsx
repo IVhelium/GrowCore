@@ -46,6 +46,7 @@ export default function RegisterForm({
       <FormField
         label="Email"
         name="email"
+        type="email"
         required
         placeholder="exemple@growcore.dev"
       />
@@ -57,6 +58,7 @@ export default function RegisterForm({
         required
         minLength={8}
         maxLength={72}
+        autoComplete="new-password"
         placeholder="Minimum 8 characters"
       />
 

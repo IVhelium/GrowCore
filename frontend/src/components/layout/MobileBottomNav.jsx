@@ -59,14 +59,14 @@ export default function MobileBottomNav() {
   }, [isAuthenticated]);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-500 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid min-w-0 grid-cols-6 border-t border-slate-200 bg-white px-1 py-2 text-[10px] font-semibold text-slate-500 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] sm:px-2 sm:text-xs md:hidden">
       {navItems.map((item) => {
         const Icon = item.icon;
         return (
           <Link
             key={item.label}
             to={item.href}
-            className="relative flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 transition hover:bg-[#4F8A5B]/10 hover:text-[#4F8A5B]"
+            className="relative flex min-w-0 flex-col items-center gap-1 overflow-hidden rounded-lg px-0.5 py-1.5 transition hover:bg-[#4F8A5B]/10 hover:text-[#4F8A5B] sm:px-2"
           >
             <Icon size={19} />
             {item.href === "/notifications" && notificationCount > 0 && (
@@ -79,7 +79,7 @@ export default function MobileBottomNav() {
                 {friendRequestCount}
               </span>
             )}
-            {item.label}
+            <span className="max-w-full truncate">{item.label}</span>
           </Link>
         );
       })}

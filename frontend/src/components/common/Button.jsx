@@ -22,7 +22,7 @@ export default function Button({
     };
 
     return (
-        <button className={`inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles[style]} ${sizes[size]} ${className}`} {...props}>
+        <button className={`inline-flex min-h-11 max-w-full touch-manipulation items-center justify-center gap-2 whitespace-normal rounded-lg text-center font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${styles[style]} ${sizes[size]} ${className}`} {...props}>
             {children}
         </button>
     );
