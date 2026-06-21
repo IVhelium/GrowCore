@@ -68,6 +68,8 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET must contain at least 32 non-placeholder characters in production")
         if not self.JWT_COOKIE_SECURE:
             raise ValueError("JWT_COOKIE_SECURE must be true in production")
+        if not self.JWT_COOKIE_CSRF_PROTECT:
+            raise ValueError("JWT_COOKIE_CSRF_PROTECT must be true in production")
         if self.RUN_CATALOG_SEED:
             raise ValueError("RUN_CATALOG_SEED must be false in production")
 
