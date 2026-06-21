@@ -45,11 +45,12 @@ export async function deleteUserAvatar() {
     return normalizeUser(data);
 }
 
-export async function getUsers({ limit = 12, offset = 0, search = "" } = {}) {
+export async function getUsers({ limit = 12, offset = 0, search = "", role = "" } = {}) {
     const { data } = await apiClient.get("/users", {
         params: {
             ...getPaginationParams({ limit, offset }),
             ...(search ? { search } : {}),
+            ...(role ? { role } : {}),
         },
     });
 

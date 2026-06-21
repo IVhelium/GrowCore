@@ -146,7 +146,19 @@ export default function ProductFilters({
     }, delay);
   }
 
+  function hasValidPriceRange(form) {
+    const minInput = form.elements.minPrice;
+    const maxInput = form.elements.maxPrice;
+    const minPrice = minInput.value === "" ? null : Number(minInput.value);
+    const maxPrice = maxInput.value === "" ? null : Number(maxInput.value);
+    const invalidRange = minPrice !== null && maxPrice !== null && minPrice > maxPrice;
+
+    maxInput.setCustomValidity(invalidRange ? "Maximum price must be greater than or equal to minimum price." : "");
+    return !invalidRange;
+  }
+
   function handleChange(event) {
+    if (!hasValidPriceRange(event.currentTarget)) return;
     const delay =
       event.target.name === "minPrice" || event.target.name === "maxPrice"
         ? FILTER_CHANGE_DELAY_MS
@@ -157,6 +169,10 @@ export default function ProductFilters({
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (!hasValidPriceRange(event.currentTarget)) {
+      event.currentTarget.reportValidity();
+      return;
+    }
     applyFilters(event.currentTarget, 0);
   }
 
@@ -233,15 +249,21 @@ export default function ProductFilters({
         <div className="flex items-center gap-2">
           <input
             name="minPrice"
+            type="number"
+            min="0"
+            step="0.01"
             placeholder="From"
-            inputMode="numeric"
+            inputMode="decimal"
             className="min-w-0 flex-1 rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#4F8A5B]"
           />
           <span className="text-slate-400">-</span>
           <input
             name="maxPrice"
+            type="number"
+            min="0"
+            step="0.01"
             placeholder="To"
-            inputMode="numeric"
+            inputMode="decimal"
             className="min-w-0 flex-1 rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-[#4F8A5B]"
           />
         </div>

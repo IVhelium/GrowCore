@@ -28,7 +28,7 @@ import {
 } from "../api/productApi";
 import {
   approveSellerRequest,
-  getSellerRequestDocumentUrl,
+  getSellerRequestDocument,
   getSellerRequests,
   rejectSellerRequest,
 } from "../api/sellerRequestApi";
@@ -54,6 +54,7 @@ const adminTabs = [
   { id: "transactions", label: "Transactions" },
   { id: "sellerRequests", label: "Seller requests" },
   { id: "users", label: "Users" },
+  { id: "sellers", label: "Sellers" },
   { id: "categories", label: "Categories" },
   { id: "filterSellers", label: "Filter sellers" },
 ];
@@ -61,16 +62,17 @@ const adminTabs = [
 const ADMIN_PAGE_SIZE = 8;
 const ADMIN_USERS_PAGE_SIZE = 39;
 const paymentStatusOptions = ["", "pending", "paid", "refunded", "failed"];
+const sellerRequestStatusOptions = ["", "pending", "approved", "rejected"];
 
 function AdminTabs({ activeTab, onChange }) {
   return (
-    <div className="mt-8 flex overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="mt-8 flex max-w-full snap-x overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
       {adminTabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onChange(tab.id)}
-          className={`shrink-0 border-b-2 px-5 py-4 text-sm font-bold transition ${
+          className={`shrink-0 snap-start border-b-2 px-4 py-3 text-sm font-bold transition sm:px-5 sm:py-4 ${
             activeTab === tab.id
               ? "border-[#4F8A5B] text-[#4F8A5B]"
               : "border-transparent text-slate-500 hover:text-slate-950"
@@ -181,15 +183,44 @@ function formatDateTime(value) {
 }
 
 function ReviewModal({ detail, onClose }) {
+  const [isDocumentLoading, setIsDocumentLoading] = useState(false);
+
   if (!detail) return null;
 
   const { type, item } = detail;
   const isSellerRequest = type === "seller-request";
   const title = isSellerRequest ? "Seller request details" : "Product details";
 
+  async function openSellerDocument() {
+    const previewWindow = window.open("about:blank", "_blank");
+    setIsDocumentLoading(true);
+
+    try {
+      const documentBlob = await getSellerRequestDocument(item.id);
+      const documentUrl = URL.createObjectURL(documentBlob);
+
+      if (previewWindow) {
+        previewWindow.opener = null;
+        previewWindow.location.replace(documentUrl);
+      } else {
+        const link = window.document.createElement("a");
+        link.href = documentUrl;
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        link.click();
+      }
+
+      window.setTimeout(() => URL.revokeObjectURL(documentUrl), 60_000);
+    } catch {
+      previewWindow?.close();
+    } finally {
+      setIsDocumentLoading(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4">
-      <section className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl">
+      <section className="max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-4xl overflow-hidden rounded-xl bg-white shadow-2xl sm:max-h-[90vh]">
         <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-[#4F8A5B]">
@@ -209,7 +240,7 @@ function ReviewModal({ detail, onClose }) {
           </button>
         </div>
 
-        <div className="max-h-[calc(90vh-73px)] overflow-y-auto p-5">
+        <div className="max-h-[calc(100dvh-5.6rem)] overflow-y-auto overflow-x-hidden p-4 sm:max-h-[calc(90vh-73px)] sm:p-5">
           {isSellerRequest ? (
             <div className="grid gap-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -253,7 +284,7 @@ function ReviewModal({ detail, onClose }) {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4">
+              <div className="grid min-w-0 gap-3 rounded-lg border border-slate-200 p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
                 <FileSearch size={20} className="text-[#4F8A5B]" />
                 <div className="min-w-0 flex-1">
                   <p className="break-anywhere text-sm font-bold text-slate-950">
@@ -263,15 +294,16 @@ function ReviewModal({ detail, onClose }) {
                     {item.documentContentType || "application/pdf"}
                   </p>
                 </div>
-                <a
-                  href={getSellerRequestDocumentUrl(item.id)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#4F8A5B] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#3F7148]"
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={isDocumentLoading}
+                  onClick={openSellerDocument}
+                  className="w-full sm:w-auto"
                 >
                   <FileSearch size={16} />
-                  Open PDF
-                </a>
+                  {isDocumentLoading ? "Opening..." : "Open document"}
+                </Button>
               </div>
             </div>
           ) : (
@@ -334,10 +366,12 @@ export default function AdminPanelPage() {
   const [adminProducts, setAdminProducts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
+  const [adminSellers, setAdminSellers] = useState([]);
   const [sellerRequestTotal, setSellerRequestTotal] = useState(0);
   const [adminProductTotal, setAdminProductTotal] = useState(0);
   const [transactionTotal, setTransactionTotal] = useState(0);
   const [adminUserTotal, setAdminUserTotal] = useState(0);
+  const [adminSellerTotal, setAdminSellerTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [busyKey, setBusyKey] = useState("");
@@ -347,7 +381,9 @@ export default function AdminPanelPage() {
   const [transactionsPage, setTransactionsPage] = useState(1);
   const [transactionStatusFilter, setTransactionStatusFilter] = useState("");
   const [requestsPage, setRequestsPage] = useState(1);
+  const [sellerRequestStatusFilter, setSellerRequestStatusFilter] = useState("");
   const [usersPage, setUsersPage] = useState(1);
+  const [sellersPage, setSellersPage] = useState(1);
   const [categoryName, setCategoryName] = useState("");
   const [categoryIconName, setCategoryIconName] = useState("SlidersHorizontal");
   const [categorySecretRequest, setCategorySecretRequest] = useState(null);
@@ -360,6 +396,7 @@ export default function AdminPanelPage() {
     transactions: "",
     sellerRequests: "",
     users: "",
+    sellers: "",
     categories: "",
     filterSellers: "",
   });
@@ -375,6 +412,7 @@ export default function AdminPanelPage() {
       adminProductResult,
       transactionResult,
       usersResult,
+      sellersResult,
       categoriesResult,
       filterStoresResult,
     ] = await Promise.allSettled([
@@ -383,7 +421,7 @@ export default function AdminPanelPage() {
         offset: (moderationPage - 1) * ADMIN_PAGE_SIZE,
       }),
       getSellerRequests({
-        status: "pending",
+        status: sellerRequestStatusFilter,
         limit: ADMIN_PAGE_SIZE,
         offset: (requestsPage - 1) * ADMIN_PAGE_SIZE,
       }),
@@ -399,6 +437,11 @@ export default function AdminPanelPage() {
       getUsers({
         limit: ADMIN_USERS_PAGE_SIZE,
         offset: (usersPage - 1) * ADMIN_USERS_PAGE_SIZE,
+      }),
+      getUsers({
+        role: "seller",
+        limit: ADMIN_USERS_PAGE_SIZE,
+        offset: (sellersPage - 1) * ADMIN_USERS_PAGE_SIZE,
       }),
       getCategories(),
       getAdminStoreFilterOptions(),
@@ -445,6 +488,13 @@ export default function AdminPanelPage() {
       setAdminUsers([]);
       setAdminUserTotal(0);
     }
+    if (sellersResult.status === "fulfilled") {
+      setAdminSellers(sellersResult.value.items);
+      setAdminSellerTotal(sellersResult.value.total);
+    } else {
+      setAdminSellers([]);
+      setAdminSellerTotal(0);
+    }
     if (categoriesResult.status === "fulfilled") setCategories(categoriesResult.value);
     if (filterStoresResult.status === "fulfilled") setFilterStores(filterStoresResult.value);
 
@@ -454,6 +504,7 @@ export default function AdminPanelPage() {
       adminProductResult,
       transactionResult,
       usersResult,
+      sellersResult,
       categoriesResult,
       filterStoresResult,
     ].filter((result) => result.status === "rejected");
@@ -478,6 +529,8 @@ export default function AdminPanelPage() {
     controlsPage,
     moderationPage,
     requestsPage,
+    sellerRequestStatusFilter,
+    sellersPage,
     transactionStatusFilter,
     transactionsPage,
     usersPage,
@@ -495,7 +548,7 @@ export default function AdminPanelPage() {
         title: "Seller requests",
         value: sellerRequestTotal,
         icon: Store,
-        text: "New seller applications",
+        text: "Applications in the selected status",
       },
       {
         title: "Transactions",
@@ -510,7 +563,8 @@ export default function AdminPanelPage() {
           sellerRequests.length +
           adminProducts.length +
           transactions.length +
-          adminUsers.length,
+          adminUsers.length +
+          adminSellers.length,
         icon: ShieldAlert,
         text: "Items loaded on this dashboard",
       },
@@ -520,6 +574,7 @@ export default function AdminPanelPage() {
       products.length,
       adminProducts.length,
       adminUsers.length,
+      adminSellers.length,
       transactionTotal,
       transactions.length,
       sellerRequestTotal,
@@ -680,6 +735,9 @@ export default function AdminPanelPage() {
   const visibleAdminUsers = adminUsers.filter((user) =>
     matchesSearch([user.username, user.public_id, user.email], tabSearch.users),
   );
+  const visibleAdminSellers = adminSellers.filter((user) =>
+    matchesSearch([user.username, user.public_id, user.email], tabSearch.sellers),
+  );
   const visibleFilterStores = filterStores.filter((store) => matchesSearch([store.name], tabSearch.filterSellers));
 
   return (
@@ -750,7 +808,7 @@ export default function AdminPanelPage() {
                 )}
 
                 {visibleProducts.map((product) => (
-                  <article key={product.id} className="p-5">
+                  <article key={product.id} className="min-w-0 p-4 sm:p-5">
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
@@ -772,7 +830,7 @@ export default function AdminPanelPage() {
                         <AttributeChips attributes={product.attributes} />
                       </div>
 
-                      <div className="flex shrink-0 flex-wrap gap-2">
+                      <div className="grid w-full shrink-0 grid-cols-1 gap-2 sm:grid-cols-3 lg:w-44 lg:grid-cols-1 xl:w-auto xl:grid-cols-3 [&>button]:w-full">
                         <Button
                           size="sm"
                           style="ghost"
@@ -849,7 +907,7 @@ export default function AdminPanelPage() {
                 )}
 
                 {visibleAdminProducts.map((product) => (
-                  <article key={product.id} className="p-5">
+                  <article key={product.id} className="min-w-0 p-4 sm:p-5">
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
@@ -874,7 +932,7 @@ export default function AdminPanelPage() {
                         <AttributeChips attributes={product.attributes} />
                       </div>
 
-                      <div className="flex shrink-0 flex-wrap gap-2">
+                      <div className="grid w-full shrink-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:w-44 lg:grid-cols-1 2xl:w-80 2xl:grid-cols-2 [&>button]:w-full">
                         <Button
                           size="sm"
                           style="ghost"
@@ -938,26 +996,45 @@ export default function AdminPanelPage() {
             </section>
 
             <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "sellerRequests" ? "" : "hidden"}`}>
-              <div className="border-b border-slate-200 px-5 py-4">
-                <h2 className="text-xl font-bold text-slate-950">
-                  Seller requests
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Approve or reject seller applications
-                </p>
+              <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-950">
+                    Seller requests
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Review current applications and their moderation history
+                  </p>
+                </div>
+                <label className="grid gap-2 text-sm font-semibold text-slate-700">
+                  Status
+                  <select
+                    value={sellerRequestStatusFilter}
+                    onChange={(event) => {
+                      setRequestsPage(1);
+                      setSellerRequestStatusFilter(event.target.value);
+                    }}
+                    className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none transition focus:border-[#4F8A5B]"
+                  >
+                    {sellerRequestStatusOptions.map((status) => (
+                      <option key={status || "all"} value={status}>
+                        {status ? status.replace("_", " ") : "All requests"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
 
               <div className="divide-y divide-slate-100">
                 {visibleSellerRequests.length === 0 && (
                   <p className="p-5 text-sm text-slate-500">
-                    No seller requests waiting for review
+                    No seller requests found
                   </p>
                 )}
 
                 {visibleSellerRequests.map((request) => (
-                  <article key={request.id} className="p-5">
-                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                      <div>
+                  <article key={request.id} className="min-w-0 p-4 sm:p-5">
+                    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(12rem,20rem)] xl:items-start">
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
                           <h3 className="font-bold text-slate-950">
                             {request.fullName}
@@ -970,20 +1047,20 @@ export default function AdminPanelPage() {
                         {request.user?.public_id && (
                           <Link
                             to={`/users/${encodeURIComponent(request.user.public_id)}`}
-                            className="mt-3 inline-flex items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
+                            className="mt-3 inline-flex max-w-full items-center rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-[#4F8A5B] hover:text-[#4F8A5B]"
                           >
                             Open user profile
                           </Link>
                         )}
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="break-anywhere mt-2 text-sm text-slate-500">
                           {request.country} · {request.phoneNumber}
                         </p>
-                        <p className="mt-3 text-sm leading-6 text-slate-600">
+                        <p className="break-anywhere mt-3 text-sm leading-6 text-slate-600">
                           {request.message}
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 flex-wrap gap-2">
+                      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 [&>button]:w-full">
                         <Button
                           size="sm"
                           style="ghost"
@@ -997,19 +1074,21 @@ export default function AdminPanelPage() {
                           <Eye size={16} />
                           Details
                         </Button>
-                        <Button
-                          size="sm"
-                          disabled={busyKey === `request-${request.id}`}
-                          onClick={() =>
-                            runAction(
-                              `request-${request.id}`,
-                              () => approveSellerRequest(request.id),
-                              "Seller request approved",
-                            )
-                          }
-                        >
-                          Approve
-                        </Button>
+                        {request.status === "pending" && (
+                          <Button
+                            size="sm"
+                            disabled={busyKey === `request-${request.id}`}
+                            onClick={() =>
+                              runAction(
+                                `request-${request.id}`,
+                                () => approveSellerRequest(request.id),
+                                "Seller request approved",
+                              )
+                            }
+                          >
+                            Approve
+                          </Button>
+                        )}
                         {request.user?.public_id && (
                           <Button
                             size="sm"
@@ -1030,23 +1109,25 @@ export default function AdminPanelPage() {
                             Block user
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          style="danger"
-                          disabled={busyKey === `request-${request.id}`}
-                          onClick={() => {
-                            const reason = getRejectReason(request.fullName);
-                            if (!reason) return;
+                        {request.status === "pending" && (
+                          <Button
+                            size="sm"
+                            style="danger"
+                            disabled={busyKey === `request-${request.id}`}
+                            onClick={() => {
+                              const reason = getRejectReason(request.fullName);
+                              if (!reason) return;
 
-                            runAction(
-                              `request-${request.id}`,
-                              () => rejectSellerRequest(request.id, reason),
-                              "Seller request rejected",
-                            );
-                          }}
-                        >
-                          Reject
-                        </Button>
+                              runAction(
+                                `request-${request.id}`,
+                                () => rejectSellerRequest(request.id, reason),
+                                "Seller request rejected",
+                              );
+                            }}
+                          >
+                            Reject
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -1104,7 +1185,7 @@ export default function AdminPanelPage() {
                         )}
                       </div>
                     </Link>
-                    <div className="mt-4">
+                    <div className="mt-4 grid sm:block">
                       {user.isBlocked ? (
                         <Button
                           type="button"
@@ -1156,6 +1237,83 @@ export default function AdminPanelPage() {
               </div>
             </section>
 
+            <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "sellers" ? "" : "hidden"}`}>
+              <div className="border-b border-slate-200 px-5 py-4">
+                <h2 className="text-xl font-bold text-slate-950">Sellers</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Browse seller accounts and manage their access
+                </p>
+              </div>
+
+              <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-3">
+                {visibleAdminSellers.length === 0 && (
+                  <p className="text-sm text-slate-500">No sellers loaded.</p>
+                )}
+
+                {visibleAdminSellers.map((seller) => (
+                  <article key={seller.public_id} className="rounded-xl border border-slate-200 p-4">
+                    <Link
+                      to={`/users/${encodeURIComponent(seller.public_id)}`}
+                      className="flex min-w-0 items-center gap-3 transition hover:text-[#4F8A5B]"
+                    >
+                      <UserAvatar user={seller} size="sm" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-slate-950">{seller.username}</p>
+                        <p className="truncate text-xs text-slate-400">{seller.public_id}</p>
+                        {seller.isBlocked && (
+                          <p className="mt-2 w-fit rounded-lg bg-red-50 px-2 py-1 text-xs font-bold uppercase text-red-600">blocked</p>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="mt-4 grid sm:block">
+                      {seller.isBlocked ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          style="secondary"
+                          disabled={busyKey === `seller-${seller.public_id}`}
+                          onClick={() => runAction(
+                            `seller-${seller.public_id}`,
+                            () => unblockUser(seller.public_id),
+                            "Seller unblocked",
+                          )}
+                        >
+                          Unblock
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          style="danger"
+                          disabled={busyKey === `seller-${seller.public_id}`}
+                          onClick={() => {
+                            const reason = getAdminReason("blocking", seller.username);
+                            if (!reason) return;
+                            runAction(
+                              `seller-${seller.public_id}`,
+                              () => blockUser(seller.public_id, reason),
+                              "Seller blocked",
+                            );
+                          }}
+                        >
+                          Block
+                        </Button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="px-5 pb-5">
+                <PaginationBar
+                  current={sellersPage}
+                  total={adminSellerTotal}
+                  pageSize={ADMIN_USERS_PAGE_SIZE}
+                  onChange={setSellersPage}
+                />
+              </div>
+            </section>
+
             <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${activeTab === "transactions" ? "" : "hidden"}`}>
               <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -1194,7 +1352,7 @@ export default function AdminPanelPage() {
                 )}
 
                 {visibleTransactions.map((transaction) => (
-                  <article key={transaction.id} className="p-5">
+                  <article key={transaction.id} className="min-w-0 p-4 sm:p-5">
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
@@ -1239,7 +1397,7 @@ export default function AdminPanelPage() {
                         </details>
                       </div>
 
-                      <div className="grid gap-2 text-right">
+                      <div className="grid gap-2 text-left lg:text-right">
                         <p className="text-xs font-bold uppercase text-slate-400">
                           Platform fee
                         </p>
@@ -1314,11 +1472,11 @@ export default function AdminPanelPage() {
                 {categories.map((category) => {
                   const editing = editingCategoryId === category.id;
                   return (
-                    <article key={category.id} className="grid gap-3 p-5 md:grid-cols-[3rem_minmax(0,1fr)_12rem_auto] md:items-center">
+                    <article key={category.id} className="grid min-w-0 gap-3 p-4 sm:p-5 md:grid-cols-[3rem_minmax(0,1fr)] md:items-center xl:grid-cols-[3rem_minmax(0,1fr)_12rem_auto]">
                       <span className="text-[#4F8A5B]">{createElement(getCategoryIcon(category), { size: 22 })}</span>
                       <input disabled={!editing} value={category.name} onChange={(event) => setCategories((items) => items.map((item) => item.id === category.id ? { ...item, name: event.target.value } : item))} className="min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:border-transparent disabled:bg-transparent" />
-                      <select disabled={!editing} value={category.iconName} onChange={(event) => setCategories((items) => items.map((item) => item.id === category.id ? { ...item, iconName: event.target.value } : item))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:border-transparent disabled:bg-transparent">{categoryIconOptions.map(([name]) => <option key={name}>{name}</option>)}</select>
-                      <div className="flex gap-2 md:justify-end">
+                      <select disabled={!editing} value={category.iconName} onChange={(event) => setCategories((items) => items.map((item) => item.id === category.id ? { ...item, iconName: event.target.value } : item))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:border-transparent disabled:bg-transparent md:col-start-2 xl:col-start-auto">{categoryIconOptions.map(([name]) => <option key={name}>{name}</option>)}</select>
+                      <div className="flex flex-wrap items-center gap-2 md:col-span-2 xl:col-span-1 xl:justify-end">
                         <button type="button" disabled={categories[0]?.id === category.id || busyKey === `category-move-${category.id}`} onClick={() => moveCategory(category, -1)} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-30" aria-label="Move category up"><ChevronUp size={16} /></button>
                         <button type="button" disabled={categories.at(-1)?.id === category.id || busyKey === `category-move-${category.id}`} onClick={() => moveCategory(category, 1)} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-500 disabled:opacity-30" aria-label="Move category down"><ChevronDown size={16} /></button>
                         {editing ? <Button size="sm" onClick={() => saveCategory(category)}>Save</Button> : <Button size="sm" style="secondary" onClick={() => setEditingCategoryId(category.id)}><Pencil size={15} /> Edit</Button>}

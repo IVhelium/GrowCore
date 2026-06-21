@@ -1,4 +1,4 @@
-import { API_URL, apiClient, getPaginationParams } from "./apiClient";
+import { apiClient, getPaginationParams } from "./apiClient";
 
 export function normalizeSellerRequest(request) {
   return {
@@ -93,6 +93,14 @@ export async function rejectSellerRequest(requestId, reason) {
   return normalizeSellerRequest(data);
 }
 
-export function getSellerRequestDocumentUrl(requestId) {
-  return `${API_URL}/admin/seller-requests/${requestId}/document`;
+export async function getSellerRequestDocument(requestId) {
+  const response = await apiClient.get(
+    `/admin/seller-requests/${requestId}/document`,
+    {
+      responseType: "blob",
+      headers: { Accept: "application/pdf,image/jpeg,image/png" },
+    },
+  );
+
+  return response.data;
 }

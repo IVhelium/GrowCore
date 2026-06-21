@@ -190,6 +190,8 @@ export default function ChatWindow({
               onKeyDown={handleKeyDown}
               placeholder="Write a message"
               rows={1}
+              required
+              maxLength={CHAT_MESSAGE_MAX_LENGTH}
               aria-invalid={isOverLimit}
               aria-describedby="chat-message-length"
               className={`max-h-24 min-h-11 w-full min-w-0 resize-none overflow-x-hidden whitespace-pre-wrap break-anywhere rounded-lg border px-4 py-3 text-sm leading-5 outline-none scrollbar-width:thin ${

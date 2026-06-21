@@ -8,7 +8,7 @@ from src.schemas.User.users import ShortUserDTO
 # Review Create Schema
 class CreateReviewDTO(BaseModel):
     rating: Decimal = Field(ge=1, le=5)
-    comment: str = Field(min_length=1)
+    comment: str = Field(min_length=1, max_length=2000)
     
     model_config = ConfigDict(extra="forbid")
 

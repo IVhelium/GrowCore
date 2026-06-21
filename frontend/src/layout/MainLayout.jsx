@@ -35,7 +35,7 @@ export default function MainLayout({
         categories={categories}
         onSearch={handleSearch}
       />
-      <div className="flex-1">
+      <div className="min-w-0 flex-1 pb-20 md:pb-0">
         <Outlet />
       </div>
       <Footer categories={categories} user={user} />

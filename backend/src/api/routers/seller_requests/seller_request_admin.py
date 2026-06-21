@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Query
-from fastapi.responses import FileResponse, RedirectResponse
+import httpx
+from urllib.parse import quote
+from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi.responses import FileResponse
 
 from src.core.constants import SellerRequestStatus
 from src.core.dependencies import (
@@ -47,13 +49,31 @@ async def open_seller_request_document(
     )
 
     if location_type == "redirect":
-        return RedirectResponse(str(location))
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=15) as client:
+                cloud_response = await client.get(str(location))
+                cloud_response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Could not load the private seller document",
+            ) from exc
+
+        return Response(
+            content=cloud_response.content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename)}",
+                "Cache-Control": "private, no-store",
+            },
+        )
 
     return FileResponse(
         path=location,
         media_type=content_type,
         filename=filename,
         content_disposition_type="inline",
+        headers={"Cache-Control": "private, no-store"},
     )
 
 

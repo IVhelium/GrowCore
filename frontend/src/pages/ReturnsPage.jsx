@@ -132,6 +132,8 @@ export default function ReturnsPage({ onSubmit }) {
                 <textarea
                   name="reason"
                   required
+                  minLength={10}
+                  maxLength={400}
                   rows={6}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                   placeholder="Describe the reason for return..."

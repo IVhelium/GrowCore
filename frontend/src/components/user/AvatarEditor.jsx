@@ -4,6 +4,7 @@ import { useAutoDismissMessage } from "../../hooks/useAutoDismissMessage";
 import UserAvatar from "./UserAvatar";
 import Button from "../common/Button";
 import { ImageUp, Trash2, X } from "lucide-react";
+import { validateFile } from "../../utils/fileValidation";
 
 
 export default function AvatarEditor({
@@ -32,6 +33,17 @@ export default function AvatarEditor({
     async function handleFileChange(event) {
         const file = event.target.files?.[0];
         if (!file) return;
+
+        const validationError = validateFile(file, {
+            allowedTypes: ["image/jpeg", "image/png", "image/webp"],
+            maxSizeMb: 3,
+            label: "Avatar",
+        });
+        if (validationError) {
+            setError(validationError);
+            event.target.value = "";
+            return;
+        }
 
         setError("");
         onSelect?.(file);

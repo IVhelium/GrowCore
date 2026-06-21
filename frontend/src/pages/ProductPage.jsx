@@ -256,6 +256,7 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
                     }}
                     placeholder="Write your review..."
                     required
+                    maxLength={2000}
                     rows={4}
                     className={`mt-4 w-full resize-none rounded-lg border bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B] ${
                       reviewError ? "border-red-300" : "border-slate-200"
@@ -337,6 +338,7 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
                         }}
                         placeholder="Write a reply..."
                         required
+                        maxLength={2000}
                         rows={3}
                         className="w-full resize-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
                       />

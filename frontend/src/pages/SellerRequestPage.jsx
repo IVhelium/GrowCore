@@ -17,6 +17,7 @@ import {
   hasEmptyRequiredFields,
 } from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
+import { validateFile } from "../utils/fileValidation";
 
 const benefits = [
   {
@@ -122,7 +123,7 @@ export default function SellerRequestPage() {
     }
 
     const data = getTrimmedFormData(event.currentTarget);
-    data.set("document", selectedDocument || data.get("document"));
+    data.document = selectedDocument || data.document;
 
     if (
       hasEmptyRequiredFields(data, [
@@ -202,6 +203,8 @@ export default function SellerRequestPage() {
                 label="Full name"
                 name="fullName"
                 required
+                minLength={2}
+                maxLength={100}
                 defaultValue={request?.fullName || ""}
                 placeholder="Max Green"
               />
@@ -212,6 +215,8 @@ export default function SellerRequestPage() {
                 required
                 minLength={8}
                 maxLength={10}
+                pattern="[A-Za-z0-9]{8,10}"
+                title="Use 8-10 letters and numbers"
                 defaultValue={request?.passportId || ""}
                 placeholder="AB123456"
               />
@@ -220,6 +225,9 @@ export default function SellerRequestPage() {
                 label="Phone number"
                 name="phoneNumber"
                 required
+                type="tel"
+                pattern="\+?[0-9][0-9 ()-]{6,19}"
+                title="Enter a valid phone number using digits, spaces, brackets, + or -"
                 defaultValue={request?.phoneNumber || ""}
                 placeholder="+1 800 800 8080"
               />
@@ -228,6 +236,8 @@ export default function SellerRequestPage() {
                 label="Country"
                 name="country"
                 required
+                minLength={2}
+                maxLength={100}
                 defaultValue={request?.country || ""}
                 placeholder="USA"
               />
@@ -239,6 +249,8 @@ export default function SellerRequestPage() {
                 <textarea
                   name="message"
                   required
+                  minLength={20}
+                  maxLength={2000}
                   rows={6}
                   defaultValue={request?.message || ""}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
@@ -250,11 +262,11 @@ export default function SellerRequestPage() {
                 <span className="text-sm font-semibold text-slate-700">
                   PDF documents
                 </span>
-                <span className="flex cursor-pointer flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm transition hover:border-[#4F8A5B] sm:flex-row sm:items-center">
-                  <span className="inline-flex w-fit rounded-md bg-[#4F8A5B] px-4 py-2 font-semibold text-white transition hover:bg-[#3F7148]">
+                <span className="flex min-w-0 cursor-pointer flex-col gap-3 overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm transition hover:border-[#4F8A5B] sm:flex-row sm:items-center">
+                  <span className="inline-flex min-h-11 w-fit shrink-0 items-center rounded-md bg-[#4F8A5B] px-4 py-2 font-semibold text-white transition hover:bg-[#3F7148]">
                     Choose PDF file
                   </span>
-                  <span className="truncate text-slate-500">
+                  <span className="block min-w-0 max-w-full truncate text-slate-500" title={documentName || request?.documentName || "No file selected"}>
                     {documentName || request?.documentName || "No file selected"}
                   </span>
                   <input
@@ -267,6 +279,18 @@ export default function SellerRequestPage() {
 
                       if (!file) return;
 
+                      const validationError = validateFile(file, {
+                        allowedTypes: ["application/pdf"],
+                        maxSizeMb: 10,
+                        label: "Document",
+                      });
+                      if (validationError) {
+                        setErrorMessage(validationError);
+                        event.target.value = "";
+                        return;
+                      }
+
+                      setErrorMessage("");
                       setSelectedDocument(file);
                       setDocumentName(file.name);
                     }}
@@ -274,7 +298,7 @@ export default function SellerRequestPage() {
                   />
                 </span>
                 {request?.documentName && (
-                  <span className="text-xs text-slate-500">
+                  <span className="block max-w-full truncate text-xs text-slate-500" title={request.documentName}>
                     Last uploaded: {request.documentName}
                   </span>
                 )}
@@ -282,8 +306,12 @@ export default function SellerRequestPage() {
             </fieldset>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button type="submit" disabled={!canEdit || isSubmitting}>
-                {request ? "Resubmit application" : "Submit application"}
+              <Button type="submit" disabled={!canEdit || isSubmitting} className="w-full sm:w-auto">
+                {isSubmitting
+                  ? "Submitting..."
+                  : request
+                    ? "Resubmit application"
+                    : "Submit application"}
               </Button>
             </div>
           </form>

@@ -339,20 +339,28 @@ class FileStorageService:
                 detail="Local files should be served by the API",
             )
 
+        import cloudinary.api
         import cloudinary.utils
 
         self._configure_cloudinary()
         resource_type, public_id = self._split_cloudinary_storage_key(storage_key)
-        url, _ = cloudinary.utils.cloudinary_url(
+        file_format = None
+
+        if resource_type != "raw":
+            resource = cloudinary.api.resource(
+                public_id,
+                resource_type=resource_type,
+                type="authenticated",
+            )
+            file_format = resource.get("format")
+
+        return cloudinary.utils.private_download_url(
             public_id,
+            file_format,
             resource_type=resource_type,
             type="authenticated",
-            sign_url=True,
-            secure=True,
             expires_at=int(time.time()) + expires_in_seconds,
         )
-
-        return url
             
     
     # Method for validate directory key    

@@ -16,11 +16,13 @@ export default function PaginationBar({
         : { defaultCurrent: current };
 
     return (
-      <div className="mt-8 flex justify-center border-t border-slate-200 pt-6">
+      <div className="mt-8 flex max-w-full justify-start overflow-x-auto border-t border-slate-200 pt-6 sm:justify-center">
         <Pagination
             total={total}
             pageSize={pageSize}
             showSizeChanger={false}
+            showLessItems
+            responsive
             {...paginationProps}
         />
       </div>

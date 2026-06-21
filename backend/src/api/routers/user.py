@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from fastapi import Response
-from src.core.constants import PUBLIC_ID_RE
+from src.core.constants import PUBLIC_ID_RE, RoleStatus
 from src.core.dependencies import (
     AdminDependency,
     ChatServiceDependency,
@@ -42,8 +42,9 @@ async def list_users(
     user_service: UserServiceDependency,
     pagination: PaginationDependency,
     search: str | None = Query(default=None, max_length=64),
+    role: RoleStatus | None = Query(default=None),
 ):
-    return await user_service.list_users(pagination=pagination, search=search)
+    return await user_service.list_users(pagination=pagination, search=search, role=role)
 
 
 @router.get(

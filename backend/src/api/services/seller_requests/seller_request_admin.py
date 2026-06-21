@@ -98,12 +98,20 @@ class SellerRequestAdminService(SellerRequestBaseService):
                 content_type,
             )
 
+        file_path = self.file_storage_service.private_file_path(
+            storage_key=seller_request.document_storage_key,
+            policy=SELLER_DOCUMENT_POLICY,
+        )
+
+        if not file_path.is_file():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Seller request document file not found",
+            )
+
         return (
             "file",
-            self.file_storage_service.private_file_path(
-                storage_key=seller_request.document_storage_key,
-                policy=SELLER_DOCUMENT_POLICY,
-            ),
+            file_path,
             filename,
             content_type,
         )

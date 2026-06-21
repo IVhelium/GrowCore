@@ -108,6 +108,7 @@ export default function ProductComments({ comments = demoComments, onSubmit }) {
             <input
               name="text"
               required
+              maxLength={2000}
               className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#4F8A5B]"
               placeholder="Write your comment..."
             />
