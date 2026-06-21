@@ -29,6 +29,5 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
-
 UPDATING_AND_RELEASES.md
+*.sw?
