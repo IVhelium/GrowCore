@@ -3,7 +3,7 @@ from fastapi import APIRouter, Query, Request, Response, status
 from src.core.dependencies import AdminDependency, CurrentUserDependency, OrderServiceDependency
 from src.core.constants import PaymentStatus
 from src.core.pagination import PaginationDependency
-from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, PayOrderDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
+from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
 
 
 router = APIRouter(
@@ -40,27 +40,6 @@ async def list_admin_transactions(
     return await order_service.list_admin_transactions(
         pagination=pagination,
         payment_status=payment_status,
-    )
-
-
-@router.post(
-    "/{order_id}/pay",
-    response_model=ReadOrderDTO,
-)
-async def pay_order(
-    order_id: int,
-    schema: PayOrderDTO,
-    current_user: CurrentUserDependency,
-    order_service: OrderServiceDependency,
-):
-    return await order_service.pay_order(
-        current_user=current_user,
-        order_id=order_id,
-        transaction_id=schema.transaction_id,
-        payment_method=schema.payment_method,
-        payment_document=schema.payment_document,
-        delivery_address=schema.delivery_address,
-        customer_nif=schema.customer_nif,
     )
 
 

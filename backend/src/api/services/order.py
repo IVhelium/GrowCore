@@ -221,67 +221,6 @@ class OrderService:
                 detail="Could not delete order",
             ) from exc
 
-    async def pay_order(
-        self,
-        current_user: UserModel,
-        order_id: int,
-        transaction_id: str,
-        payment_method: str,
-        payment_document: str,
-        delivery_address: str | None = None,
-        customer_nif: str | None = None,
-    ) -> OrderModel:
-        order = await self._get_user_order(current_user, order_id)
-
-        if order.payment_status != PaymentStatus.pending:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Order is not awaiting payment",
-            )
-
-        final_delivery_address = (delivery_address or order.delivery_address or "").strip()
-        final_customer_nif = (customer_nif or order.customer_nif or "").strip()
-        if "portugal" in final_delivery_address.lower() and not final_customer_nif:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="NIF is required for Portugal payments",
-            )
-
-        await self._decrement_order_stock(order)
-
-        order.payment_status = PaymentStatus.paid
-        order.payment_transaction_id = transaction_id
-        order.payment_method = payment_method.strip()
-        order.customer_nif = final_customer_nif or None
-        order.payment_document = payment_document
-        if final_delivery_address:
-            order.delivery_address = final_delivery_address
-
-        cart_result = await self.db.execute(
-            select(CartModel)
-            .options(selectinload(CartModel.items))
-            .where(CartModel.user_id == current_user.id)
-        )
-        cart = cart_result.scalar_one_or_none()
-
-        if cart:
-            ordered_product_ids = {item.product_id for item in order.items}
-
-            for cart_item in list(cart.items):
-                if cart_item.product_id in ordered_product_ids:
-                    await self.db.delete(cart_item)
-
-        try:
-            await self.db.commit()
-        except SQLAlchemyError as exc:
-            await self._safe_rollback()
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Could not pay order",
-            ) from exc
-
-        return await self._get_user_order(current_user, order.id)
-
     async def create_stripe_checkout_session(
         self,
         current_user: UserModel,
@@ -301,7 +240,7 @@ class OrderService:
         final_customer_nif = (customer_nif or order.customer_nif or "").strip()
         if "portugal" in final_delivery_address.lower() and not final_customer_nif:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="NIF is required for Portugal payments",
             )
 
@@ -590,7 +529,7 @@ class OrderService:
 
         if shipping_country == "PT" and not customer_nif:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="NIF is required for Portugal payments",
             )
 
@@ -640,6 +579,42 @@ class OrderService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Order is not awaiting return approval",
             )
+
+        if (
+            order.payment_method != "stripe"
+            or not order.payment_transaction_id
+            or not settings.STRIPE_SECRET_KEY
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Order does not have a refundable Stripe payment",
+            )
+
+        try:
+            import stripe
+        except ImportError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Stripe package is not installed",
+            ) from exc
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        try:
+            session = stripe.checkout.Session.retrieve(order.payment_transaction_id)
+            payment_intent = getattr(session, "payment_intent", None)
+            if not payment_intent:
+                raise ValueError("Stripe session has no payment intent")
+
+            stripe.Refund.create(
+                payment_intent=payment_intent,
+                idempotency_key=f"growcore-order-{order.id}-return",
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Stripe refund could not be created",
+            ) from exc
 
         order.return_status = ReturnStatus.refunded
         order.payment_status = PaymentStatus.refunded

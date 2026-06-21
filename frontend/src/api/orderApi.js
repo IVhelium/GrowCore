@@ -86,18 +86,6 @@ export async function deleteOrder(orderId) {
   await apiClient.delete(`/orders/${orderId}`);
 }
 
-export async function payOrder(orderId, payload) {
-  const { data } = await apiClient.post(`/orders/${orderId}/pay`, {
-    transaction_id: payload.transactionId,
-    payment_method: payload.paymentMethod,
-    payment_document: payload.paymentDocument,
-    delivery_address: payload.deliveryAddress || undefined,
-    customer_nif: payload.customerNif || undefined,
-  });
-
-  return normalizeOrder(data);
-}
-
 export async function createStripeCheckout(orderId, payload = {}) {
   const { data } = await apiClient.post(`/orders/${orderId}/stripe-checkout`, {
     delivery_address: payload.deliveryAddress || undefined,

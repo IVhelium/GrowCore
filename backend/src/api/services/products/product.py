@@ -180,7 +180,7 @@ class ProductService(ProductBaseService):
 
             if not data["title"]:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Product title cannot be empty",
                 )
 
@@ -189,7 +189,7 @@ class ProductService(ProductBaseService):
 
             if not data["description"]:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail="Product description cannot be empty",
                 )
 
@@ -271,7 +271,7 @@ class ProductService(ProductBaseService):
 
         if not product.images:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Add at least one product image before submission",
             )
 
@@ -361,7 +361,7 @@ class ProductService(ProductBaseService):
 
         if len(reason) < 10:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="Deletion reason must be at least 10 characters",
             )
 

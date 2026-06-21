@@ -8,6 +8,7 @@ import uvicorn
 from src.api.router import main_router
 from src.core.config import settings
 from src.core.lifespan import lifespan
+from src.version import __version__
 
 
 if settings.FILE_STORAGE_BACKEND == "local":
@@ -17,6 +18,7 @@ if settings.FILE_STORAGE_BACKEND == "local":
 
 app = FastAPI(
     title="GrowCore API",
+    version=__version__,
     lifespan=lifespan
 )  # Create a FastAPI application instance
 
@@ -36,11 +38,17 @@ app.include_router(main_router)
 async def health_check():
     return {"status": "ok"}
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_methods=["*"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-CSRF-TOKEN",
+        "X-Category-Secret",
+    ],
     allow_credentials=True
 )
 

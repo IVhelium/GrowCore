@@ -319,12 +319,12 @@ Compose запускает PostgreSQL 16, ждёт его health check, прим
 
 На что следует обратить внимание перед production:
 
-- Cookie CSRF protection явно отключена; для cross-site cookies нужен отдельный CSRF-механизм.
-- `POST /setup_database` не защищён ролью или секретом и всегда запускает catalog seed. Его следует удалить, закрыть или отключить в production.
+- Cookie-аутентификация использует double-submit CSRF-токены для изменяющих запросов; frontend отправляет отдельный токен для refresh-cookie.
+- Публичный `POST /setup_database` удалён; seed запускается только явно настроенными startup-флагами, а catalog seed запрещён при `ENV=production`.
 - В репозитории нет автоматических unit/integration/e2e тестов, хотя `pytest` установлен.
 - Гостевые корзина и избранное не персистентны и не сливаются после входа.
 - Информационные delivery/return тексты не являются полноценной интеграцией перевозчика или RMA.
-- Возврат фиксируется в базе, но код не вызывает Stripe Refund API автоматически.
+- Одобрение возврата вызывает Stripe Refund API с идемпотентным ключом и лишь затем фиксирует возврат в базе.
 - Доступ страниц `/admin` и seller-маршрутов frontend защищён только общим `ProtectedRoute`; окончательная ролевая защита корректно выполняется backend, но UX можно улучшить отдельными role guards.
 - В исходниках demo seed присутствуют фиксированные тестовые seller credentials; включать catalog seed в production без пересмотра данных нельзя.
 - В кодовой базе осталась неиспользуемая учебная модель `BookModel`.
@@ -470,7 +470,7 @@ The main payment flow selects an unpaid order and creates a Stripe Checkout Sess
 
 A manual payment-recording endpoint also exists, although the current UI uses Stripe.
 
-Users may request a return for their own paid order with a 10–400 character reason. Admin approval sets refund/return/order states in the database. Admin can also update delivery state and tracking number. The current approval flow does **not** call Stripe Refund API automatically.
+Users may request a return for their own paid order with a 10–400 character reason. Admin approval creates an idempotent Stripe refund and then updates refund/return/order states in the database. Admin can also update delivery state and tracking number.
 
 The delivery page’s 3–5 day shipping, protected packaging, and pickup pricing are static product copy, not a carrier-rate integration.
 
@@ -548,19 +548,15 @@ Backend configuration covers database pooling, JWT cookies, CORS, local/Cloudina
 
 ## 12. Security notes and current limitations
 
-Implemented controls include role dependencies, bcrypt, cookie JWTs, upload signature/size policies, private seller documents, ORM query binding, transactional inventory checks, Stripe webhook verification, category dual authorization, social/chat throttling, public-ID validation, and constrained CORS.
+Implemented controls include role dependencies, bcrypt, CSRF-protected cookie JWTs, upload signature/size policies, private seller documents, ORM query binding, transactional inventory checks, Stripe webhook verification and refunds, category dual authorization, social/chat throttling, public-ID validation, and constrained CORS.
 
 Production review items:
 
-- Cookie CSRF protection is disabled; cross-site cookie deployment needs a CSRF strategy.
-- `POST /setup_database` is not role/secret protected and always runs catalog seed; remove or protect it in production.
 - No unit, integration, or end-to-end test suite exists, although pytest is installed.
 - Guest shopping state is ephemeral and has no login merge.
 - Delivery and return pages do not represent carrier or RMA integrations.
-- Return approval does not automatically issue a Stripe refund.
 - Frontend protected routes generally check authentication, while backend correctly performs final role enforcement; role-specific UI guards could improve UX.
-- Demo catalog seed contains fixed seller credentials and must be reviewed before production use.
-- An unused tutorial `BookModel` remains in the source tree.
+- Demo catalog seed contains fixed seller credentials and is rejected by configuration when `ENV=production`.
 
 ## 13. Verification commands
 
@@ -582,7 +578,6 @@ All paths below are relative to the backend origin. `Auth` means any signed-in u
 | Method and path | Purpose / permission |
 |---|---|
 | `GET /health` | Health probe |
-| `POST /setup_database` | Run optional staff and catalog seeds; currently unprotected |
 | `POST /auths/register` | Create account |
 | `POST /auths/login` | Set access and refresh cookies |
 | `POST /auths/refresh` | Refresh access cookie |
