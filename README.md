@@ -171,11 +171,13 @@ The repository currently has no automated unit/integration/end-to-end test suite
 
 ### Security and current maturity
 
-The project includes role checks, bcrypt password hashing, cookie JWT authentication, upload type/signature/size validation, private seller documents, transactional inventory checks, Stripe webhook validation, follow/chat throttling, CORS controls, and a separate category-management secret.
+The project includes role checks, bcrypt password hashing, CSRF-protected cookie JWT authentication, upload type/signature/size validation, private seller documents, transactional inventory checks, Stripe webhook validation and refunds, follow/chat throttling, CORS controls, and a separate category-management secret.
 
-Before production, protect or remove the currently unauthenticated `POST /setup_database`, introduce CSRF protection for cross-site cookies, add automated tests, review demo seed credentials, and connect approved returns to the Stripe Refund API. Guest cart/favorites are intentionally temporary in the current implementation.
+The unsafe client-confirmed payment and database-setup endpoints have been removed. Production configuration now rejects insecure cookies, weak JWT secrets, catalog demo seeds, and weak staff seed passwords. Keep both seed flags disabled after initial provisioning and configure the signed Stripe webhook before accepting payments. Guest cart/favorites are intentionally temporary in the current implementation.
 
 For a page-by-page explanation, all status lifecycles, data model, file limits, order calculations, full API inventory, deployment details, and known limitations, read [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md).
+
+For the manual update, versioning, and release workflow, read [UPDATING_AND_RELEASES.md](UPDATING_AND_RELEASES.md).
 
 ---
 
@@ -346,6 +348,8 @@ npm.cmd run build
 
 В проекте уже есть ролевые проверки, bcrypt, JWT cookies, проверка MIME/сигнатуры/размера файлов, приватные документы продавцов, транзакционный контроль остатков, проверка Stripe webhook, ограничения частоты подписок/чата, CORS и отдельный секрет управления категориями.
 
-Перед production следует закрыть или удалить незащищённый `POST /setup_database`, добавить CSRF-защиту для cross-site cookies, автоматические тесты, пересмотреть demo seed credentials и связать одобрение возврата с Stripe Refund API. Гостевые корзина и избранное в текущей версии намеренно существуют только до перезагрузки приложения.
+Небезопасные endpoint самостоятельного подтверждения оплаты и настройки базы удалены. Cookie-аутентификация защищена CSRF-токеном, а одобрение возврата создаёт идемпотентный Stripe Refund. Production-конфигурация отклоняет небезопасные cookies, слабый JWT secret и demo catalog seed. После первичной настройки оставляйте оба seed-флага выключенными. Гостевые корзина и избранное в текущей версии намеренно существуют только до перезагрузки приложения.
 
 Подробный рассказ о каждой странице и кнопке, жизненных циклах статусов, модели данных, лимитах файлов, расчёте заказа, полном API, deployment и известных ограничениях находится в [PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md).
+
+Порядок обновления версий и создания новых релизов описан в [UPDATING_AND_RELEASES.md](UPDATING_AND_RELEASES.md).

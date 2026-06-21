@@ -1,5 +1,5 @@
 import { Route, Routes, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { moveFavoriteToCart } from "./api/favoritesApi";
 import { getCart } from "./api/cartApi";
 import MainLayout from "./layout/MainLayout";
@@ -141,7 +141,7 @@ export default function App() {
     }
   }
 
-  async function refreshCartAfterPayment() {
+  const refreshCartAfterPayment = useCallback(async () => {
     if (!isAuthenticated) return;
 
     try {
@@ -149,7 +149,7 @@ export default function App() {
     } catch {
       showToast("Payment finished, but cart could not be refreshed");
     }
-  }
+  }, [isAuthenticated, replaceCart]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -165,7 +165,7 @@ export default function App() {
         timers.forEach(window.clearTimeout);
       };
     }
-  }, [location.search, isAuthenticated]);
+  }, [location.search, refreshCartAfterPayment]);
 
   return (
     <Routes>

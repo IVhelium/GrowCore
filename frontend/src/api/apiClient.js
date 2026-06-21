@@ -54,6 +54,34 @@ export const apiClient = axios.create({
   },
 });
 
+function readCookie(name) {
+  const prefix = `${encodeURIComponent(name)}=`;
+  const cookie = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+}
+
+apiClient.interceptors.request.use((config) => {
+  const method = (config.method || "get").toLowerCase();
+  if (!["post", "put", "patch", "delete"].includes(method)) {
+    return config;
+  }
+
+  const isRefreshRequest = (config.url || "").includes("/auths/refresh");
+  const csrfToken = readCookie(
+    isRefreshRequest ? "csrf_refresh_token" : "csrf_access_token",
+  );
+
+  if (csrfToken) {
+    config.headers.set("X-CSRF-TOKEN", csrfToken);
+  }
+
+  return config;
+});
+
 const REFRESH_ENDPOINT = "/auths/refresh";
 
 const AUTH_ENDPOINTS_WITHOUT_REFRESH = [

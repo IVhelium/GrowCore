@@ -16,7 +16,11 @@ class ReviewModel(Base):
     
     user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"))
-    parent_id: Mapped[int | None] = mapped_column(ForeignKey("reviews.id", ondelete="CASCADE"), nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(
+        ForeignKey("reviews.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     
     # Relationships
     user: Mapped["UserModel"] = relationship(

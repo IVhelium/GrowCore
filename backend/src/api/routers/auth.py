@@ -74,7 +74,7 @@ async def me(current_user: CurrentUserDependency):
     "/logout",
     response_model=TokenResponseDTO
 )
-async def logout(response: Response):
+async def logout(response: Response, _current_user: CurrentUserDependency):
     auth.unset_access_cookies(response=response)
     auth.unset_refresh_cookies(response=response)
     

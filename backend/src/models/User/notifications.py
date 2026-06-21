@@ -13,7 +13,7 @@ class NotificationModel(Base):
     __tablename__ = "notifications"
 
     id: Mapped[intPk]
-    title: Mapped[str] = mapped_column(String(500))
+    title: Mapped[str] = mapped_column(String(120))
     message: Mapped[str] = mapped_column(Text)
     link_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     group_key: Mapped[str | None] = mapped_column(String(250), nullable=True, index=True)
@@ -21,6 +21,9 @@ class NotificationModel(Base):
     read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[createdAt]
 
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+    )
 
     user: Mapped["UserModel"] = relationship(back_populates="notifications")

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from src.core.constants import BASE_DIR
 
@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     JWT_REFRESH_COOKIE_NAME: str
     JWT_COOKIE_SECURE: bool = False
     JWT_COOKIE_SAMESITE: str = "lax"
+    JWT_COOKIE_CSRF_PROTECT: bool = True
     
     # File Storage
     FILE_STORAGE_BACKEND: str = "cloudinary"
@@ -57,6 +58,51 @@ class Settings(BaseSettings):
 
     UPDATE_SEEDED_USERS_PASSWORDS: bool = False
     CATEGORY_MANAGEMENT_SECRET: str | None = None
+
+    @model_validator(mode="after")
+    def validate_production_security(self):
+        if self.ENV.strip().lower() != "production":
+            return self
+
+        if len(self.JWT_SECRET.strip()) < 32 or self.JWT_SECRET.startswith("<"):
+            raise ValueError("JWT_SECRET must contain at least 32 non-placeholder characters in production")
+        if not self.JWT_COOKIE_SECURE:
+            raise ValueError("JWT_COOKIE_SECURE must be true in production")
+        if self.RUN_CATALOG_SEED:
+            raise ValueError("RUN_CATALOG_SEED must be false in production")
+
+        category_secret = (self.CATEGORY_MANAGEMENT_SECRET or "").strip()
+        if len(category_secret) < 32 or category_secret.startswith("<"):
+            raise ValueError("CATEGORY_MANAGEMENT_SECRET must contain at least 32 non-placeholder characters")
+
+        if self.STRIPE_SECRET_KEY and not self.STRIPE_WEBHOOK_SECRET:
+            raise ValueError("STRIPE_WEBHOOK_SECRET is required when Stripe payments are enabled")
+
+        if self.FILE_STORAGE_BACKEND == "cloudinary":
+            cloudinary_values = (
+                self.CLOUDINARY_CLOUD_NAME,
+                self.CLOUDINARY_API_KEY,
+                self.CLOUDINARY_API_SECRET,
+            )
+            has_cloudinary_url = bool(
+                self.CLOUDINARY_URL and not self.CLOUDINARY_URL.startswith("<")
+            )
+            has_cloudinary_fields = all(
+                value and not value.startswith("<")
+                for value in cloudinary_values
+            )
+            if not has_cloudinary_url and not has_cloudinary_fields:
+                raise ValueError("Cloudinary credentials are required for cloudinary storage")
+
+        if self.RUN_STAFF_SEED:
+            for name, password in (
+                ("SEED_ADMIN_PASSWORD", self.SEED_ADMIN_PASSWORD),
+                ("SEED_SUPPORT_PASSWORD", self.SEED_SUPPORT_PASSWORD),
+            ):
+                if not password or len(password) < 12 or password.startswith("<"):
+                    raise ValueError(f"{name} must contain at least 12 non-placeholder characters")
+
+        return self
 
     @field_validator("FILE_STORAGE_BACKEND", mode="before")
     @classmethod

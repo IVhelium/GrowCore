@@ -33,8 +33,6 @@ async def run_with_timeout(name: str, awaitable, timeout: int = SEED_TIMEOUT_SEC
 
 
 async def run_startup_seeds() -> None:
-    await run_with_timeout("Role seed", ensure_required_roles(), timeout=10)
-
     if settings.RUN_STAFF_SEED:
         await run_with_timeout(
             "Staff seed",
@@ -70,10 +68,7 @@ async def lifespan(app: FastAPI):
             exist_ok=True,
         )
 
-    seed_task = asyncio.create_task(run_startup_seeds())
-
-    try:
-        yield
-    finally:
-        if not seed_task.done():
-            seed_task.cancel()
+    # Required roles must exist before the API begins accepting requests.
+    await asyncio.wait_for(ensure_required_roles(), timeout=10)
+    await run_startup_seeds()
+    yield

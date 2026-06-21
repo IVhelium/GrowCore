@@ -1,0 +1,14 @@
+# GrowCore 0.1.0 release checklist
+
+- [ ] Merge the intended `dev` changes into `main` and review the final diff.
+- [ ] Set `ENV=production` and generate a unique JWT secret of at least 32 characters.
+- [ ] Keep `JWT_COOKIE_SECURE=true`, `JWT_COOKIE_CSRF_PROTECT=true`, and both seed flags false.
+- [ ] Set the exact frontend origin in `FRONTEND_URL`; do not use a wildcard with credentials.
+- [ ] Configure PostgreSQL, Cloudinary, Stripe secret key, and signed webhook secret.
+- [ ] Point Stripe webhooks to `POST /orders/stripe/webhook`.
+- [ ] Configure `VITE_API_URL` and `VITE_WS_URL`, then rebuild the frontend.
+- [ ] Apply `alembic upgrade head` against the production database.
+- [ ] Run `alembic check` against a production-like database; no upgrade operations may be pending.
+- [ ] Verify `/health`, registration/login/logout, catalog, cart, Stripe checkout/webhook, and an admin refund.
+- [ ] Confirm `RUN_STAFF_SEED=false` and `RUN_CATALOG_SEED=false` after provisioning.
+- [ ] Create tag `v0.1.0` only after the production smoke check passes.

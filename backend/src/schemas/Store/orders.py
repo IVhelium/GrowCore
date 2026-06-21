@@ -53,25 +53,6 @@ class UpdateDeliveryDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class PayOrderDTO(BaseModel):
-    transaction_id: str = Field(min_length=3, max_length=80)
-    payment_method: str = Field(min_length=2, max_length=40)
-    payment_document: str = Field(min_length=10)
-    delivery_address: str | None = Field(default=None, min_length=5, max_length=300)
-    customer_nif: str | None = Field(default=None, min_length=9, max_length=20)
-
-    @field_validator("payment_method", "customer_nif", mode="before")
-    @classmethod
-    def trim_payment_fields(cls, value):
-        if isinstance(value, str):
-            value = value.strip()
-            if not value:
-                return None
-        return value
-
-    model_config = ConfigDict(extra="forbid")
-
-
 class CreateStripeCheckoutDTO(BaseModel):
     delivery_address: str | None = Field(default=None, min_length=5, max_length=300)
     customer_nif: str | None = Field(default=None, min_length=9, max_length=20)
