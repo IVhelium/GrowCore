@@ -2,13 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0 - 2026-06-24
+
 - Added tab-specific sorting across the entire administration panel, including products, transactions, seller requests, users, sellers, categories, and seller filter options.
 - Added category search to the administration panel.
 - Prevented the required Brand and Warranty product attributes from being removed in create and edit forms.
 - Hid the visual horizontal scrollbar on pagination while preserving touch and horizontal scrolling on narrow screens.
-
-## 0.1.0 - 2026-06-21
-
 - Added CSRF protection for cookie-authenticated state-changing requests.
 - Removed unauthenticated database setup and client-confirmed payment endpoints.
 - Added Stripe refunds when an administrator approves a return.

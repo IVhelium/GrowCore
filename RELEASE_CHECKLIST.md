@@ -1,5 +1,7 @@
 # GrowCore 0.1.0 release checklist
 
+Planned release date: 2026-06-24
+
 - [ ] Merge the intended `dev` changes into `main` and review the final diff.
 - [ ] Set `ENV=production` and generate a unique JWT secret of at least 32 characters.
 - [ ] Keep `JWT_COOKIE_SECURE=true`, `JWT_COOKIE_CSRF_PROTECT=true`, and both seed flags false.
@@ -11,4 +13,4 @@
 - [ ] Run `alembic check` against a production-like database; no upgrade operations may be pending.
 - [ ] Verify `/health`, registration/login/logout, catalog, cart, Stripe checkout/webhook, and an admin refund.
 - [ ] Confirm `RUN_STAFF_SEED=false` and `RUN_CATALOG_SEED=false` after provisioning.
-- [ ] Create tag `v0.1.0` only after the production smoke check passes.
+- [ ] Create GitHub release `v0.1.0` from the merged `main` commit only after the production smoke check passes.
