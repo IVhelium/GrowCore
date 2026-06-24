@@ -36,6 +36,15 @@ body {
   overflow-x: clip;
 }
 
+.pagination-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pagination-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 button,
 input,
 select,

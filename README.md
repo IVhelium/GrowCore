@@ -23,12 +23,12 @@ The repository contains a React single-page application and an asynchronous Fast
 - **Shopping:** authenticated persistent cart and favorites, stock validation, debounced quantity editing, individual/bulk favorite-to-cart movement, and pending-order creation.
 - **Payments and fulfillment:** Stripe Checkout, signed webhooks, redirect confirmation, payment documents, platform/seller fee accounting, delivery state and tracking, order history, and return requests.
 - **Seller onboarding:** private proof-document upload, admin review, rejection and resubmission, automatic seller-role/store creation, and applicant notifications.
-- **Seller workspace:** store profile, listing drafts, structured descriptions and attributes, image management, discount and inventory controls, moderation submission, publication toggle, and safe deletion.
+- **Seller workspace:** store profile, listing drafts, structured descriptions and attributes with non-removable Brand and Warranty fields, image management, discount and inventory controls, moderation submission, publication toggle, and safe deletion.
 - **Moderation:** draft/pending/approved/rejected/blocked/deleted listing lifecycle, evidence review, reasoned decisions, and seller notifications.
 - **Social features:** user discovery, follows with abuse throttling, friend requests with messages, accept/decline/removal, searchable friend lists, and public seller stores.
 - **Chat and notifications:** REST history, real-time WebSocket delivery, short-lived WebSocket tickets, message throttling, grouped notifications, read/unread actions, and live counters.
 - **Support:** categorized customer tickets, history and staff responses, status workflow, staff assignment, search/filtering, and admin escalation.
-- **Administration:** product moderation/control, seller requests and private documents, users and blocking, Stripe transactions, delivery and returns, categories, and named seller-filter visibility.
+- **Administration:** searchable and sortable product moderation/control, seller requests and private documents, users and sellers, Stripe transactions, delivery and returns, categories, and named seller-filter visibility.
 
 ### Roles
 
@@ -198,12 +198,12 @@ GrowCore — это не только интернет-витрина. Прое�
 - **Покупки:** постоянные корзина и избранное для вошедшего пользователя, проверка склада, массовый перенос избранного и создание неоплаченного заказа.
 - **Оплата и выполнение:** Stripe Checkout, webhook и redirect-подтверждение, платёжный документ, учёт комиссии/суммы продавца, доставка, tracking, история и возвраты.
 - **Подключение продавца:** приватный подтверждающий документ, административная проверка, отклонение и повторная подача, автоматическое создание роли и магазина.
-- **Кабинет продавца:** профиль магазина, черновики товаров, изображения, описание и атрибуты, скидки, склад, отправка на модерацию и управление публикацией.
+- **Кабинет продавца:** профиль магазина, черновики товаров, изображения, описание и атрибуты с неудаляемыми полями Brand и Warranty, скидки, склад, отправка на модерацию и управление публикацией.
 - **Модерация:** статусы draft/pending/approved/rejected/blocked/deleted, просмотр материалов, решения с причиной и уведомления продавца.
 - **Социальные функции:** поиск людей, подписки с защитой от частых действий, заявки в друзья с сообщением, принятие/отклонение, список друзей и публичные магазины.
 - **Чат и уведомления:** REST-история, real-time WebSocket, краткоживущий ticket, ограничение частоты сообщений, группировка событий и счётчики.
 - **Поддержка:** типизированные обращения, ответы, назначение сотруднику, статусы, поиск/фильтры и административная эскалация.
-- **Администрирование:** товары, заявки продавцов и документы, пользователи, транзакции Stripe, доставка, возвраты, категории и видимость магазинов в фильтре.
+- **Администрирование:** поиск и сортировка товаров, заявок продавцов, пользователей, продавцов, транзакций Stripe, категорий и магазинов в фильтре, а также управление документами, доставкой и возвратами.
 
 ### Роли
 

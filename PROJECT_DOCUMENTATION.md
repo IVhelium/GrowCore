@@ -84,13 +84,13 @@ Frontend — адаптивное одностраничное приложен�
 
 **Магазин продавца.** В верхнем блоке продавец редактирует название и описание магазина. Ниже расположены поиск по собственным товарам, кнопка создания и список карточек со статусом модерации, ценой, остатком и датой. В зависимости от состояния доступны редактирование, управление доступностью и удаление с обязательной причиной. Ошибка одного действия не разрушает загруженный список, а успешное изменение обновляет данные.
 
-**Создание и редактирование товара.** Форма собирает название, цену, процент и окончание скидки, остаток, категорию, структурированные части описания и фильтруемые характеристики. Для нового товара изображение обязательно: UI создаёт draft, отдельно загружает файл и затем отправляет запись на модерацию. Редактор существующего товара загружает текущие значения и изображения; можно сохранить изменения как draft или сразу сохранить и отправить. Перед отправкой проверяются обязательные секции, Brand, Warranty и заполненность характеристик. Отдельный блок показывает загруженные изображения и позволяет удалить конкретное.
+**Создание и редактирование товара.** Форма собирает название, цену, процент и окончание скидки, остаток, категорию, структурированные части описания и фильтруемые характеристики. Для нового товара изображение обязательно: UI создаёт draft, отдельно загружает файл и затем отправляет запись на модерацию. Редактор существующего товара загружает текущие значения и изображения; можно сохранить изменения как draft или сразу сохранить и отправить. Перед отправкой проверяются обязательные секции, Brand, Warranty и заполненность характеристик. Brand и Warranty всегда присутствуют в редакторе атрибутов и не имеют действия удаления; дополнительные и пользовательские характеристики можно удалять. Отдельный блок показывает загруженные изображения и позволяет удалить конкретное.
 
 **Поддержка пользователя.** Верхняя часть показывает прошлые обращения, ответ сотрудника, назначенного специалиста, тип, даты и статус. Ниже форма создаёт новое обращение с категорией, темой и подробным сообщением. После отправки первая страница списка загружается повторно, поэтому новое обращение появляется сразу.
 
 **Панель поддержки.** Состояние фильтра и номер страницы хранятся в URL. Сотрудник может искать обращения, раскрывать карточку, назначать её себе, подготовить ответ и изменить статус. Система запрещает обычному support-пользователю редактировать чужое назначенное обращение; администратор может работать со всеми. Из карточки доступен профиль автора, а admin может заблокировать его при выявленном нарушении.
 
-**Административная панель.** Данные разных вкладок загружаются независимо через `Promise.allSettled`, поэтому временная ошибка одного раздела не делает всю панель бесполезной. Модальные окна показывают полные сведения о товаре или заявке перед решением. Все опасные действия требуют явной причины либо подтверждение. Собственные поиск, фильтры и пагинация существуют для товаров, пользователей, заявок и транзакций. Категории можно упорядочить числом `sort_order` и связать с иконкой, а список продавцов для фильтра настраивается отдельными переключателями.
+**Административная панель.** Данные разных вкладок загружаются независимо через `Promise.allSettled`, поэтому временная ошибка одного раздела не делает всю панель бесполезной. Модальные окна показывают полные сведения о товаре или заявке перед решением. Все опасные действия требуют явной причины либо подтверждение. Каждая вкладка имеет поиск и собственную сортировку; для заявок продавцов и транзакций дополнительно доступны статусные фильтры. Пагинация товаров, пользователей, заявок и транзакций сохраняет горизонтальную прокрутку на узких экранах, но не показывает полосу прокрутки. Категории можно искать, сортировать, упорядочить числом `sort_order` и связать с иконкой, а список продавцов для фильтра настраивается отдельными переключателями.
 
 **Информационные страницы.** `/about` объясняет специализацию платформы и принципы модерации, безопасности заказов и поддержки. `/delivery` содержит пользовательскую памятку о вариантах доставки и упаковке. Footer связывает каталог, информацию о компании, доставку, возвраты и контакты. Неизвестный URL открывает отдельную 404-страницу с возвратом к рабочим разделам.
 
@@ -126,7 +126,7 @@ Frontend — адаптивное одностраничное приложен�
 
 Скидка задаётся процентом 0–100 и необязательной датой окончания. Расчётная цена округляется до двух знаков; истёкшая скидка автоматически перестаёт считаться активной.
 
-Описание продавца структурировано секциями `Overview`, `Use case`, `Compatibility`, `Package includes`, `Characteristics`. Для атрибутов обязательны `Brand` и `Warranty`; дополнительные варианты предлагаются по категории, а продавец может запросить новый произвольный фильтр.
+Описание продавца структурировано секциями `Overview`, `Use case`, `Compatibility`, `Package includes`, `Characteristics`. Для атрибутов обязательны `Brand` и `Warranty`; их строки нельзя удалить из формы. Дополнительные варианты предлагаются по категории, а продавец может запросить новый произвольный фильтр.
 
 ## 5. Отзывы и ответы
 
@@ -238,15 +238,18 @@ Checkout не списывает деньги: он создаёт неопла�
 
 ## 13. Административная панель
 
-Панель состоит из семи вкладок:
+Панель состоит из восьми вкладок. Над содержимым каждой вкладки расположены поиск и контекстная сортировка:
 
 1. **Product moderation** — очередь pending, подробный modal, approve/reject.
 2. **Product controls** — все товары, просмотр, блокировка и soft delete с причиной.
 3. **Transactions** — пагинированные заказы, фильтр по payment status, суммы, 10% fee, Stripe/session ID, доставка, возврат, tracking и платёжный документ; изменение доставки и одобрение возврата выполняются API.
 4. **Seller requests** — просмотр данных и приватного документа, approve/reject.
 5. **Users** — поиск и пагинация, public ID/роли/блокировка, переход в профиль.
-6. **Categories** — создание, переименование, icon Lucide, sort order и удаление.
-7. **Filter sellers** — включение/выключение именованного магазина в фильтре каталога.
+6. **Sellers** — поиск, сортировка, переход в профиль и управление блокировкой продавца.
+7. **Categories** — поиск, сортировка, создание, переименование, icon Lucide, sort order и удаление.
+8. **Filter sellers** — поиск, сортировка и включение/выключение именованного магазина в фильтре каталога.
+
+Контекстные варианты сортировки включают дату, название, цену или сумму, статус, блокировку, позицию категории и видимость магазина — в зависимости от типа данных вкладки. Горизонтальная прокрутка пагинации остаётся доступной на маленьких экранах, но её полоса визуально скрыта.
 
 Управление категориями требует одновременно admin-cookie и отдельный заголовок `X-Category-Secret`. UI запрашивает секрет в modal и не хранит его как обычную публичную конфигурацию.
 
@@ -419,13 +422,13 @@ Axios uses credentials, a 10-second timeout, friendly error events, and a single
 
 **Seller store.** Sellers edit store name/description and browse a searchable list of their listings. Each card shows moderation state, price, inventory, and date. Available actions vary by state: edit, availability toggle, or reasoned deletion. A failed action leaves the loaded list usable, while success refreshes it.
 
-**Create/edit product.** Forms collect title, price, discount and expiry, stock, category, structured description sections, and filterable attributes. Creating a listing performs three explicit stages: create draft, upload required image, submit for moderation. Editing loads current values and images, then supports draft saving or save-and-submit. Submission validates required description sections, Brand, Warranty, and meaningful characteristic values. Existing images are displayed and individually removable.
+**Create/edit product.** Forms collect title, price, discount and expiry, stock, category, structured description sections, and filterable attributes. Creating a listing performs three explicit stages: create draft, upload required image, submit for moderation. Editing loads current values and images, then supports draft saving or save-and-submit. Submission validates required description sections, Brand, Warranty, and meaningful characteristic values. Brand and Warranty remain permanently present in the attribute editor and cannot be removed; optional attributes remain removable. Existing images are displayed and individually removable.
 
 **Customer support.** The help center lists the user’s ticket history, staff response, assignee, type, dates, and status. A second panel creates a categorized ticket with subject and detail. After success, page one reloads so the new ticket appears immediately.
 
 **Support workspace.** Status and page are URL-backed. Staff search, expand, self-assign, draft a response, and change status. A normal support account cannot edit a ticket already assigned to somebody else; admin can. The author profile is linked, and admins may block an abusive account from the ticket context.
 
-**Administration.** Tabs load independently with `Promise.allSettled`, so one failed data source does not disable the entire workspace. Detail modals expose listing/application evidence before a decision. Destructive actions require confirmation or a reason. Products, users, applications, and transactions have appropriate search, filters, and pagination. Categories combine name, Lucide icon, and numeric order; seller filter visibility uses dedicated toggles.
+**Administration.** Tabs load independently with `Promise.allSettled`, so one failed data source does not disable the entire workspace. Detail modals expose listing/application evidence before a decision. Destructive actions require confirmation or a reason. Every tab has search and context-specific sorting; applications and transactions additionally provide status filters. Paginated views retain narrow-screen horizontal scrolling while hiding the scrollbar itself. Categories are searchable and combine name, Lucide icon, and numeric order; seller filter visibility uses dedicated toggles.
 
 **Informational pages.** About explains the catalog focus and moderation, order-safety, and support principles. Delivery presents shipping and packaging guidance. The footer ties catalog, company, delivery, returns, and contact navigation together. Unknown URLs render a dedicated not-found page with a route back into the application.
 
@@ -448,7 +451,7 @@ The public catalog returns only enabled, approved products. Backend filtering co
 
 Product pages provide image selection, base/current price, discount badge, stock and quantity selection, ratings, seller/category, structured description, attributes, cart/favorite controls, delivery/warranty panels, review threads, and related products. Discounts range from 0–100%, may expire, and produce a two-decimal computed price.
 
-Seller descriptions use Overview, Use case, Compatibility, Package includes, and Characteristics sections. Brand and Warranty attributes are mandatory; category-aware options and custom filter requests are supported.
+Seller descriptions use Overview, Use case, Compatibility, Package includes, and Characteristics sections. Brand and Warranty attributes are mandatory and cannot be removed from the editor; category-aware options and custom filter requests are supported.
 
 An authenticated user may create one rated review per product (1–5) and any user may add a text reply through authenticated API. Rating aggregates update incrementally. Replies carry no rating, do not change the aggregate, and cannot be nested below one reply level. Reviews survive account deletion with a nullable author.
 

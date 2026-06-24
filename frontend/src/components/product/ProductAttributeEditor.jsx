@@ -30,7 +30,14 @@ export default function ProductAttributeEditor({
   }
 
   function removeRow(rowId) {
-    onChange(rows.filter((row) => row.id !== rowId || row.isRequired));
+    onChange(
+      rows.filter(
+        (row) =>
+          row.id !== rowId ||
+          row.isRequired ||
+          REQUIRED_ATTRIBUTE_NAMES.includes(row.name),
+      ),
+    );
   }
 
   function addAvailableRow(event) {
@@ -95,15 +102,18 @@ export default function ProductAttributeEditor({
             />
           </label>
 
-          <button
-            type="button"
-            onClick={() => removeRow(row.id)}
-            disabled={row.isRequired}
-            aria-label="Remove attribute"
-            className="mt-5 grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <X size={17} />
-          </button>
+          {row.isRequired || REQUIRED_ATTRIBUTE_NAMES.includes(row.name) ? (
+            <span className="hidden h-11 w-11 md:block" aria-hidden="true" />
+          ) : (
+            <button
+              type="button"
+              onClick={() => removeRow(row.id)}
+              aria-label="Remove attribute"
+              className="mt-5 grid h-11 w-11 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            >
+              <X size={17} />
+            </button>
+          )}
         </div>
       ))}
 

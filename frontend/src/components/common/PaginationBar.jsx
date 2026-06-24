@@ -16,7 +16,7 @@ export default function PaginationBar({
         : { defaultCurrent: current };
 
     return (
-      <div className="mt-8 flex max-w-full justify-start overflow-x-auto border-t border-slate-200 pt-6 sm:justify-center">
+      <div className="pagination-scrollbar mt-8 flex max-w-full justify-start overflow-x-auto border-t border-slate-200 pt-6 sm:justify-center">
         <Pagination
             total={total}
             pageSize={pageSize}

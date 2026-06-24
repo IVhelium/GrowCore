@@ -63,6 +63,49 @@ const ADMIN_PAGE_SIZE = 8;
 const ADMIN_USERS_PAGE_SIZE = 39;
 const paymentStatusOptions = ["", "pending", "paid", "refunded", "failed"];
 const sellerRequestStatusOptions = ["", "pending", "approved", "rejected"];
+const adminSortOptions = {
+  moderation: [["newest", "Newest first"], ["oldest", "Oldest first"], ["name-asc", "Name A–Z"], ["price-desc", "Price: high to low"], ["price-asc", "Price: low to high"]],
+  controls: [["newest", "Newest first"], ["oldest", "Oldest first"], ["name-asc", "Name A–Z"], ["price-desc", "Price: high to low"], ["price-asc", "Price: low to high"]],
+  transactions: [["newest", "Newest first"], ["oldest", "Oldest first"], ["total-desc", "Total: high to low"], ["total-asc", "Total: low to high"]],
+  sellerRequests: [["newest", "Newest first"], ["oldest", "Oldest first"], ["name-asc", "Name A–Z"], ["status-asc", "Status A–Z"]],
+  users: [["name-asc", "Name A–Z"], ["name-desc", "Name Z–A"], ["blocked-first", "Blocked first"], ["active-first", "Active first"]],
+  sellers: [["name-asc", "Name A–Z"], ["name-desc", "Name Z–A"], ["blocked-first", "Blocked first"], ["active-first", "Active first"]],
+  categories: [["position-asc", "Position: first to last"], ["position-desc", "Position: last to first"], ["name-asc", "Name A–Z"]],
+  filterSellers: [["name-asc", "Name A–Z"], ["name-desc", "Name Z–A"], ["visible-first", "Visible first"], ["hidden-first", "Hidden first"]],
+};
+
+function compareText(first, second) {
+  return String(first || "").localeCompare(String(second || ""), undefined, {
+    sensitivity: "base",
+  });
+}
+
+function sortAdminItems(items, sortValue, tab) {
+  const sorted = [...items];
+  const dateValue = (item) => new Date(
+    item.createdAt || item.date || item.raw?.created_at || 0,
+  ).getTime();
+  const nameValue = (item) => item.title || item.fullName || item.username || item.name;
+
+  return sorted.sort((first, second) => {
+    if (sortValue === "newest") return dateValue(second) - dateValue(first) || Number(second.id || 0) - Number(first.id || 0);
+    if (sortValue === "oldest") return dateValue(first) - dateValue(second) || Number(first.id || 0) - Number(second.id || 0);
+    if (sortValue === "name-asc") return compareText(nameValue(first), nameValue(second));
+    if (sortValue === "name-desc") return compareText(nameValue(second), nameValue(first));
+    if (sortValue === "price-desc") return Number(second.price) - Number(first.price);
+    if (sortValue === "price-asc") return Number(first.price) - Number(second.price);
+    if (sortValue === "total-desc") return Number(second.total) - Number(first.total);
+    if (sortValue === "total-asc") return Number(first.total) - Number(second.total);
+    if (sortValue === "status-asc") return compareText(first.status, second.status);
+    if (sortValue === "blocked-first") return Number(second.isBlocked) - Number(first.isBlocked) || compareText(nameValue(first), nameValue(second));
+    if (sortValue === "active-first") return Number(first.isBlocked) - Number(second.isBlocked) || compareText(nameValue(first), nameValue(second));
+    if (sortValue === "visible-first") return Number(second.showInFilters) - Number(first.showInFilters) || compareText(nameValue(first), nameValue(second));
+    if (sortValue === "hidden-first") return Number(first.showInFilters) - Number(second.showInFilters) || compareText(nameValue(first), nameValue(second));
+    if (sortValue === "position-desc") return Number(second.sortOrder) - Number(first.sortOrder);
+    if (sortValue === "position-asc" && tab === "categories") return Number(first.sortOrder) - Number(second.sortOrder);
+    return 0;
+  });
+}
 
 function AdminTabs({ activeTab, onChange }) {
   return (
@@ -400,6 +443,16 @@ export default function AdminPanelPage() {
     categories: "",
     filterSellers: "",
   });
+  const [tabSort, setTabSort] = useState({
+    moderation: "newest",
+    controls: "newest",
+    transactions: "newest",
+    sellerRequests: "newest",
+    users: "name-asc",
+    sellers: "name-asc",
+    categories: "position-asc",
+    filterSellers: "name-asc",
+  });
   const [reviewDetail, setReviewDetail] = useState(null);
 
   async function loadAdminData() {
@@ -699,19 +752,19 @@ export default function AdminPanelPage() {
       .some((value) => String(value).toLowerCase().includes(cleanQuery));
   }
 
-  const visibleProducts = products.filter((product) =>
+  const visibleProducts = sortAdminItems(products.filter((product) =>
     matchesSearch(
       [product.title, product.store?.name, product.category, product.moderationStatus],
       tabSearch.moderation,
     ),
-  );
-  const visibleAdminProducts = adminProducts.filter((product) =>
+  ), tabSort.moderation, "moderation");
+  const visibleAdminProducts = sortAdminItems(adminProducts.filter((product) =>
     matchesSearch(
       [product.title, product.store?.name, product.category, product.moderationStatus],
       tabSearch.controls,
     ),
-  );
-  const visibleTransactions = transactions.filter((transaction) =>
+  ), tabSort.controls, "controls");
+  const visibleTransactions = sortAdminItems(transactions.filter((transaction) =>
     matchesSearch(
       [
         transaction.id,
@@ -725,20 +778,29 @@ export default function AdminPanelPage() {
       ],
       tabSearch.transactions,
     ),
-  );
-  const visibleSellerRequests = sellerRequests.filter((request) =>
+  ), tabSort.transactions, "transactions");
+  const visibleSellerRequests = sortAdminItems(sellerRequests.filter((request) =>
     matchesSearch(
       [request.fullName, request.user?.username, request.user?.public_id, request.country, request.status],
       tabSearch.sellerRequests,
     ),
-  );
-  const visibleAdminUsers = adminUsers.filter((user) =>
+  ), tabSort.sellerRequests, "sellerRequests");
+  const visibleAdminUsers = sortAdminItems(adminUsers.filter((user) =>
     matchesSearch([user.username, user.public_id, user.email], tabSearch.users),
-  );
-  const visibleAdminSellers = adminSellers.filter((user) =>
+  ), tabSort.users, "users");
+  const visibleAdminSellers = sortAdminItems(adminSellers.filter((user) =>
     matchesSearch([user.username, user.public_id, user.email], tabSearch.sellers),
+  ), tabSort.sellers, "sellers");
+  const visibleCategories = sortAdminItems(
+    categories.filter((category) => matchesSearch([category.name, category.iconName], tabSearch.categories)),
+    tabSort.categories,
+    "categories",
   );
-  const visibleFilterStores = filterStores.filter((store) => matchesSearch([store.name], tabSearch.filterSellers));
+  const visibleFilterStores = sortAdminItems(
+    filterStores.filter((store) => matchesSearch([store.name], tabSearch.filterSellers)),
+    tabSort.filterSellers,
+    "filterSellers",
+  );
 
   return (
     <main>
@@ -771,7 +833,7 @@ export default function AdminPanelPage() {
 
         <AdminTabs activeTab={activeTab} onChange={setActiveTab} />
 
-        <div className="mt-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_15rem]">
           <input
             value={tabSearch[activeTab] || ""}
             onChange={(event) =>
@@ -783,6 +845,17 @@ export default function AdminPanelPage() {
             className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
             placeholder={`Search ${adminTabs.find((tab) => tab.id === activeTab)?.label || "admin tab"}...`}
           />
+          <label className="sr-only" htmlFor="admin-tab-sort">Sort current tab</label>
+          <select
+            id="admin-tab-sort"
+            value={tabSort[activeTab]}
+            onChange={(event) => setTabSort((current) => ({ ...current, [activeTab]: event.target.value }))}
+            className="min-h-11 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#4F8A5B]"
+          >
+            {(adminSortOptions[activeTab] || []).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-6 grid gap-6">
@@ -1469,7 +1542,7 @@ export default function AdminPanelPage() {
               </form>
 
               <div className="divide-y divide-slate-100 border-t border-slate-200">
-                {categories.map((category) => {
+                {visibleCategories.map((category) => {
                   const editing = editingCategoryId === category.id;
                   return (
                     <article key={category.id} className="grid min-w-0 gap-3 p-4 sm:p-5 md:grid-cols-[3rem_minmax(0,1fr)] md:items-center xl:grid-cols-[3rem_minmax(0,1fr)_12rem_auto]">
