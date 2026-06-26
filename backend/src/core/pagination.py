@@ -8,22 +8,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.schemas.pagination import PaginationDTO
 
 
+# Stores page size and starting position read from an API request.
 class PaginationParams:
-    """
-    A dependency class for retrieving pagination parameters from query parameters
-    Ex: GET /products?limit=20&offset=40
-    """
 
     def __init__(
         self,
         limit: int = Query(default=20, ge=1, le=100),
         offset: int = Query(default=0, ge=0),
     ):
-        """
-        Initializes pagination parameters
-        limit: The maximum number of items per page
-        offset: The number of items to skip
-        """
+        """Validates the requested page size and the number of records to skip."""
 
         self.limit = limit
         self.offset = offset
@@ -36,6 +29,7 @@ PaginationDependency = Annotated[
 
 
 class PaginationService:
+    """Builds paginated API responses for SQLAlchemy database queries."""
     @staticmethod
     def _count_query_source(query: Select) -> Select:
         """

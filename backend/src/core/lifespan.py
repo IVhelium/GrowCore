@@ -18,12 +18,14 @@ SEED_TIMEOUT_SECONDS = 30
 
 
 async def ensure_required_roles() -> None:
+    """Ensures the basic user roles exist before the API accepts requests."""
     async with new_session() as db:
         async with db.begin():
             await ensure_all_roles(db)
 
 
 async def run_with_timeout(name: str, awaitable, timeout: int = SEED_TIMEOUT_SECONDS) -> None:
+    """Runs a startup task with a time limit so a failed seed cannot block the API."""
     try:
         await asyncio.wait_for(awaitable, timeout=timeout)
     except TimeoutError:
@@ -33,6 +35,7 @@ async def run_with_timeout(name: str, awaitable, timeout: int = SEED_TIMEOUT_SEC
 
 
 async def run_startup_seeds() -> None:
+    """Runs optional staff and catalogue seed data configured through environment variables."""
     if settings.RUN_STAFF_SEED:
         await run_with_timeout(
             "Staff seed",
@@ -48,14 +51,7 @@ async def run_startup_seeds() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Lifespan of the application
-
-    At startup:
-    - creates storage/public
-    - creates storage/private
-    - if RUN_STAFF_SEED=true, runs the staff seed
-    """
+    """Prepares storage, roles, and optional sample data when the API starts."""
 
     if settings.FILE_STORAGE_BACKEND == "local":
         settings.PUBLIC_STORAGE_DIR.mkdir(

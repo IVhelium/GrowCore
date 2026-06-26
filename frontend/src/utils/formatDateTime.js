@@ -1,5 +1,6 @@
 export function formatDateTime(value, options = {}) {
-  if (!value) return "";
+  // Converts an ISO date from the API into a readable date and time.
+  if (!value) return ""; // Missing dates should not display "Invalid Date".
 
   const date = new Date(value);
 
@@ -18,6 +19,7 @@ export function formatDateTime(value, options = {}) {
 }
 
 export function formatDate(value) {
+  // Formats a date without time for short interface labels.
   return formatDateTime(value, {
     hour: undefined,
     minute: undefined,

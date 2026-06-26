@@ -25,6 +25,7 @@ const categoryIcons = {
 export const categoryIconOptions = Object.entries(iconMap);
 
 export function getCategoryIcon(categoryOrName) {
+  // Chooses an icon component from a category object or category name.
   if (typeof categoryOrName === "object" && categoryOrName?.iconName) {
     return iconMap[categoryOrName.iconName] || SlidersHorizontal;
   }

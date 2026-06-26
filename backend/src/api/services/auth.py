@@ -10,15 +10,18 @@ from src.core.security import hash_password, verify_password
 from src.core.constants import RoleStatus
 
 
+# Handles account registration, sign-in checks, and loading user roles from the database.
 class AuthService:
     def __init__(
         self,
         db: AsyncSession
     ):
+        # Keep the database session used by every method in this service.
         self.db = db
 
 
     async def _safe_rollback(self) -> None:
+        """Cancels an unfinished database transaction without hiding the original error."""
         try:
             await self.db.rollback()
 
@@ -26,14 +29,14 @@ class AuthService:
             pass
        
         
-    # Redister new User method  
+    # Registers a user only when the email and username are not already in use.
     async def register_new_user(
         self,
         schema: RegisterDTO  
     ) -> UserModel:
-        """New user registration with duplicate check and role assignment"""
+        """Creates an account, hashes its password, and assigns the default user role."""
         
-        # Check email | username
+        # Search once for either value so duplicate accounts cannot be created.
         exist_query = (
             select(UserModel)
             .where((UserModel.email == schema.email) | (UserModel.username == schema.username))
@@ -61,7 +64,7 @@ class AuthService:
             )
         
         
-        # Get User Role
+        # Load the standard role that every new customer receives.
         role_query = (
             select(RoleModel)
             .where(RoleModel.role == RoleStatus.user)
@@ -87,7 +90,7 @@ class AuthService:
             )
         
         
-        # Create User
+        # Save the account first so the database can generate its unique user ID.
         user = UserModel(
             username=schema.username,
             email=schema.email,
@@ -99,7 +102,7 @@ class AuthService:
             await self.db.flush()
             
             
-            # User Role Relation
+            # Link the new account to its default role in the relation table.
             user_role_relation = UserRoleModel(
                 user_id=user.id,
                 role_id=user_role.id
@@ -127,12 +130,12 @@ class AuthService:
         return await self.get_user_with_relations(user.id)
     
     
-    # Authenticatie User method
+    # Validates login details and returns the matching user account.
     async def authenticate_user(
         self,
         schema: LoginDTO
     ) -> UserModel:
-        """Authentication: User Lookup and Password Verification"""
+        """Finds a user by email and verifies the submitted password against its hash."""
         
         query = (
             select(UserModel)
@@ -152,14 +155,14 @@ class AuthService:
 
         user = result.scalar_one_or_none()
         
-        # If the user is not found
+        # Use the same message for a missing account and a wrong password for security.
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials"
             )
         
-        # Password validation
+        # Compare the submitted password with the securely stored password hash.
         valid_password = verify_password(schema.password, user.password_hash)
         
         if not valid_password:
@@ -176,7 +179,9 @@ class AuthService:
         user_id: str
     ) -> UserModel:
         
-        # Relationship
+        """Loads a user together with the roles required by the frontend."""
+
+        # Load role information in the same request to avoid extra database queries.
         query = (
             select(UserModel)
             .options(

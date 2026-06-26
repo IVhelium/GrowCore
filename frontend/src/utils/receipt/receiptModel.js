@@ -6,6 +6,7 @@ export const RECEIPT_ISSUER = {
 };
 
 export function cleanAddress(value) {
+  // Removes empty address parts and joins the remaining parts for a receipt.
   const text = String(value || "")
     .split(",")
     .map((part) => part.trim())
@@ -16,6 +17,7 @@ export function cleanAddress(value) {
 }
 
 export function money(value) {
+  // Formats a numeric value as a two-decimal euro amount.
   return `${Number(value || 0).toFixed(2)} EUR`;
 }
 
@@ -31,6 +33,7 @@ export function createReceiptModel({
   deliveryAddress,
   customerNif,
 }) {
+  // Converts payment and order data into one consistent receipt object.
   return {
     receiptNumber: `GC-${orderId || "ORDER"}-${String(paymentId || "PAYMENT").slice(-8)}`,
     orderId: orderId || "-",

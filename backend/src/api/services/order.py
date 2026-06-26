@@ -22,11 +22,14 @@ from src.models import CartModel, OrderItemModel, OrderModel, ProductModel, User
 from src.schemas import RequestReturnDTO, UpdateDeliveryDTO
 
 
+# Contains the order business rules, including payments, delivery, and return handling.
 class OrderService:
     def __init__(self, db: AsyncSession):
+        # Store the database session used by all order operations.
         self.db = db
 
     async def _safe_rollback(self) -> None:
+        """Cancels an unfinished order transaction after a database error."""
         try:
             await self.db.rollback()
         except SQLAlchemyError:
@@ -34,6 +37,7 @@ class OrderService:
 
     @staticmethod
     def _order_options():
+        """Defines the related order data loaded together for API responses."""
         return (
             selectinload(OrderModel.items)
             .selectinload(OrderItemModel.product)
@@ -41,6 +45,7 @@ class OrderService:
         )
 
     async def list_my_orders(self, current_user: UserModel) -> list[OrderModel]:
+        """Loads the signed-in user's order history with each ordered product."""
         query = (
             select(OrderModel)
             .options(*self._order_options())
@@ -66,6 +71,7 @@ class OrderService:
         pagination: PaginationParams,
         payment_status: PaymentStatus | None = None,
     ):
+        """Returns paginated order transactions, optionally filtered by payment state."""
         query = (
             select(OrderModel)
             .options(*self._order_options(), selectinload(OrderModel.user))

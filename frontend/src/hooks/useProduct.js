@@ -5,6 +5,7 @@ import { getProducts } from "../api/productApi";
 const CATALOG_PAGE_SIZE = 32;
 
 export function useProducts() {
+  // Loads the product list used by pages outside the filtered catalogue.
   const [products, setProducts] = useState([]);
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState(null);
@@ -49,6 +50,7 @@ export function useProducts() {
 }
 
 export function useProductCatalog() {
+  // Loads a filtered and paginated catalogue based on URL search parameters.
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({});
   const [sortValue, setSortValue] = useState("random");
@@ -62,7 +64,7 @@ export function useProductCatalog() {
 
   const searchValue = searchParams.get("search") || "";
   const categoryValue = searchParams.get("category") || filters.category || "";
-  const categoryId = /^\d+$/.test(categoryValue) ? Number(categoryValue) : null;
+  const categoryId = /^\d+$/.test(categoryValue) ? Number(categoryValue) : null; // Uses only a numeric category ID.
 
   useEffect(() => {
     let isActive = true;
@@ -123,6 +125,7 @@ export function useProductCatalog() {
   const catalogTotal = backendCatalogPage.total;
 
   function searchCatalog(query) {
+    // Stores the search text in the URL so the catalogue link can be shared.
     const params = new URLSearchParams(searchParams);
 
     if (query) {
@@ -136,6 +139,7 @@ export function useProductCatalog() {
   }
 
   function changeCatalogFilters(nextFilters) {
+    // Updates filters and resets pagination to the first results page.
     setFilters(nextFilters);
 
     const params = new URLSearchParams(searchParams);
@@ -151,6 +155,7 @@ export function useProductCatalog() {
   }
 
   function changeCatalogSort(nextSortValue) {
+    // Changes product ordering and returns the user to page one.
     setSortValue(nextSortValue);
     setCurrentPage(1);
   }

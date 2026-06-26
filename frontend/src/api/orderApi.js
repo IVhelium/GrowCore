@@ -4,6 +4,7 @@ const FALLBACK_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop";
 
 function normalizeOrderItem(item) {
+  // Converts one backend order item into the data needed by an order card.
   const product = item.product || {};
   const primaryImage = product.images?.[0]?.image;
 
@@ -20,6 +21,7 @@ function normalizeOrderItem(item) {
 }
 
 export function normalizeOrder(order) {
+  // Converts backend order fields into consistent names for frontend components.
   return {
     id: order.id,
     status: order.status,
@@ -42,6 +44,7 @@ export function normalizeOrder(order) {
 }
 
 export async function getOrders() {
+  // Loads the current user's complete order history.
   const { data } = await apiClient.get("/orders");
   return (data || []).map(normalizeOrder);
 }
@@ -51,6 +54,7 @@ export async function getAdminTransactions({
   offset = 0,
   paymentStatus,
 } = {}) {
+  // Loads paginated transactions for the admin panel, optionally by payment state.
   const { data } = await apiClient.get("/orders/admin/transactions", {
     params: {
       ...getPaginationParams({ limit, offset }),
@@ -65,6 +69,7 @@ export async function getAdminTransactions({
 }
 
 export async function confirmStripeCheckout(sessionId) {
+  // Confirms a finished Stripe Checkout session and receives the updated order.
   const { data } = await apiClient.post("/orders/stripe/confirm", null, {
     params: {
       session_id: sessionId,
@@ -75,6 +80,7 @@ export async function confirmStripeCheckout(sessionId) {
 }
 
 export async function requestOrderReturn(orderId, reason) {
+  // Sends a customer request to return an order with a written reason.
   const { data } = await apiClient.post(`/orders/${orderId}/returns`, {
     reason,
   });
@@ -83,10 +89,12 @@ export async function requestOrderReturn(orderId, reason) {
 }
 
 export async function deleteOrder(orderId) {
+  // Deletes an order only when backend business rules allow it.
   await apiClient.delete(`/orders/${orderId}`);
 }
 
 export async function createStripeCheckout(orderId, payload = {}) {
+  // Creates a Stripe Checkout session and returns the address to open in the browser.
   const { data } = await apiClient.post(`/orders/${orderId}/stripe-checkout`, {
     delivery_address: payload.deliveryAddress || undefined,
     customer_nif: payload.customerNif || undefined,

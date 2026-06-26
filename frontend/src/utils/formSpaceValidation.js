@@ -1,4 +1,5 @@
 export function getTrimmedFormData(form) {
+  // Removes accidental spaces around every text field before validation.
   const formData = new FormData(form);
   const data = {};
 
@@ -15,6 +16,7 @@ export function getTrimmedFormData(form) {
 }
 
 export function hasEmptyRequiredFields(data, requiredFields = []) {
+  // Checks whether any required field is empty after trimming spaces.
   return requiredFields.some((field) => {
     const value = data[field];
 
@@ -27,5 +29,6 @@ export function hasEmptyRequiredFields(data, requiredFields = []) {
 }
 
 export function getEmptyFieldMessage() {
+  // Provides the shared message shown for incomplete forms.
   return "Fill in all required fields. Spaces only are not allowed.";
 }

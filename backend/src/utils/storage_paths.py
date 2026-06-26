@@ -2,13 +2,13 @@ from src.models import UserModel
 
 
 def stable_public_id_segment(public_id: str) -> str:
-    """ Ex: #A1B2C3D4E5 -> A1B2C3D4E5 """
+    """Converts a public ID into a stable, safe folder-name segment."""
     
     return public_id.lstrip("#").upper()
 
 
 def avatar_directory_key(user: UserModel) -> str:
-    """ Ex: avatars/A1B2C3D4E5 """
+    """Builds the storage folder key used for one user's avatar files."""
     
     public_id = stable_public_id_segment(user.public_id)
     
@@ -16,7 +16,7 @@ def avatar_directory_key(user: UserModel) -> str:
 
 
 def seller_products_directory_key(user: UserModel) -> str:
-    """ Ex: products/A1B2C3D4E5 """
+    """Builds the storage folder key used for all products of one seller."""
     
     public_id = stable_public_id_segment(user.public_id)
     
@@ -27,7 +27,7 @@ def product_images_directory_key(
     seller_directory_key: str,
     product_id: int
 ) -> str:
-    """ Ex: products/A1B2C3D4E5/prodct_1/images """
+    """Builds the image folder key for one specific seller product."""
     
     return f"{seller_directory_key}/product_{product_id}/images"
 
@@ -36,7 +36,7 @@ def seller_request_documents_directory_key(
     user: UserModel,
     request_id: int
 ) -> str:
-    """ Ex: seller-documents/A1B2C3D4E5/request_2 """
+    """Builds the private folder key for documents in a seller application."""
     
     public_id = stable_public_id_segment(user.public_id)
     

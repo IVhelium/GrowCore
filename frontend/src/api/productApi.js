@@ -1,8 +1,10 @@
 import { apiClient, getPaginationParams, resolvestorageUrl } from "./apiClient";
 
+// Default number of catalogue products requested in one public list.
 const PRODUCT_LIST_LIMIT = 100;
 
 export function normalizeProduct(product) {
+  // Maps backend product fields, images, reviews, and prices into UI-friendly data.
   const primaryImage = product.images?.[0]?.image;
   const images = (product.images || [])
     .map((item) => resolvestorageUrl(item.image))
@@ -59,6 +61,7 @@ export async function getProducts({
   filters = {},
   sort = "new",
 } = {}) {
+  // Loads the public catalogue with the filters selected by the user.
   const { data } = await apiClient.get("/products", {
     params: {
       ...getPaginationParams({ limit, offset }),
@@ -82,11 +85,13 @@ export async function getProducts({
 }
 
 export async function getProduct(productId) {
+  // Loads one public product for its details page.
   const { data } = await apiClient.get(`/products/${productId}`);
   return normalizeProduct(data);
 }
 
 export async function createProductReview(productId, payload) {
+  // Posts a signed-in user's rating and review for a product.
   const { data } = await apiClient.post(`/products/${productId}/reviews`, {
     rating: Number(payload.rating),
     comment: payload.comment || "",
@@ -96,6 +101,7 @@ export async function createProductReview(productId, payload) {
 }
 
 export async function createProductReviewReply(productId, reviewId, payload) {
+  // Posts a text reply below an existing product review.
   const { data } = await apiClient.post(
     `/products/${productId}/reviews/${reviewId}/replies`,
     {
@@ -107,6 +113,7 @@ export async function createProductReviewReply(productId, reviewId, payload) {
 }
 
 export async function getPendingProducts({ limit = 20, offset = 0 } = {}) {
+  // Loads products waiting for an administrator's moderation decision.
   const { data } = await apiClient.get("/admin/products/moderation", {
     params: getPaginationParams({ limit, offset }),
   });
@@ -118,6 +125,7 @@ export async function getPendingProducts({ limit = 20, offset = 0 } = {}) {
 }
 
 export async function getAdminProducts({ limit = 20, offset = 0 } = {}) {
+  // Loads all products for the administrator catalogue view.
   const { data } = await apiClient.get("/admin/products", {
     params: getPaginationParams({ limit, offset }),
   });
@@ -129,6 +137,7 @@ export async function getAdminProducts({ limit = 20, offset = 0 } = {}) {
 }
 
 export async function approveProduct(productId) {
+  // Approves a pending product so it can appear in the public catalogue.
   const { data } = await apiClient.patch(
     `/admin/products/moderation/${productId}/approve`,
   );
@@ -137,6 +146,7 @@ export async function approveProduct(productId) {
 }
 
 export async function rejectProduct(productId, reason) {
+  // Rejects a product and saves the explanation visible to its seller.
   const { data } = await apiClient.patch(
     `/admin/products/moderation/${productId}/reject`,
     { reason },
@@ -146,6 +156,7 @@ export async function rejectProduct(productId, reason) {
 }
 
 export async function blockProduct(productId, reason) {
+  // Blocks a published product from further public access.
   const { data } = await apiClient.patch(`/admin/products/${productId}/block`, {
     reason,
   });
@@ -154,6 +165,7 @@ export async function blockProduct(productId, reason) {
 }
 
 export async function deleteAdminProduct(productId, reason) {
+  // Deletes a product through the administrator moderation workflow.
   const { data } = await apiClient.delete(`/admin/products/${productId}`, {
     data: { reason },
   });
@@ -162,6 +174,7 @@ export async function deleteAdminProduct(productId, reason) {
 }
 
 export async function getMySellerProducts({ limit = 20, offset = 0 } = {}) {
+  // Loads the current seller's own product listings.
   const { data } = await apiClient.get("/seller/products", {
     params: getPaginationParams({ limit, offset }),
   });
@@ -173,11 +186,13 @@ export async function getMySellerProducts({ limit = 20, offset = 0 } = {}) {
 }
 
 export async function getMySellerProduct(productId) {
+  // Loads one product only if it belongs to the signed-in seller.
   const { data } = await apiClient.get(`/seller/products/${productId}`);
   return normalizeProduct(data);
 }
 
 export async function createSellerProduct(payload) {
+  // Creates a new seller product draft from the product form values.
   const { data } = await apiClient.post("/seller/products", {
     title: payload.title,
     description: payload.description,
@@ -193,6 +208,7 @@ export async function createSellerProduct(payload) {
 }
 
 export async function updateSellerProduct(productId, payload) {
+  // Sends only the changed seller product fields to the backend.
   const body = {
     title: payload.title || undefined,
     description: payload.description || undefined,
@@ -213,6 +229,7 @@ export async function updateSellerProduct(productId, payload) {
 }
 
 export async function uploadSellerProductImage(productId, file) {
+  // Uploads an image file and links it to the seller's product.
   const formData = new FormData();
   formData.append("image", file);
 
@@ -225,11 +242,13 @@ export async function uploadSellerProductImage(productId, file) {
 }
 
 export async function submitSellerProduct(productId) {
+  // Sends a seller's completed product draft to the moderation queue.
   const { data } = await apiClient.post(`/seller/products/${productId}/submit`);
   return normalizeProduct(data);
 }
 
 export async function deleteSellerProduct(productId, reason) {
+  // Removes an unpublished seller product and records its reason.
   await apiClient.delete(`/seller/products/${productId}`, {
     data: { reason },
   });

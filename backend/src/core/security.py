@@ -8,7 +8,7 @@ from src.core.config import settings
 
 # ================ JWT ================
 
-# Configure AuthX
+# Configure how AuthX creates, reads, and protects JWT cookies.
 auth_config = AuthXConfig(
     # JWT
     JWT_SECRET_KEY=settings.JWT_SECRET,
@@ -28,7 +28,7 @@ auth_config = AuthXConfig(
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=80)
 )
 
-# Initialize AuthX
+# Create the authentication helper shared by protected API endpoints.
 auth = AuthX(config=auth_config)
 
 
@@ -36,12 +36,12 @@ auth = AuthX(config=auth_config)
 # ================ Password Hash ================
 
 pwd_context = PasswordHash(hashers=[BcryptHasher(rounds=12, prefix="2b")])
-# Hash Password
+# Converts a plain password into a secure hash before it is stored in the database.
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-# Verify Password
+# Checks a login password against the secure hash saved for that user.
 def verify_password(
     plain_password: str, 
     hashed_password: str

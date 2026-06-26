@@ -19,6 +19,7 @@ Characteristics:
 - Warranty:`;
 
 export function parseProductDescription(description = "") {
+  // Splits the structured product description into editable section values.
   const values = PRODUCT_DESCRIPTION_SECTIONS.reduce((sections, section) => {
     sections[section.key] = "";
     return sections;
@@ -47,6 +48,7 @@ export function parseProductDescription(description = "") {
 }
 
 export function composeProductDescription(sections = {}) {
+  // Builds one description text from the product editor section values.
   return PRODUCT_DESCRIPTION_SECTIONS.map((section) => {
     const value = sections[section.key]?.trim() || "";
     return `${section.label}:\n${value}`;
@@ -54,6 +56,7 @@ export function composeProductDescription(sections = {}) {
 }
 
 export function hasRequiredDescriptionSections(description = "") {
+  // Checks that every required description heading is present.
   const lowerDescription = description.toLowerCase();
 
   return PRODUCT_DESCRIPTION_SECTIONS.every((section) =>
@@ -62,6 +65,7 @@ export function hasRequiredDescriptionSections(description = "") {
 }
 
 export function hasFilledCharacteristics(description = "") {
+  // Checks whether the Characteristics section contains real content.
   if (!hasRequiredDescriptionSections(description)) return false;
 
   const marker = "characteristics:";

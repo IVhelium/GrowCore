@@ -12,6 +12,7 @@ from src.schemas import (
 )
 
 
+# This router provides the API endpoints for the signed-in user's shopping cart.
 router = APIRouter(
     prefix="/cart",
     tags=["Cart"],
@@ -26,9 +27,7 @@ async def get_my_cart(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Returns the current user's shopping cart
-    """
+    """Loads the current user's cart, creating an empty cart when needed."""
 
     return await cart_service.get_my_cart(current_user)
 
@@ -43,9 +42,7 @@ async def add_cart_item(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Adds the item to the cart
-    """
+    """Adds a product to the cart or increases its existing quantity."""
 
     return await cart_service.add_item(
         current_user=current_user,
@@ -63,9 +60,7 @@ async def update_cart_item(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Changes the quantity of items in the cart
-    """
+    """Changes the quantity of one item that belongs to the current user."""
 
     return await cart_service.update_item_quantity(
         current_user=current_user,
@@ -83,9 +78,7 @@ async def remove_cart_item(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Removes the item from the cart
-    """
+    """Removes one item from the current user's cart."""
 
     return await cart_service.remove_item(
         current_user=current_user,
@@ -101,9 +94,7 @@ async def clear_cart(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Empties the trash completely
-    """
+    """Removes every item from the current user's cart."""
 
     await cart_service.clear_cart(current_user)
 
@@ -119,9 +110,7 @@ async def checkout_cart(
     current_user: CurrentUserDependency,
     cart_service: CartServiceDependency,
 ):
-    """
-    Completes purchase and decreases product stock.
-    """
+    """Creates an order from the cart after checking stock and delivery details."""
 
     return await cart_service.checkout(
         current_user=current_user,

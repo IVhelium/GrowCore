@@ -33,10 +33,12 @@ const categoryOptions = [
 ];
 
 function unique(values) {
+  // Removes duplicate and empty option names from a list.
   return [...new Set(values.filter(Boolean))];
 }
 
 export function getAttributeOptionsForCategory(categoryName = "") {
+  // Returns common and category-specific attribute suggestions for product forms.
   const normalizedCategory = categoryName.toLowerCase();
   const matchedOptions = categoryOptions
     .filter((group) =>
@@ -50,6 +52,7 @@ export function getAttributeOptionsForCategory(categoryName = "") {
 }
 
 export function createRequiredAttributeRows() {
+  // Creates empty rows for attributes that every product must include.
   return REQUIRED_ATTRIBUTE_NAMES.map((name) => ({
     id: crypto.randomUUID(),
     name,
@@ -60,6 +63,7 @@ export function createRequiredAttributeRows() {
 }
 
 export function createAttributeRow(name, options = {}) {
+  // Creates one consistent attribute row for the product editor.
   return {
     id: crypto.randomUUID(),
     name,

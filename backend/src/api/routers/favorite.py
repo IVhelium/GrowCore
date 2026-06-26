@@ -14,6 +14,7 @@ from src.schemas import (
 )
 
 
+# This router lets signed-in users manage their saved products list.
 router = APIRouter(
     prefix="/favorites",
     tags=["Favorites"],
@@ -29,9 +30,7 @@ async def list_my_favorites(
     favorite_service: FavoriteServiceDependency,
     pagination: PaginationDependency,
 ):
-    """
-    Returns the current user's selected items
-    """
+    """Returns the current user's saved products one page at a time."""
 
     return await favorite_service.list_my_favorites(
         current_user=current_user,
@@ -49,9 +48,7 @@ async def add_to_favorites(
     current_user: CurrentUserDependency,
     favorite_service: FavoriteServiceDependency,
 ):
-    """
-    Adds the item to Favorites
-    """
+    """Saves an available product to the current user's favourites list."""
 
     return await favorite_service.add_to_favorites(
         current_user=current_user,
@@ -68,9 +65,7 @@ async def remove_from_favorites(
     current_user: CurrentUserDependency,
     favorite_service: FavoriteServiceDependency,
 ):
-    """
-    Removes the item from Favorites
-    """
+    """Removes one saved product owned by the current user."""
 
     await favorite_service.remove_from_favorites(
         current_user=current_user,
@@ -90,9 +85,7 @@ async def move_favorite_to_cart(
     current_user: CurrentUserDependency,
     favorite_service: FavoriteServiceDependency,
 ):
-    """
-    Moves the item from the favorites to the cart
-    """
+    """Moves a saved product into the cart with the chosen quantity."""
 
     return await favorite_service.move_to_cart(
         current_user=current_user,

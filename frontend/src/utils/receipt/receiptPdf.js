@@ -1,6 +1,7 @@
 import { RECEIPT_ISSUER, createReceiptModel, money } from "./receiptModel";
 
 function stripHtml(value) {
+  // Converts receipt HTML to plain text when only HTML input is available.
   const element = document.createElement("div");
   element.innerHTML = value;
 
@@ -13,6 +14,7 @@ function stripHtml(value) {
 }
 
 function sanitizePdfText(value) {
+  // Removes unsupported characters and escapes PDF control characters.
   return String(value ?? "")
     .replace(/[^\u0020-\u007E]/g, "")
     .replace(/\\/g, "\\\\")
@@ -21,12 +23,13 @@ function sanitizePdfText(value) {
 }
 
 function wrapText(value, width) {
+  // Splits long text into fixed-width lines for the PDF layout.
   const words = String(value || "-").split(/\s+/).filter(Boolean);
   const lines = [];
   let currentLine = "";
 
   words.forEach((word) => {
-    if (word.length > width) {
+    if (word.length > width) { // Splits one very long word that cannot fit on a line.
       if (currentLine) {
         lines.push(currentLine);
         currentLine = "";
@@ -52,6 +55,7 @@ function wrapText(value, width) {
 }
 
 function pad(value, width, align = "left") {
+  // Trims or pads text so receipt columns keep the same width.
   const text = String(value ?? "");
   const trimmed = text.length > width ? `${text.slice(0, width - 1)}.` : text;
 
@@ -61,10 +65,12 @@ function pad(value, width, align = "left") {
 }
 
 function pdfLine(text, x, y, size = 9) {
+  // Creates one raw PDF command that writes a line of text at coordinates.
   return `BT /F1 ${size} Tf ${x} ${y} Td (${sanitizePdfText(text)}) Tj ET`;
 }
 
 function buildReceiptLines(receipt) {
+  // Builds all visible text lines, totals, and item rows for a receipt.
   const subtotal = receipt.items.reduce(
     (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
     0,
@@ -130,6 +136,7 @@ function buildReceiptLines(receipt) {
 }
 
 function createPdfFromReceipt(receipt) {
+  // Creates a minimal one-page PDF document without an external PDF library.
   const visibleLines = buildReceiptLines(receipt).slice(0, 64);
   const content = [
     "0.29 0.54 0.36 rg",
@@ -170,6 +177,7 @@ function createPdfFromReceipt(receipt) {
 }
 
 export function downloadPaymentDocument(documentHtml, fileName, receiptInput = null) {
+  // Generates the PDF, starts the browser download, and releases temporary memory.
   const receipt = receiptInput
     ? createReceiptModel(receiptInput)
     : createReceiptModel({
