@@ -5,7 +5,8 @@ const CATEGORY_CACHE_KEY = "growcore:categories";
 const CATEGORY_RETRY_DELAY_MS = 2000;
 
 function readCachedCategories() {
-  if (typeof window === "undefined") {
+  // Reads previous categories so the UI can display them before the API responds.
+  if (typeof window === "undefined") { // localStorage exists only in the browser.
     return [];
   }
 
@@ -17,6 +18,7 @@ function readCachedCategories() {
 }
 
 function writeCachedCategories(categories) {
+  // Saves non-empty category data for the next page load.
   if (typeof window === "undefined" || categories.length === 0) {
     return;
   }
@@ -42,7 +44,7 @@ export function useCategories() {
         const backendCategories = await getCategories();
 
         // Stale request protection after component unmount.
-        if (isActive) {
+        if (isActive) { // Prevents state changes after a component unmount.
           setCategories(backendCategories);
           writeCachedCategories(backendCategories);
         }

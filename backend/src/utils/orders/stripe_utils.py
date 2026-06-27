@@ -1,9 +1,11 @@
 def stripe_metadata_value(value: object, max_length: int = 500) -> str:
+    """Converts a value into Stripe-safe metadata and limits its length."""
     text = "" if value is None else str(value)
     return text[:max_length]
 
 
 def stripe_object_to_dict(value):
+    """Converts Stripe objects and nested values into normal Python dictionaries."""
     if isinstance(value, dict):
         return {
             key: stripe_object_to_dict(item)
@@ -25,6 +27,7 @@ def stripe_object_to_dict(value):
 
 
 def format_stripe_address(details: dict | None) -> str | None:
+    """Builds one readable delivery address from Stripe customer details."""
     if not details:
         return None
 
@@ -53,6 +56,7 @@ def format_stripe_address(details: dict | None) -> str | None:
 
 
 def get_stripe_shipping_country(session: dict) -> str | None:
+    """Returns the shipping country from a Stripe session in uppercase form."""
     shipping_details = session.get("shipping_details") or {}
     customer_details = session.get("customer_details") or {}
 
@@ -67,6 +71,7 @@ def get_stripe_shipping_country(session: dict) -> str | None:
 
 
 def get_stripe_custom_field(session: dict, key: str) -> str | None:
+    """Finds the value of one named custom field submitted through Stripe Checkout."""
     for field in session.get("custom_fields") or []:
         if field.get("key") != key:
             continue

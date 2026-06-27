@@ -6,6 +6,7 @@ from src.core.pagination import PaginationDependency
 from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
 
 
+# This router handles customer orders, Stripe payments, delivery updates, and returns.
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"],
@@ -20,9 +21,7 @@ async def list_my_orders(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
-    """
-    Returns the current user's order history
-    """
+    """Returns every order placed by the current user, newest first."""
 
     return await order_service.list_my_orders(current_user)
 
@@ -37,6 +36,7 @@ async def list_admin_transactions(
     pagination: PaginationDependency,
     payment_status: PaymentStatus | None = Query(default=None),
 ):
+    """Lets an administrator browse payment transactions and filter by payment status."""
     return await order_service.list_admin_transactions(
         pagination=pagination,
         payment_status=payment_status,
@@ -52,6 +52,7 @@ async def delete_order(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
+    """Deletes an order only when it belongs to the current user and can be removed."""
     await order_service.delete_my_order(
         current_user=current_user,
         order_id=order_id,
@@ -70,6 +71,7 @@ async def create_stripe_checkout(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
+    """Creates a Stripe checkout session for a pending customer order."""
     return await order_service.create_stripe_checkout_session(
         current_user=current_user,
         order_id=order_id,
@@ -87,6 +89,7 @@ async def confirm_stripe_checkout(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
+    """Confirms a completed Stripe session and returns the updated order."""
     return await order_service.confirm_stripe_checkout_session(
         current_user=current_user,
         session_id=session_id,
@@ -101,6 +104,7 @@ async def stripe_webhook(
     request: Request,
     order_service: OrderServiceDependency,
 ):
+    """Receives trusted payment events sent directly by Stripe."""
     return await order_service.handle_stripe_webhook(request)
 
 
@@ -114,6 +118,7 @@ async def request_order_return(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
+    """Submits a customer's request to return a delivered order."""
     return await order_service.request_return(
         current_user=current_user,
         order_id=order_id,
@@ -131,6 +136,7 @@ async def update_order_delivery(
     admin: AdminDependency,
     order_service: OrderServiceDependency,
 ):
+    """Allows an administrator to update delivery status and tracking information."""
     return await order_service.update_delivery(
         order_id=order_id,
         schema=schema,
@@ -146,4 +152,5 @@ async def approve_order_return(
     admin: AdminDependency,
     order_service: OrderServiceDependency,
 ):
+    """Approves a return request and starts the order return workflow."""
     return await order_service.approve_return(order_id=order_id)

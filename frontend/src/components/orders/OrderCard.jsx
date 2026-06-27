@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CreditCard, FileText, PackageCheck, Trash2 } from "lucide-react";
 import Button from "../common/Button";
+import ImageWithFallback from "../common/ImageWithFallback";
 import OrderProgress from "./OrderProgress";
 import { formatDateTime } from "../../utils/formatDateTime";
 import { formatPrice } from "../../utils/formatPrice";
@@ -111,7 +112,7 @@ export default function OrderCard({
             to={`/product/${item.productId}`}
             className="flex items-center gap-4 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
           >
-            <img
+            <ImageWithFallback
               src={item.image}
               alt={item.title}
               className="h-16 w-16 rounded-md object-cover"

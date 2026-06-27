@@ -10,11 +10,8 @@ from src.models import ProductImageModel, ProductModel, UserModel
 from .product_base import ProductBaseService
 
 
+# Saves, links, and removes images for products owned by a seller.
 class ProductImageService(ProductBaseService):
-    """
-    Product Image Service
-    Responsible for uploading and deleting a seller's product images
-    """
 
     def __init__(
         self,
@@ -58,9 +55,7 @@ class ProductImageService(ProductBaseService):
                 detail="Product image directory is not configured",
             )
 
-        # First, the file is saved to disk
-        # If the database later fails to save the ProductImageModel,
-        # this file will need to be deleted manually in the except block
+        # Save the file first; the error handler removes it if the database update fails.
         stored_file = await self.file_storage_service.save_file(
             file=image,
             policy=PRODUCT_IMAGE_POLICY,

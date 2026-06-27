@@ -38,6 +38,7 @@ import FriendsPage from "./pages/FriendsPage";
 import AboutPage from "./pages/AboutPage";
 
 export default function App() {
+  // Connects shared authentication, catalogue, cart, and favourites state to all routes.
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const {
@@ -47,7 +48,7 @@ export default function App() {
 
   const { categories } = useCategories();
   
-  const visibleProducts = productsError ? [] : backendProducts;
+  const visibleProducts = productsError ? [] : backendProducts; // Hides stale products after a failed request.
 
   const {
     cart,
@@ -80,6 +81,7 @@ export default function App() {
   });
 
   function canMoveFavoriteToCart(product, currentCart) {
+    // Checks whether adding this favourite would exceed available stock.
     const cartItem = currentCart.find(
       (item) => String(item.productId) === String(product.id),
     );
@@ -93,12 +95,13 @@ export default function App() {
   }
 
   async function moveFavoritesToCart() {
+    // Moves every available favourite into the cart and reports skipped products.
     let movedCount = 0;
     let skippedCount = 0;
     let currentCart = cart;
 
     for (const product of [...favorites]) {
-      if (!canMoveFavoriteToCart(product, currentCart)) {
+      if (!canMoveFavoriteToCart(product, currentCart)) { // Keeps unavailable products in favourites.
         skippedCount += 1;
         continue;
       }
@@ -142,7 +145,7 @@ export default function App() {
   }
 
   const refreshCartAfterPayment = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) return; // Guests do not have a server cart to refresh.
 
     try {
       replaceCart(await getCart());
@@ -154,7 +157,7 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
 
-    if (params.get("stripe") === "success") {
+    if (params.get("stripe") === "success") { // Stripe redirects here after a successful payment.
       refreshCartAfterPayment();
       const timers = [
         window.setTimeout(refreshCartAfterPayment, 1500),

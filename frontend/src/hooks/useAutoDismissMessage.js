@@ -6,10 +6,11 @@ export function useAutoDismissMessage(
   initialMessage = "",
   delay = DEFAULT_DISMISS_DELAY_MS,
 ) {
+  // Stores a message and automatically clears it after the chosen delay.
   const [message, setMessage] = useState(initialMessage);
 
   useEffect(() => {
-    if (!message) {
+    if (!message) { // Do not create a timer when there is nothing to dismiss.
       return undefined;
     }
 
@@ -17,7 +18,7 @@ export function useAutoDismissMessage(
       setMessage("");
     }, delay);
 
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(timeoutId); // Cleans up the timer when the message changes.
   }, [delay, message]);
 
   return [message, setMessage];

@@ -1,6 +1,7 @@
 import { RECEIPT_ISSUER, createReceiptModel, money } from "./receiptModel";
 
 function escapeHtml(value) {
+  // Replaces HTML special characters so customer text cannot change the receipt markup.
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -10,8 +11,9 @@ function escapeHtml(value) {
 }
 
 export function createPaymentDocument(receiptInput) {
+  // Builds the printable HTML payment receipt from normalised receipt data.
   const receipt = createReceiptModel(receiptInput);
-  const rows = receipt.items
+  const rows = receipt.items // Creates one table row for every purchased item.
     .map((item, index) => {
       const quantity = Number(item.quantity || 0);
       const unit = Number(item.price || 0);

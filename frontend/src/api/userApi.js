@@ -3,6 +3,7 @@ import { getPaginationParams } from "./apiClient";
 
 
 export function normalizeUser(user) {
+    // Maps backend user fields to the camelCase names used by React components.
     return {
         ...user,
         public_id: user.public_id,
@@ -18,11 +19,13 @@ export function normalizeUser(user) {
 
 
 export async function getUserProfile() {
+    // Loads the signed-in user's editable profile.
     const { data } = await apiClient.get("/users/me");
     return normalizeUser(data);
 }
 
 export async function updateUserProfile(payload) {
+    // Updates the current user's username and profile description.
     const body = {
         username: payload.username,
         description: payload.description || null,
@@ -33,6 +36,7 @@ export async function updateUserProfile(payload) {
 }
 
 export async function uploadUserAvatar(file) {
+    // Uploads a new avatar image for the signed-in user.
     const formData = new FormData();
     formData.append("avatar", file);
 
@@ -41,11 +45,13 @@ export async function uploadUserAvatar(file) {
 }
 
 export async function deleteUserAvatar() {
+    // Removes the current user's avatar and returns the refreshed profile.
     const { data } = await apiClient.delete("/users/me/avatar");
     return normalizeUser(data);
 }
 
 export async function getUsers({ limit = 12, offset = 0, search = "", role = "" } = {}) {
+    // Loads a paginated, optionally filtered list of public users.
     const { data } = await apiClient.get("/users", {
         params: {
             ...getPaginationParams({ limit, offset }),
@@ -61,6 +67,7 @@ export async function getUsers({ limit = 12, offset = 0, search = "", role = "" 
 }
 
 export async function searchUserByPublicId(publicId) {
+    // Finds one user using the public identifier visible in their profile.
     const { data } = await apiClient.get("/users/search", {
         params: { public_id: publicId },
     });
@@ -69,11 +76,13 @@ export async function searchUserByPublicId(publicId) {
 }
 
 export async function getPublicUserProfile(publicId) {
+    // Loads the profile that another visitor can view publicly.
     const { data } = await apiClient.get(`/users/${encodeURIComponent(publicId)}`);
     return normalizeUser(data);
 }
 
 export async function getFriends({ limit = 12, offset = 0, search = "" } = {}) {
+    // Loads the current user's friends list with optional search and pagination.
     const { data } = await apiClient.get("/users/me/friends", {
         params: {
             ...getPaginationParams({ limit, offset }),
@@ -88,6 +97,7 @@ export async function getFriends({ limit = 12, offset = 0, search = "" } = {}) {
 }
 
 export async function getFollowingStatus(publicId) {
+    // Checks whether the current user follows a specific public profile.
     const { data } = await apiClient.get(
         `/users/${encodeURIComponent(publicId)}/following`,
         { _silent: true },
@@ -96,6 +106,7 @@ export async function getFollowingStatus(publicId) {
 }
 
 export async function getFriendshipStatus(publicId) {
+    // Loads friendship and pending-request state for a public profile.
     const { data } = await apiClient.get(
         `/users/${encodeURIComponent(publicId)}/friendship`,
         { _silent: true },
@@ -109,6 +120,7 @@ export async function getFriendshipStatus(publicId) {
 }
 
 export async function followUser(publicId) {
+    // Starts following the selected public user.
     const { data } = await apiClient.post(
         `/users/${encodeURIComponent(publicId)}/follow`,
     );
@@ -116,6 +128,7 @@ export async function followUser(publicId) {
 }
 
 export async function unfollowUser(publicId) {
+    // Stops following the selected public user.
     const { data } = await apiClient.delete(
         `/users/${encodeURIComponent(publicId)}/follow`,
     );
@@ -123,6 +136,7 @@ export async function unfollowUser(publicId) {
 }
 
 export async function addFriend(publicId, message = "") {
+    // Sends a friend request, optionally including a short message.
     const { data } = await apiClient.post(
         `/users/${encodeURIComponent(publicId)}/friend`,
         { message: message || undefined },
@@ -131,6 +145,7 @@ export async function addFriend(publicId, message = "") {
 }
 
 export async function removeFriend(publicId) {
+    // Removes an existing friendship with the selected user.
     const { data } = await apiClient.delete(
         `/users/${encodeURIComponent(publicId)}/friend`,
     );
@@ -138,6 +153,7 @@ export async function removeFriend(publicId) {
 }
 
 export async function getFriendRequests() {
+    // Loads incoming and outgoing friend requests in a UI-friendly format.
     const { data } = await apiClient.get("/users/me/friend-requests");
     return (data || []).map((request) => ({
         id: request.id,
@@ -150,6 +166,7 @@ export async function getFriendRequests() {
 }
 
 export async function getFriendRequestCount() {
+    // Returns the small unread friend-request counter shown in navigation.
     const { data } = await apiClient.get("/users/me/friend-requests/count", {
         _silent: true,
     });
@@ -157,6 +174,7 @@ export async function getFriendRequestCount() {
 }
 
 export async function acceptFriendRequest(requestId) {
+    // Accepts an incoming friend request.
     const { data } = await apiClient.post(
         `/users/me/friend-requests/${requestId}/accept`,
     );
@@ -164,6 +182,7 @@ export async function acceptFriendRequest(requestId) {
 }
 
 export async function declineFriendRequest(requestId) {
+    // Declines an incoming friend request.
     const { data } = await apiClient.post(
         `/users/me/friend-requests/${requestId}/decline`,
     );
@@ -171,6 +190,7 @@ export async function declineFriendRequest(requestId) {
 }
 
 export async function blockUser(publicId, reason) {
+    // Lets an administrator block a user and store the block reason.
     const { data } = await apiClient.patch(
         `/users/admin/${encodeURIComponent(publicId)}/block`,
         { reason },
@@ -179,6 +199,7 @@ export async function blockUser(publicId, reason) {
 }
 
 export async function unblockUser(publicId) {
+    // Lets an administrator restore a previously blocked user.
     const { data } = await apiClient.patch(
         `/users/admin/${encodeURIComponent(publicId)}/unblock`,
     );
@@ -186,6 +207,7 @@ export async function unblockUser(publicId) {
 }
 
 export async function getNotifications({ limit = 20, offset = 0 } = {}) {
+    // Loads the current user's notifications one page at a time.
     const { data } = await apiClient.get("/users/me/notifications", {
         params: getPaginationParams({ limit, offset }),
     });
@@ -194,6 +216,7 @@ export async function getNotifications({ limit = 20, offset = 0 } = {}) {
 }
 
 export async function getUnreadNotificationCount() {
+    // Returns the notification count used for the navigation badge.
     const { data } = await apiClient.get("/users/me/notifications/unread-count", {
         _silent: true,
     });
@@ -201,11 +224,13 @@ export async function getUnreadNotificationCount() {
 }
 
 export async function markAllNotificationsRead() {
+    // Marks every notification as read for the signed-in user.
     const { data } = await apiClient.patch("/users/me/notifications/read-all");
     return data;
 }
 
 export async function markNotificationRead(notificationId) {
+    // Marks one notification as read after the user opens it.
     const { data } = await apiClient.patch(
         `/users/me/notifications/${notificationId}/read`,
     );
@@ -214,5 +239,6 @@ export async function markNotificationRead(notificationId) {
 }
 
 export async function deleteAllNotifications() {
+    // Deletes every notification belonging to the signed-in user.
     await apiClient.delete("/users/me/notifications");
 }

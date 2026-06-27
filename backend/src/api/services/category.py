@@ -8,15 +8,15 @@ from src.schemas import CreateCategoryDTO, UpdateCategoryDTO
 from src.utils.catalog_seed import CATEGORIES
 
 
+# Manages category data used to organise products in the public catalogue.
 class CategoryService:
-    """
-    Public category catalog service
-    """
 
     def __init__(self, db: AsyncSession):
+        # Store the database session used for category queries and updates.
         self.db = db
 
     async def _ensure_default_categories(self) -> None:
+        """Adds missing default categories and refreshes their saved image links."""
         changed = False
 
         for seed in CATEGORIES:
@@ -64,6 +64,7 @@ class CategoryService:
 
 
     async def list_categories(self) -> list[CategoryModel]:
+        """Returns categories in the order chosen for the catalogue interface."""
         query = (
             select(CategoryModel)
             .order_by(CategoryModel.sort_order, CategoryModel.name)
@@ -81,6 +82,7 @@ class CategoryService:
         return list(result.scalars().all())
 
     async def create_category(self, schema: CreateCategoryDTO) -> CategoryModel:
+        """Creates a category after cleaning its name and checking for duplicates."""
         name = schema.name.strip()
         if not name:
             raise HTTPException(

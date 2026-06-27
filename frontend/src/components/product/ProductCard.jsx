@@ -1,5 +1,6 @@
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import ImageWithFallback from "../common/ImageWithFallback";
 import { formatPrice } from "../../utils/formatPrice";
 
 export default function ProductCard({
@@ -41,10 +42,11 @@ export default function ProductCard({
           to={`/product/${product.id}`}
           className="flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-white"
         >
-          <img
+          <ImageWithFallback
             src={product.image}
             alt={product.title}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            iconSize={38}
           />
         </Link>
       </div>

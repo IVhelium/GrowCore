@@ -1,7 +1,8 @@
 export function sortProducts(products, sortValue) {
+  // Sorts a copy of products so the original catalogue state is unchanged.
   const sortedProducts = [...products];
 
-  if (sortValue === "popular") {
+  if (sortValue === "popular") { // Highest product rating first.
     return sortedProducts.sort((a, b) => b.rating - a.rating);
   }
 
@@ -27,6 +28,7 @@ export function filterProducts({
   filters,
   searchValue,
 }) {
+  // Applies search text, category, price, seller, stock, and attribute filters.
   const categoryName =
     categories.find((category) => String(category.id) === String(categoryValue))
       ?.name || categoryValue;
@@ -52,7 +54,7 @@ export function filterProducts({
 
   return products.filter((product) => {
     const query = searchValue.trim().toLowerCase();
-    const matchesSearch =
+    const matchesSearch = // Searches title, description, and category without case sensitivity.
       !query ||
       product.title.toLowerCase().includes(query) ||
       product.description.toLowerCase().includes(query) ||

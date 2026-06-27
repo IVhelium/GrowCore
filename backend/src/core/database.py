@@ -19,18 +19,21 @@ new_session = async_sessionmaker(           # Create an async sessionmaker for m
     expire_on_commit=False
 )  
 
+# Opens one database session for a request and closes it afterwards.
 async def get_session():
     async with new_session() as session:
         yield session
          
          
 class Base(DeclarativeBase):
+    """Base class inherited by every database model in the project."""
     # Relationships are not used in `repr()` because they can lead to unexpected reloads
     
     repr_cols_num = 3
     repr_cols = tuple()
     
     def __repr__(self):
+        """Returns a short model description that is useful when debugging."""
         cols = []
         
         for idx, col in enumerate(self.__table__.columns.keys()):

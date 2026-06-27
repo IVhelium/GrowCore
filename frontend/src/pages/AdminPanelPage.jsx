@@ -40,6 +40,7 @@ import { getAdminStoreFilterOptions, updateAdminStoreFilterOption } from "../api
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
+import ImageWithFallback from "../components/common/ImageWithFallback";
 import PaginationBar from "../components/common/PaginationBar";
 import UserMiniCard from "../components/user/UserMiniCard";
 import UserAvatar from "../components/user/UserAvatar";
@@ -363,13 +364,12 @@ function ReviewModal({ detail, onClose }) {
                 <StatusBadge status={item.moderationStatus} />
               </div>
 
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="max-h-80 w-full rounded-lg object-cover"
-                />
-              )}
+              <ImageWithFallback
+                src={item.image}
+                alt={item.title}
+                className="h-80 max-h-80 w-full rounded-lg object-cover"
+                iconSize={42}
+              />
 
               <div className="grid gap-4 rounded-lg bg-slate-50 p-4 md:grid-cols-3">
                 <DetailRow label="Category" value={item.category} />
@@ -1462,7 +1462,7 @@ export default function AdminPanelPage() {
                               to={item.productId ? `/product/${item.productId}` : "#"}
                               className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-2 transition hover:border-[#4F8A5B]/40"
                             >
-                              <img src={item.image} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
+                              <ImageWithFallback src={item.image} alt="" className="h-11 w-11 shrink-0 rounded-md object-cover" />
                               <span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-700">{item.title}</span><span className="text-xs text-slate-500">{item.quantity} × {formatPrice(item.price)}</span></span>
                             </Link>
                           ))}

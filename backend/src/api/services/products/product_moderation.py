@@ -15,12 +15,8 @@ from src.schemas import DeleteProductDTO, RejectProductDTO
 from .product_base import ProductBaseService
 
 
+# Lets administrators review listings and decide whether they can be published.
 class ProductModerationService(ProductBaseService):
-    """
-    Product Moderation Service
-    Used by administrators to review pending products,
-    and approve or reject their publication
-    """
 
     def __init__(
         self,
@@ -34,6 +30,7 @@ class ProductModerationService(ProductBaseService):
         title: str,
         message: str,
     ) -> None:
+        """Sends a notification to the seller after an admin changes their listing."""
         if product.store and product.store.user_id:
             await NotificationService(self.db).create(
                 user_id=product.store.user_id,
@@ -72,6 +69,7 @@ class ProductModerationService(ProductBaseService):
         self,
         pagination: PaginationParams,
     ) -> PaginationDTO:
+        """Returns every product for the admin panel, newest first."""
         query = (
             select(ProductModel)
             .options(*self._product_options())

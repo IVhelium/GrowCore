@@ -16,23 +16,22 @@ from src.utils.storage_paths import product_images_directory_key, seller_product
 from .product_base import ProductBaseService
 
 
+# Manages seller product listings and the product data shown in the public catalogue.
 class ProductService(ProductBaseService):
-    """
-    Main Product Service
-    Responsible for creating, editing, submitting for moderation,
-    managing product availability, and maintaining the public catalog
-    """
 
     def __init__(
         self,
         db: AsyncSession,
         file_storage_service: FileStorageService,
     ):
-        super().__init__(db)    # Passes the DB variable to the derived class
+        # Give the base service the database session shared by all product methods.
+        super().__init__(db)
+        # Store the service that saves and deletes product image files.
         self.file_storage_service = file_storage_service
 
     @staticmethod
     def _clean_attributes(attributes: dict | None) -> dict[str, str]:
+        """Removes empty product attribute names and values before saving them."""
         if not attributes:
             return {}
 
@@ -52,10 +51,7 @@ class ProductService(ProductBaseService):
         seller: UserModel,
         schema: CreateProductDTO,
     ) -> ProductModel:
-        """
-        Creates a draft product listing for the current seller
-        After a flush, generates an image_storage_prefix for future product images
-        """
+        """Creates a seller draft and gives it a unique folder for future images."""
 
         self._ensure_seller_active(seller)
         store = await self._get_seller_store(seller)
@@ -81,6 +77,7 @@ class ProductService(ProductBaseService):
 
             await self.db.flush()
 
+            # Build a private storage path based on the seller and generated product ID.
             seller_directory_key = seller_products_directory_key(seller)
 
             product.image_storage_prefix = product_images_directory_key(

@@ -12,6 +12,7 @@ from src.models import CartItemModel, CartModel, OrderItemModel, OrderModel, Pro
 from src.schemas import AddCartItemDTO, CheckoutDTO, UpdateCartItemDTO
 
 
+# Contains all database operations needed to read, change, and check out a shopping cart.
 class CartService:
     COMPANY_FEE_RATE = Decimal("0.10")
 
@@ -19,10 +20,12 @@ class CartService:
         self,
         db: AsyncSession,
     ):
+        # Keep the asynchronous database session used by this service.
         self.db = db
 
 
     async def _safe_rollback(self) -> None:
+        """Cancels an unfinished transaction after a cart operation fails."""
         try:
             await self.db.rollback()
 
@@ -32,6 +35,7 @@ class CartService:
 
     @staticmethod
     def _cart_options():
+        """Defines the related cart data that should be loaded in one database query."""
         return (
             selectinload(CartModel.items)
             .selectinload(CartItemModel.product)
@@ -43,9 +47,7 @@ class CartService:
         self,
         current_user: UserModel,
     ) -> CartModel | None:
-        """
-        Returns the user's shopping cart, if it exists
-        """
+        """Returns the user's cart with its products and images, if it already exists."""
 
         query = (
             select(CartModel)
@@ -63,9 +65,7 @@ class CartService:
         self,
         current_user: UserModel,
     ) -> CartModel:
-        """
-        Returns the user's shopping cart or creates a new one
-        """
+        """Returns the user's cart or creates an empty cart for a first-time customer."""
 
         cart = await self._get_cart(current_user)
 
@@ -93,6 +93,7 @@ class CartService:
         Only products marked as “approved” and “enabled” can be added to the cart
         """
 
+        # Load the product and its images before checking whether it can be purchased.
         query = (
             select(ProductModel)
             .options(selectinload(ProductModel.images))
@@ -131,9 +132,7 @@ class CartService:
         current_user: UserModel,
         item_id: int,
     ) -> CartItemModel:
-        """
-        Returns the current user's shopping cart item
-        """
+        """Finds one cart item and confirms that it belongs to the current user."""
 
         query = (
             select(CartItemModel)
@@ -164,10 +163,7 @@ class CartService:
         self,
         current_user: UserModel,
     ) -> CartModel:
-        """
-        Returns the current user's shopping cart
-        If a shopping cart does not yet exist, one is created
-        """
+        """Loads the user's cart and creates it when the user has never used a cart."""
 
         try:
             cart = await self._get_or_create_cart(current_user)
@@ -219,6 +215,7 @@ class CartService:
             product = await self._get_available_product(product_id)
             cart = await self._get_or_create_cart(current_user)
 
+            # Look for the same product so the cart keeps one row per product.
             existing_item = next(
                 (
                     item
@@ -253,6 +250,7 @@ class CartService:
 
                 existing_item.quantity = next_quantity
 
+            # A caller can delay the commit when this method is part of a larger action.
             if commit:
                 await self.db.commit()
             else:
@@ -301,9 +299,7 @@ class CartService:
         current_user: UserModel,
         schema: AddCartItemDTO,
     ) -> CartModel:
-        """
-        Adds the item to the cart
-        """
+        """Reads product data from the request and adds it to the user's cart."""
 
         return await self.add_product_to_cart(
             current_user=current_user,
@@ -319,9 +315,7 @@ class CartService:
         item_id: int,
         schema: UpdateCartItemDTO,
     ) -> CartModel:
-        """
-        Updates the quantity of items in the cart
-        """
+        """Changes one cart item quantity without allowing it to exceed stock."""
 
         try:
             item = await self._get_cart_item(
@@ -360,9 +354,7 @@ class CartService:
         current_user: UserModel,
         item_id: int,
     ) -> CartModel:
-        """
-        Removes the item from the cart
-        """
+        """Deletes one cart item after confirming that the user owns it."""
 
         try:
             item = await self._get_cart_item(
@@ -392,9 +384,7 @@ class CartService:
         self,
         current_user: UserModel,
     ) -> CartModel:
-        """
-        Completely clears the user's trash
-        """
+        """Deletes all items from the current user's cart."""
 
         try:
             cart = await self._get_or_create_cart(current_user)
@@ -420,10 +410,7 @@ class CartService:
         current_user: UserModel,
         schema: CheckoutDTO,
     ) -> CartModel:
-        """
-        Creates a pending order from the current cart.
-        Stock and cart items are finalized only after successful payment.
-        """
+        """Creates a pending order from the cart and records its item prices and fees."""
 
         try:
             cart = await self._get_cart(current_user)
@@ -439,6 +426,7 @@ class CartService:
             total_price = Decimal("0.00")
             company_fee_total = Decimal("0.00")
 
+            # Check every item before creating the order so unavailable stock stops checkout.
             for item in cart.items:
                 product = await self._get_available_product(item.product_id)
 
@@ -455,6 +443,7 @@ class CartService:
                     rounding=ROUND_HALF_UP,
                 )
 
+            # Create the order header before adding its individual product rows.
             order = OrderModel(
                 user_id=current_user.id,
                 status=OrderStatus.inTransit,
@@ -469,6 +458,7 @@ class CartService:
             self.db.add(order)
             await self.db.flush()
 
+            # Copy each cart item into a permanent order item with its price at checkout time.
             for item in list(cart.items):
                 product = await self._get_available_product(item.product_id)
                 line_total = product.discounted_price * item.quantity

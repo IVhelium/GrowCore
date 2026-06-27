@@ -2,8 +2,6 @@ import { apiClient, getPaginationParams, resolvestorageUrl } from "./apiClient";
 import { normalizeCart } from "./cartApi";
 
 const FAVORITES_LIST_LIMIT = 100;
-const FALLBACK_PRODUCT_IMAGE =
-  "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop";
 
 function normalizeFavoriteProduct(favorite) {
   const product = favorite.product || {};
@@ -18,7 +16,7 @@ function normalizeFavoriteProduct(favorite) {
     oldPrice: null,
     label: "Product",
     category: "",
-    image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
+    image: resolvestorageUrl(primaryImage) || "",
     rating: Number(product.rating_avg ?? 0),
     ratingCount: product.rating_count ?? 0,
     quantity: product.quantity,

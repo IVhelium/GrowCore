@@ -6,6 +6,7 @@ import { AuthContext } from "./auth-context"
 
 
 export default function AuthProvider({ children }) {
+    // Provides the current user and account actions to the whole application.
     const [user, setUser] = useState(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -17,7 +18,7 @@ export default function AuthProvider({ children }) {
         } catch (error) {
             setUser(null);
 
-            if (error?.response?.status !== 401) {
+            if (error?.response?.status !== 401) { // A 401 simply means that the visitor is signed out.
                 throw error;
             }
             
@@ -34,6 +35,7 @@ export default function AuthProvider({ children }) {
 
     const login = useCallback( 
         async (credentials) => {
+            // Sign in first, then load the full profile saved in the session.
             await loginUser(credentials);
             return loadCurrentUser();
         },
@@ -42,6 +44,7 @@ export default function AuthProvider({ children }) {
 
     const register = useCallback(
         async (payload) => {
+            // Creates the account and signs in immediately with the new credentials.
             await registerUser(payload);
 
             return login({
@@ -54,6 +57,7 @@ export default function AuthProvider({ children }) {
 
     const logout = useCallback(
         async () => {
+            // Removes the server session and clears the user stored in React state.
             await logoutUser();
             setUser(null);
         },
@@ -88,6 +92,7 @@ export default function AuthProvider({ children }) {
     );
 
     const value = useMemo(
+        // Prevents unnecessary re-renders when none of the shared values changed.
         () => ({
             user,
             isAuthenticated: Boolean(user),

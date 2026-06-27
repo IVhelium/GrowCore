@@ -5,13 +5,14 @@ from src.core.security import auth
 from src.schemas import ReadUserDTO, RegisterDTO, LoginDTO, TokenResponseDTO
 
 
+# This router exposes the endpoints used to register, sign in, refresh a session, and sign out.
 router = APIRouter(
     prefix="/auths", 
     tags=["Auths"]
 )
 
 
-# Register new User
+# Creates a new account and gives it the default user role.
 @router.post(
     "/register", 
     response_model=ReadUserDTO, 
@@ -24,7 +25,7 @@ async def register(
     return await auth_service.register_new_user(dto)
 
 
-# Login User
+# Checks the user's credentials and stores access and refresh tokens in secure cookies.
 @router.post(
     "/login",
     response_model=TokenResponseDTO
@@ -34,6 +35,7 @@ async def login(
     response: Response,
     auth_service: AuthServiceDependency
 ):
+    # The service confirms that the email and password belong to the same user.
     user = await auth_service.authenticate_user(dto)
     
     access_token = auth.create_access_token(uid=str(user.id))
@@ -45,7 +47,7 @@ async def login(
     return {"message": "Success"}
 
 
-# Refresh JWT Token
+# Creates a new access token when the browser still has a valid refresh token.
 @router.post(
     "/refresh",
     response_model=TokenResponseDTO
@@ -60,7 +62,7 @@ async def refresh_token(
     return {"message": "Access token refreshed"}
 
 
-# Current User
+# Returns the profile of the user identified by the current access token.
 @router.get(
     "/me",
     response_model=ReadUserDTO
@@ -69,7 +71,7 @@ async def me(current_user: CurrentUserDependency):
     return current_user
 
 
-# Logout
+# Removes both authentication cookies to end the user's session in this browser.
 @router.post(
     "/logout",
     response_model=TokenResponseDTO

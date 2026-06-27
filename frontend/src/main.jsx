@@ -5,9 +5,9 @@ import App from "./App.jsx";
 import AuthProvider from "./context/AuthContext.jsx";
 import Toast from "./components/common/Toast.jsx";
 
-createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <AuthProvider>
+createRoot(document.getElementById("root")).render( // Mounts React inside the root element from index.html.
+  <BrowserRouter> {/* Enables page navigation without reloading the browser. */}
+    <AuthProvider> {/* Shares login state with every component. */}
       <Toast />
       <App />
     </AuthProvider>

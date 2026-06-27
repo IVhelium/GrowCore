@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   Heart,
   MessageSquare,
   Minus,
@@ -13,15 +15,17 @@ import {
 import Container from "../components/common/Container";
 import Button from "../components/common/Button";
 import EmptyState from "../components/common/EmptyState";
+import ImageWithFallback from "../components/common/ImageWithFallback";
 import ProductGrid from "../components/product/ProductGrid";
 import SectionTitle from "../components/common/SectionTitle";
 import UserMiniCard from "../components/user/UserMiniCard";
 import { formatPrice } from "../utils/formatPrice";
 import { formatDate } from "../utils/formatDateTime";
 import { getApiError } from "../utils/getApiError";
-
-const fallbackImage =
-  "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=900&auto=format&fit=crop";
+import {
+  parseProductDescription,
+  PRODUCT_DESCRIPTION_SECTIONS,
+} from "../utils/productDescriptionTemplate";
 
 const tabs = [
   { id: "description", label: "Description" },
@@ -57,6 +61,108 @@ function getReviewThreads(reviews) {
       ...review,
       replies: repliesByParent[review.id] || [],
     }));
+}
+
+function ProductDescriptionView({ description = "", storeDescription = "" }) {
+  const sections = parseProductDescription(description);
+  const hasStructuredDescription = PRODUCT_DESCRIPTION_SECTIONS.some((section) =>
+    sections[section.key]?.trim(),
+  );
+
+  if (!hasStructuredDescription) {
+    return (
+      <div>
+        <h3 className="text-xl font-bold text-slate-950">
+          Product description
+        </h3>
+        <p className="mt-3 leading-7 text-slate-600">
+          {description}
+        </p>
+        {storeDescription && (
+          <p className="mt-4 leading-7 text-slate-600">
+            {storeDescription}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  function getCharacteristicRows(value = "") {
+    return value
+      .split("\n")
+      .map((line) => line.replace(/^[-*]\s*/, "").trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [name, ...rest] = line.split(":");
+        return {
+          name: name?.trim() || "Characteristic",
+          value: rest.join(":").trim(),
+        };
+      });
+  }
+
+  return (
+    <div>
+      <h3 className="text-xl font-bold text-slate-950">
+        Product description
+      </h3>
+      <div className="mt-5 grid gap-5">
+        {PRODUCT_DESCRIPTION_SECTIONS.map((section) => {
+          const value = sections[section.key]?.trim();
+
+          if (!value) return null;
+
+          if (section.key === "characteristics") {
+            const rows = getCharacteristicRows(value);
+
+            return (
+              <section key={section.key} className="grid gap-3">
+                <h4 className="text-sm font-bold uppercase text-slate-400">
+                  {section.label}
+                </h4>
+                <div className="grid gap-2">
+                  {rows.map((row, index) => (
+                    <div
+                      key={`${row.name}-${index}`}
+                      className="grid gap-1 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[180px_minmax(0,1fr)]"
+                    >
+                      <span className="text-sm font-bold text-slate-700">
+                        {row.name}
+                      </span>
+                      <span className="text-sm leading-6 text-slate-600">
+                        {row.value || "-"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          }
+
+          return (
+            <section key={section.key} className="grid gap-2">
+              <h4 className="text-sm font-bold uppercase text-slate-400">
+                {section.label}
+              </h4>
+              <p className="leading-7 text-slate-600 whitespace-pre-line">
+                {value}
+              </p>
+            </section>
+          );
+        })}
+      </div>
+      {storeDescription && (
+        <p className="mt-5 leading-7 text-slate-600">
+          {storeDescription}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function getProductSummary(description = "") {
+  const sections = parseProductDescription(description);
+  return sections.overview?.trim() || description;
 }
 
 function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
@@ -152,19 +258,10 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
 
       <div className="p-5 md:p-6">
         {activeTab === "description" && (
-          <div>
-            <h3 className="text-xl font-bold text-slate-950">
-              Product description
-            </h3>
-            <p className="mt-3 leading-7 text-slate-600">
-              {product.description}
-            </p>
-            {product.store?.description && (
-              <p className="mt-4 leading-7 text-slate-600">
-                {product.store.description}
-              </p>
-            )}
-          </div>
+          <ProductDescriptionView
+            description={product.description}
+            storeDescription={product.store?.description}
+          />
         )}
 
         {activeTab === "delivery" && (
@@ -405,9 +502,10 @@ export default function ProductPage({
     [product],
   );
   const uniqueImages = [...new Set(images.filter(Boolean))];
-  const galleryImages = uniqueImages.length ? uniqueImages : [fallbackImage];
-  const [selectedImage, setSelectedImage] = useState(galleryImages[0]);
+  const galleryImages = uniqueImages;
+  const [selectedImage, setSelectedImage] = useState(galleryImages[0] || "");
   const [quantity, setQuantity] = useState(1);
+  const thumbnailTrackRef = useRef(null);
 
   if (isLoading && !product) {
     return (
@@ -439,44 +537,120 @@ export default function ProductPage({
   const canBuy = maxQuantity > 0;
   const selectedGalleryImage = galleryImages.includes(selectedImage)
     ? selectedImage
-    : galleryImages[0];
+    : galleryImages[0] || "";
+  const selectedGalleryIndex = Math.max(
+    0,
+    galleryImages.indexOf(selectedGalleryImage),
+  );
   const selectedQuantity = canBuy ? Math.min(quantity, maxQuantity) : 1;
+  const productSummary = getProductSummary(product.description);
+
+  function showPreviousImage() {
+    setSelectedImage(
+      galleryImages[
+        (selectedGalleryIndex - 1 + galleryImages.length) % galleryImages.length
+      ],
+    );
+  }
+
+  function showNextImage() {
+    setSelectedImage(
+      galleryImages[(selectedGalleryIndex + 1) % galleryImages.length],
+    );
+  }
+
+  function scrollThumbnailTrack(direction) {
+    const scrollAmount = thumbnailTrackRef.current?.clientWidth
+      ? thumbnailTrackRef.current.clientWidth * 0.8
+      : 220;
+
+    thumbnailTrackRef.current?.scrollBy({
+      left: direction * scrollAmount,
+      behavior: "smooth",
+    });
+  }
 
   return (
     <main>
       <Container className="py-8">
         <div className="grid gap-6 lg:grid-cols-[minmax(360px,560px)_minmax(0,1fr)] lg:items-start">
-          <section className="grid w-full max-w-560px gap-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="grid aspect-square max-h-[min(560px,calc(100vh-180px))] place-items-center overflow-hidden rounded-xl bg-slate-50">
-                <img
+          <section className="grid w-full min-w-0 max-w-full gap-4 lg:max-w-560px">
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
+              <div className="relative grid aspect-square max-h-[min(560px,calc(100vh-180px))] place-items-center overflow-hidden rounded-xl bg-slate-50">
+                <ImageWithFallback
                   src={selectedGalleryImage}
                   alt={product.title}
                   className="h-full w-full object-cover"
+                  iconSize={52}
                 />
+                {galleryImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={showPreviousImage}
+                      aria-label="Show previous product image"
+                      className="absolute left-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow-sm transition hover:bg-white hover:text-[#4F8A5B] sm:left-3 sm:h-11 sm:w-11"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={showNextImage}
+                      aria-label="Show next product image"
+                      className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-slate-700 shadow-sm transition hover:bg-white hover:text-[#4F8A5B] sm:right-3 sm:h-11 sm:w-11"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-950/70 px-3 py-1 text-xs font-bold text-white">
+                      {selectedGalleryIndex + 1} / {galleryImages.length}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
             {galleryImages.length > 1 && (
-              <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
-                {galleryImages.map((image) => (
-                  <button
-                    key={image}
-                    type="button"
-                    onClick={() => setSelectedImage(image)}
-                    className={`overflow-hidden rounded-lg border bg-white p-1 transition ${
-                      selectedGalleryImage === image
-                        ? "border-[#4F8A5B]"
-                        : "border-slate-200 hover:border-[#4F8A5B]"
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt=""
-                      className="aspect-square w-full rounded-md object-cover"
-                    />
-                  </button>
-                ))}
+              <div className="relative min-w-0 max-w-full overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => scrollThumbnailTrack(-1)}
+                  aria-label="Scroll product thumbnails left"
+                  className="absolute left-0 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg border border-slate-200 bg-white/95 text-slate-600 shadow-sm transition hover:border-[#4F8A5B] hover:text-[#4F8A5B] sm:h-10 sm:w-10"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <div
+                  ref={thumbnailTrackRef}
+                  className="flex min-w-0 snap-x gap-2 overflow-x-auto scroll-smooth px-11 pb-1 scrollbar-width:none sm:gap-3 sm:px-12 [&::-webkit-scrollbar]:hidden"
+                >
+                  {galleryImages.map((image) => (
+                    <button
+                      key={image}
+                      type="button"
+                      onClick={() => setSelectedImage(image)}
+                      className={`h-[clamp(64px,18vw,96px)] w-[clamp(64px,18vw,96px)] shrink-0 snap-start overflow-hidden rounded-lg border bg-white p-1 transition ${
+                        selectedGalleryImage === image
+                          ? "border-[#4F8A5B]"
+                          : "border-slate-200 hover:border-[#4F8A5B]"
+                      }`}
+                    >
+                      <ImageWithFallback
+                        src={image}
+                        alt=""
+                        className="h-full w-full rounded-md object-cover"
+                        iconSize={22}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => scrollThumbnailTrack(1)}
+                  aria-label="Scroll product thumbnails right"
+                  className="absolute right-0 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-lg border border-slate-200 bg-white/95 text-slate-600 shadow-sm transition hover:border-[#4F8A5B] hover:text-[#4F8A5B] sm:h-10 sm:w-10"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             )}
           </section>
@@ -508,8 +682,8 @@ export default function ProductPage({
               </span>
             </div>
 
-            <p className="mt-5 leading-7 text-slate-600">
-              {product.description}
+            <p className="product-detail-summary mt-5 leading-7 text-slate-600">
+              {productSummary}
             </p>
 
             <div className="mt-6 rounded-xl bg-slate-50 p-5">

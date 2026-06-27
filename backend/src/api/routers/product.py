@@ -25,6 +25,7 @@ from src.schemas import (
 )
 
 
+# This router covers the public catalogue, seller product management, and admin moderation.
 router = APIRouter(tags=["Products"])
 
 
@@ -45,11 +46,7 @@ async def list_public_products(
     attributes: list[str] | None = Query(default=None),
     sort: str = Query(default="new", pattern="^(popular|price-asc|price-des|new|random)$"),
 ):
-    """
-    Returns the public product catalog
-    Available to all users
-    Displays only approved and enabled products
-    """
+    """Returns approved catalogue products with filters, sorting, search, and pagination."""
 
     return await product_service.list_public_products(
         search=search,
@@ -73,9 +70,7 @@ async def get_public_product(
     product_id: int,
     product_service: ProductServiceDependency,
 ):
-    """
-    Returns the product's public card
-    """
+    """Returns one approved product for its public product page."""
 
     return await product_service.get_public_product(product_id)
 
@@ -91,9 +86,7 @@ async def create_product_review(
     current_user: CurrentUserDependency,
     product_service: ProductServiceDependency,
 ):
-    """
-    Adds a buyer review with rating to a public product
-    """
+    """Adds a signed-in buyer's rating and review to a public product."""
 
     return await product_service.create_review(
         current_user=current_user,
@@ -114,9 +107,7 @@ async def create_product_review_reply(
     current_user: CurrentUserDependency,
     product_service: ProductServiceDependency,
 ):
-    """
-    Adds a text reply to an existing product review without changing rating
-    """
+    """Adds a text reply to an existing review without changing its rating."""
 
     return await product_service.create_review_reply(
         current_user=current_user,
@@ -277,6 +268,7 @@ async def list_admin_products(
     product_moderation_service: ProductModerationServiceDependency,
     pagination: PaginationDependency,
 ):
+    """Returns all products for the administrator, including unpublished listings."""
     return await product_moderation_service.list_admin_products(
         pagination=pagination,
     )
@@ -292,9 +284,7 @@ async def upload_product_image(
     product_image_service: ProductImageServiceDependency,
     image: Annotated[UploadFile, File(...)],
 ):
-    """
-    Uploads an image for the seller's product
-    """
+    """Uploads an image and attaches it to a product owned by the current seller."""
 
     return await product_image_service.add_product_image(
         seller=seller,
@@ -392,6 +382,7 @@ async def block_product(
     admin: AdminDependency,
     product_moderation_service: ProductModerationServiceDependency,
 ):
+    """Blocks a product so it is no longer available in the public catalogue."""
     return await product_moderation_service.block_product(
         admin=admin,
         product_id=product_id,
@@ -409,6 +400,7 @@ async def delete_product(
     admin: AdminDependency,
     product_moderation_service: ProductModerationServiceDependency,
 ):
+    """Marks a product as deleted after recording the administrator's reason."""
     return await product_moderation_service.delete_product(
         admin=admin,
         product_id=product_id,
