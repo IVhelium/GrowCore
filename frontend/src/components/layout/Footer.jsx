@@ -5,6 +5,14 @@ import RoleQuickLinks from "../user/RoleQuickLinks";
 
 
 const FOOTER_CATEGORY_LIMIT = 6;
+const CALLBACK_EMAIL = "support@growcore.dev";
+const CALLBACK_EMAIL_SUBJECT = encodeURIComponent("Request a callback");
+const CALLBACK_EMAIL_BODY = encodeURIComponent(
+  "Hello GrowCore team,\n\nPlease call me back about:\n\nMy phone number:\nPreferred time:",
+);
+const CALLBACK_GMAIL_URL =
+  `https://mail.google.com/mail/?view=cm&fs=1&to=${CALLBACK_EMAIL}` +
+  `&su=${CALLBACK_EMAIL_SUBJECT}&body=${CALLBACK_EMAIL_BODY}`;
 
 // Site footer with backend category links and static informational links.
 export default function Footer({ categories = [], user = null }) {
@@ -78,7 +86,9 @@ export default function Footer({ categories = [], user = null }) {
               <span>Parts dispatch from 8:00 to 23:00</span>
               <span>R. Dr. Domingos Rosado, 7005-469 Évora, Portugal</span>
               <a
-                href="mailto:support@growcore.dev?subject=Request%20a%20callback&body=Hello%20GrowCore%20team,%0A%0APlease%20call%20me%20back%20about:"
+                href={CALLBACK_GMAIL_URL}
+                target="_blank"
+                rel="noreferrer"
                 className="mt-2 inline-flex rounded-lg bg-[#4F8A5B] px-5 py-3 font-semibold text-white transition hover:bg-[#3F7148]"
               >
                 Request a callback
