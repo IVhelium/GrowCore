@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ImagePlus, Save, Send } from "lucide-react";
+import { ImagePlus, Save, Send, Trash2 } from "lucide-react";
 import {
+  deleteSellerProductImage,
   getMySellerProduct,
   submitSellerProduct,
   updateSellerProduct,
@@ -10,19 +11,13 @@ import {
 import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import FormField from "../components/common/FormField";
+import ImageWithFallback from "../components/common/ImageWithFallback";
 import PageHeader from "../components/common/PageHader";
 import ProductAttributeEditor from "../components/product/ProductAttributeEditor";
 import ProductDescriptionEditor from "../components/product/ProductDescriptionEditor";
 import { useCategories } from "../hooks/useCategories";
 import { getApiError } from "../utils/getApiError";
-import {
-  getEmptyFieldMessage,
-  getTrimmedFormData,
-  hasEmptyRequiredFields,
-} from "../utils/formSpaceValidation";
-import {
-  hasFilledCharacteristics,
-} from "../utils/productDescriptionTemplate";
+import { getTrimmedFormData } from "../utils/formSpaceValidation";
 import {
   createAttributeRow,
   createRequiredAttributeRows,
@@ -30,6 +25,11 @@ import {
 } from "../utils/productAttributeOptions";
 import { showToast } from "../utils/showToast";
 import { validateFile } from "../utils/fileValidation";
+import {
+  clampDiscountInput,
+  getLocalDateTimeInputValue,
+  validateSellerProductForm,
+} from "../utils/sellerProductFormValidation";
 
 function toDateTimeLocalValue(value) {
   if (!value) return "";
@@ -47,14 +47,25 @@ export default function SellerProductEditPage() {
   const navigate = useNavigate();
   const { categories, isCategoriesLoading } = useCategories();
   const [product, setProduct] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [pendingImages, setPendingImages] = useState([]);
+  const [deletingImageId, setDeletingImageId] = useState(null);
   const [submitAfterSave, setSubmitAfterSave] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [attributeRows, setAttributeRows] = useState(createRequiredAttributeRows);
+  const errorRef = useRef(null);
+  const canSubmitAfterSave = ["draft", "rejected"].includes(
+    product?.moderationStatus,
+  );
+
+  function showError(message) {
+    setErrorMessage(message);
+    setTimeout(() => {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+  }
 
   useEffect(() => {
     let isActive = true;
@@ -68,7 +79,6 @@ export default function SellerProductEditPage() {
 
         if (isActive) {
           setProduct(loadedProduct);
-          setPreviewUrl(loadedProduct.image);
           const loadedAttributes = Object.entries(
             loadedProduct.attributes || {},
           );
@@ -117,43 +127,67 @@ export default function SellerProductEditPage() {
   }, [productId]);
 
   function handleImageChange(event) {
-    const file = event.target.files?.[0] || null;
-    if (file) {
+    const files = Array.from(event.target.files || []);
+
+    for (const file of files) {
       const validationError = validateFile(file, {
         allowedTypes: ["image/jpeg", "image/png", "image/webp"],
         maxSizeMb: 8,
         label: "Product image",
       });
       if (validationError) {
-        setErrorMessage(validationError);
+        showError(validationError);
         event.target.value = "";
         return;
       }
     }
+
     setErrorMessage("");
-    setImageFile(file);
-    setPreviewUrl(file ? URL.createObjectURL(file) : product?.image || "");
+    setPendingImages((currentImages) => [
+      ...currentImages,
+      ...files.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      })),
+    ]);
+    event.target.value = "";
+  }
+
+  function removePendingImage(imageId) {
+    setPendingImages((currentImages) => {
+      const imageToRemove = currentImages.find((image) => image.id === imageId);
+
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+
+      return currentImages.filter((image) => image.id !== imageId);
+    });
+  }
+
+  async function handleDeleteImage(imageId) {
+    setDeletingImageId(imageId);
+    setErrorMessage("");
+
+    try {
+      const updatedProduct = await deleteSellerProductImage(productId, imageId);
+      setProduct(updatedProduct);
+      showToast("Product image deleted", "success");
+    } catch (error) {
+      setErrorMessage(getApiError(error, "Could not delete product image"));
+    } finally {
+      setDeletingImageId(null);
+    }
   }
 
   async function saveProduct(event) {
     event.preventDefault();
     const payload = getTrimmedFormData(event.currentTarget);
+    const validationError = validateSellerProductForm(payload, attributeRows);
 
-    if (
-      hasEmptyRequiredFields(payload, [
-        "title",
-        "categoryId",
-        "price",
-        "quantity",
-        "description",
-      ])
-    ) {
-      setErrorMessage(getEmptyFieldMessage());
-      return;
-    }
-
-    if (!hasFilledCharacteristics(payload.description)) {
-      setErrorMessage("Fill Brand and Warranty in the Characteristics section");
+    if (validationError) {
+      showError(validationError);
       return;
     }
 
@@ -165,8 +199,8 @@ export default function SellerProductEditPage() {
     try {
       let updatedProduct = await updateSellerProduct(productId, payload);
 
-      if (imageFile) {
-        updatedProduct = await uploadSellerProductImage(productId, imageFile);
+      for (const image of pendingImages) {
+        updatedProduct = await uploadSellerProductImage(productId, image.file);
       }
 
       if (
@@ -184,7 +218,7 @@ export default function SellerProductEditPage() {
       setProduct(updatedProduct);
       navigate("/seller/store");
     } catch (error) {
-      setErrorMessage(getApiError(error, "Could not save product"));
+      showError(getApiError(error, "Could not save product"));
     } finally {
       setIsSaving(false);
     }
@@ -225,13 +259,17 @@ export default function SellerProductEditPage() {
         />
 
         {errorMessage && (
-          <p className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600">
+          <p
+            ref={errorRef}
+            className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-600"
+          >
             {errorMessage}
           </p>
         )}
 
         <form
           onSubmit={saveProduct}
+          noValidate
           className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
         >
           <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
@@ -281,9 +319,10 @@ export default function SellerProductEditPage() {
                 name="discountPercent"
                 type="number"
                 min="0"
-                max="100"
+                max="99"
                 step="0.01"
                 defaultValue={product?.discountPercent || 0}
+                onInput={clampDiscountInput}
               />
 
               <FormField
@@ -291,6 +330,7 @@ export default function SellerProductEditPage() {
                 name="discountExpiresAt"
                 type="datetime-local"
                 defaultValue={toDateTimeLocalValue(product?.discountExpiresAt)}
+                min={getLocalDateTimeInputValue()}
               />
 
               <FormField
@@ -303,7 +343,9 @@ export default function SellerProductEditPage() {
                 defaultValue={product?.quantity || 0}
               />
 
-              <ProductDescriptionEditor defaultValue={product?.description} />
+              <ProductDescriptionEditor
+                defaultValue={product?.description}
+              />
 
               <ProductAttributeEditor
                 rows={attributeRows}
@@ -313,51 +355,123 @@ export default function SellerProductEditPage() {
               />
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            {canSubmitAfterSave ? (
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button
+                  type="submit"
+                  disabled={isSaving}
+                  onClick={() => setSubmitAfterSave(false)}
+                >
+                  <Save size={17} />
+                  Save draft
+                </Button>
+                <Button
+                  type="submit"
+                  style="secondary"
+                  disabled={isSaving}
+                  onClick={() => setSubmitAfterSave(true)}
+                >
+                  <Send size={17} />
+                  Save and submit
+                </Button>
+              </div>
+            ) : (
               <Button
                 type="submit"
                 disabled={isSaving}
                 onClick={() => setSubmitAfterSave(false)}
+                className="mt-6"
               >
                 <Save size={17} />
-                Save
+                Save changes
               </Button>
-              <Button
-                type="submit"
-                style="secondary"
-                disabled={isSaving}
-                onClick={() => setSubmitAfterSave(true)}
-              >
-                <Send size={17} />
-                Save and submit
-              </Button>
-            </div>
+            )}
           </section>
 
           <aside className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
             <h2 className="text-xl font-bold text-slate-950">
-              Product image
+              Product images
             </h2>
-            <label className="mt-5 grid cursor-pointer place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center transition hover:border-[#4F8A5B] hover:bg-[#F2F8F3]">
-              {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt=""
-                  className="aspect-square w-full rounded-lg object-cover"
-                />
-              ) : (
-                <span className="grid place-items-center gap-3 py-10 text-slate-500">
-                  <ImagePlus size={34} className="text-[#4F8A5B]" />
-                  Upload product image
+            {product?.imageItems?.length > 0 && (
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {product.imageItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+                  >
+                    <ImageWithFallback
+                      src={item.image}
+                      alt=""
+                      className="aspect-square w-full object-cover"
+                      iconSize={24}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteImage(item.id)}
+                      disabled={deletingImageId === item.id || isSaving}
+                      aria-label="Delete product image"
+                      className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-lg bg-white/90 text-red-600 shadow-sm transition hover:bg-red-50 disabled:opacity-60"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center">
+              {pendingImages.length > 0 ? (
+                <span className="grid w-full grid-cols-2 gap-3">
+                  {pendingImages.map((image) => (
+                    <span
+                      key={image.id}
+                      className="relative overflow-hidden rounded-lg bg-white"
+                    >
+                      <img
+                        src={image.previewUrl}
+                        alt=""
+                        className="aspect-square w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          removePendingImage(image.id);
+                        }}
+                        aria-label="Remove selected image"
+                        className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg bg-white/90 text-red-600 shadow-sm transition hover:bg-red-50"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </span>
+                  ))}
+                  <label
+                    htmlFor="product-edit-image-upload"
+                    className="grid aspect-square cursor-pointer place-items-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-500 transition hover:border-[#4F8A5B] hover:bg-[#F2F8F3]"
+                  >
+                    <span className="grid place-items-center gap-2 text-sm font-semibold">
+                      <ImagePlus size={24} className="text-[#4F8A5B]" />
+                      Add more
+                    </span>
+                  </label>
                 </span>
+              ) : (
+                <label
+                  htmlFor="product-edit-image-upload"
+                  className="grid cursor-pointer place-items-center gap-3 py-10 text-slate-500 transition hover:text-[#4F8A5B]"
+                >
+                  <ImagePlus size={34} className="text-[#4F8A5B]" />
+                  Upload product images
+                </label>
               )}
               <input
+                id="product-edit-image-upload"
                 type="file"
+                multiple
                 accept="image/png,image/jpeg,image/webp"
                 onChange={handleImageChange}
                 className="sr-only"
               />
-            </label>
+            </div>
           </aside>
         </form>
       </Container>

@@ -1,5 +1,6 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import ImageWithFallback from "../common/ImageWithFallback";
 import { formatPrice } from "../../utils/formatPrice";
 
 
@@ -17,10 +18,11 @@ export default function CartItem({
                 to={`/product/${item.productId || item.product?.id}`}
                 className="grid aspect-square place-items-center overflow-hidden rounded-xl bg-slate-50"
             >
-                <img
+                <ImageWithFallback
                     src={item.image}
                     alt={item.title}
                     className="h-full w-full object-cover"
+                    iconSize={34}
                 />
             </Link>
 

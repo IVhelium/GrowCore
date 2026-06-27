@@ -133,7 +133,8 @@ img {
 
 /* Product cards */
 .product-card-title,
-.product-card-description {
+.product-card-description,
+.product-detail-summary {
   display: -webkit-box;
   overflow: hidden;
   overflow-wrap: anywhere;
@@ -148,6 +149,11 @@ img {
 .product-card-description {
   -webkit-line-clamp: 3;
   line-clamp: 3;
+}
+
+.product-detail-summary {
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 
 

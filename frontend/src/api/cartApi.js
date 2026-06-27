@@ -1,8 +1,5 @@
 import { apiClient, resolvestorageUrl } from "./apiClient";
 
-const FALLBACK_PRODUCT_IMAGE =
-  "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop";
-
 function normalizeCartItem(item) {
   // Converts backend cart fields into the simpler field names used by the UI.
   const product = item.product || {};
@@ -22,7 +19,7 @@ function normalizeCartItem(item) {
       : null,
     quantity: item.quantity,
     maxQuantity: product.quantity,
-    image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
+    image: resolvestorageUrl(primaryImage) || "",
     product,
   };
 }

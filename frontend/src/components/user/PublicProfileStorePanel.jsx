@@ -1,15 +1,13 @@
 import { Link } from "react-router-dom";
+import ImageWithFallback from "../common/ImageWithFallback";
 
-const FALLBACK_STORE_IMAGE =
-  "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=700&auto=format&fit=crop";
-
-function StoreContent({ store, products, user }) {
+function StoreContent({ store, products }) {
   return (
     <>
       <div className="shrink-0 border-b border-slate-100 bg-white p-5">
         <div className="flex min-w-0 items-center gap-4">
-          <img
-            src={products[0]?.image || user.avatarUrl || FALLBACK_STORE_IMAGE}
+          <ImageWithFallback
+            src={products[0]?.image}
             alt={store.name}
             className="h-16 w-16 shrink-0 rounded-md object-cover"
           />
@@ -32,7 +30,7 @@ function StoreContent({ store, products, user }) {
               to={`/product/${product.id}`}
               className="flex min-w-0 items-center gap-3 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
             >
-              <img
+              <ImageWithFallback
                 src={product.image}
                 alt={product.title}
                 className="h-14 w-14 shrink-0 rounded-md object-cover"
@@ -53,7 +51,7 @@ function StoreContent({ store, products, user }) {
   );
 }
 
-export default function PublicProfileStorePanel({ store, products, user, embedded = false }) {
+export default function PublicProfileStorePanel({ store, products, embedded = false }) {
   if (!store) {
     return null;
   }
@@ -61,14 +59,14 @@ export default function PublicProfileStorePanel({ store, products, user, embedde
   if (embedded) {
     return (
       <div className="flex h-full min-w-0 flex-col overflow-hidden bg-white">
-        <StoreContent store={store} products={products} user={user} />
+        <StoreContent store={store} products={products} />
       </div>
     );
   }
 
   return (
     <aside className="flex h-[640px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <StoreContent store={store} products={products} user={user} />
+      <StoreContent store={store} products={products} />
     </aside>
   );
 }

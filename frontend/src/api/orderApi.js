@@ -1,8 +1,5 @@
 import { apiClient, getPaginationParams, resolvestorageUrl } from "./apiClient";
 
-const FALLBACK_PRODUCT_IMAGE =
-  "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop";
-
 function normalizeOrderItem(item) {
   // Converts one backend order item into the data needed by an order card.
   const product = item.product || {};
@@ -16,7 +13,7 @@ function normalizeOrderItem(item) {
     quantity: item.quantity,
     companyFee: Number(item.company_fee ?? 0),
     sellerAmount: Number(item.seller_amount ?? 0),
-    image: resolvestorageUrl(primaryImage) || FALLBACK_PRODUCT_IMAGE,
+    image: resolvestorageUrl(primaryImage) || "",
   };
 }
 

@@ -4,6 +4,7 @@ import Header from "../components/layout/Header";
 import TopBar from "../components/layout/TopBar"
 import Footer from "../components/layout/Footer";
 import MobileBottomNav from "../components/layout/MobileBottomNav";
+import ScrollToTopButton from "../components/layout/ScrollToTopButton";
 import { useAuth } from "../hooks/useAuth";
 
 
@@ -39,6 +40,7 @@ export default function MainLayout({
         <Outlet />
       </div>
       <Footer categories={categories} user={user} />
+      <ScrollToTopButton />
       <MobileBottomNav />
     </div>
   );

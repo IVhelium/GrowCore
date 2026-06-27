@@ -16,14 +16,14 @@ The repository contains a React single-page application and an asynchronous Fast
 
 ### Main capabilities
 
-- **Public storefront:** home page, category navigation, global search, public product and user profiles, delivery/about information, and responsive desktop/mobile navigation.
+- **Public storefront:** home page, service top bar, category navigation, global search, public product and user profiles, delivery/about information, back-to-top control, and responsive desktop/mobile navigation.
 - **Catalog:** backend search, category, seller, price, stock, label, and dynamic attribute filters; popularity/price/date/random sorting and offset pagination.
-- **Product pages:** gallery, discounts with expiry, stock-aware quantity selection, seller/category information, structured descriptions, attributes, ratings, threaded review replies, and related products.
+- **Product pages:** image carousel with adaptive thumbnail row, missing-image fallback icons, clamped manufacturer overview beside price, discounts with expiry, stock-aware quantity selection, seller/category information, structured descriptions with vertical characteristics, attributes, ratings, threaded review replies, and related products.
 - **Accounts:** registration, cookie-based JWT login, automatic token refresh, logout, public IDs, profile editing, avatar upload/removal, role-aware shortcuts, and account blocking.
 - **Shopping:** authenticated persistent cart and favorites, stock validation, debounced quantity editing, individual/bulk favorite-to-cart movement, and pending-order creation.
 - **Payments and fulfillment:** Stripe Checkout, signed webhooks, redirect confirmation, payment documents, platform/seller fee accounting, delivery state and tracking, order history, and return requests.
 - **Seller onboarding:** private proof-document upload, admin review, rejection and resubmission, automatic seller-role/store creation, and applicant notifications.
-- **Seller workspace:** store profile, listing drafts, structured descriptions and attributes with non-removable Brand and Warranty fields, image management, discount and inventory controls, moderation submission, publication toggle, and safe deletion.
+- **Seller workspace:** store profile, listing drafts, structured descriptions and attributes with non-removable Brand and Warranty fields, local multi-image draft previews, image management, discount and inventory controls, moderation submission, publication toggle, and safe deletion.
 - **Moderation:** draft/pending/approved/rejected/blocked/deleted listing lifecycle, evidence review, reasoned decisions, and seller notifications.
 - **Social features:** user discovery, follows with abuse throttling, friend requests with messages, accept/decline/removal, searchable friend lists, and public seller stores.
 - **Chat and notifications:** REST history, real-time WebSocket delivery, short-lived WebSocket tickets, message throttling, grouped notifications, read/unread actions, and live counters.

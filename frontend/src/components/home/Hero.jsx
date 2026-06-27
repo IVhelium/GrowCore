@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import ImageWithFallback from "../common/ImageWithFallback";
 
 
 export default function Hero() {
@@ -41,10 +42,11 @@ export default function Hero() {
 
           <div className="hidden lg:block">
             <div className="relatice grid aspect-square place-items-center rounded-xl bg-white/70 p-8 shadow-xl">
-              <img
+              <ImageWithFallback
                 src="https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=800&auto=format&fit=crop"
                 alt="Greenhouse automation"
                 className="h-full w-full rounded-xl object-cover drop-shadow-2xl"
+                iconSize={48}
               />
             </div>
           </div>

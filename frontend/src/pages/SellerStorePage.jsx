@@ -7,6 +7,7 @@ import Button from "../components/common/Button";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
 import FormField from "../components/common/FormField";
+import ImageWithFallback from "../components/common/ImageWithFallback";
 import PageHeader from "../components/common/PageHader";
 import { formatPrice } from "../utils/formatPrice";
 import { getApiError } from "../utils/getApiError";
@@ -257,10 +258,11 @@ export default function SellerStorePage() {
                   {filteredProducts.map((product) => (
                     <article key={product.id} className="p-5">
                       <div className="flex flex-col gap-4 md:flex-row md:items-start">
-                        <img
+                        <ImageWithFallback
                           src={product.image}
                           alt={product.title}
                           className="h-24 w-24 rounded-lg object-cover"
+                          iconSize={34}
                         />
 
                         <div className="min-w-0 flex-1">

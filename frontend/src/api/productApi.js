@@ -6,9 +6,13 @@ const PRODUCT_LIST_LIMIT = 100;
 export function normalizeProduct(product) {
   // Maps backend product fields, images, reviews, and prices into UI-friendly data.
   const primaryImage = product.images?.[0]?.image;
-  const images = (product.images || [])
-    .map((item) => resolvestorageUrl(item.image))
-    .filter(Boolean);
+  const imageItems = (product.images || [])
+    .map((item) => ({
+      id: item.id,
+      image: resolvestorageUrl(item.image),
+    }))
+    .filter((item) => Boolean(item.image));
+  const images = imageItems.map((item) => item.image);
 
   return {
     id: product.id,
@@ -25,10 +29,9 @@ export function normalizeProduct(product) {
       : null,
     label: product.category?.name || "Product",
     category: product.category?.name || "",
-    image: images[0] ||
-      resolvestorageUrl(primaryImage) ||
-      "https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=700&auto=format&fit=crop",
+    image: images[0] || resolvestorageUrl(primaryImage) || "",
     images,
+    imageItems,
     rating: Number(product.rating_avg ?? 0),
     ratingCount: product.rating_count ?? 0,
     quantity: product.quantity,
@@ -236,6 +239,15 @@ export async function uploadSellerProductImage(productId, file) {
   const { data } = await apiClient.post(
     `/seller/products/${productId}/images`,
     formData,
+  );
+
+  return normalizeProduct(data);
+}
+
+export async function deleteSellerProductImage(productId, imageId) {
+  // Removes one image from the seller's product gallery.
+  const { data } = await apiClient.delete(
+    `/seller/products/${productId}/images/${imageId}`,
   );
 
   return normalizeProduct(data);
