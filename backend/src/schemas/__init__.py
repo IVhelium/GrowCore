@@ -3,7 +3,7 @@ from .Seller.seller_requests import CreateSellerRequestDTO, ReadSellerRequestDTO
 from .Seller.stores import CreateStoreDTO, ReadStoreDTO, UpdateStoreDTO, ShortStoreDTO, UpdateStoreFilterDTO
 from .Store.carts import ReadCartDTO, AddCartItemDTO, ReadCartItemDTO, UpdateCartItemDTO, ReadCartProductDTO, ReadCartProductImageDTO
 from .Store.categories import CreateCategoryDTO, ReadCategoryDTO, UpdateCategoryDTO
-from .Store.orders import CheckoutDTO, CreateStripeCheckoutDTO, ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO, RequestReturnDTO, UpdateDeliveryDTO
+from .Store.orders import CheckoutDTO, CreateStripeCheckoutDTO, ReadOrderDTO, ReadOrderItemDTO, ReadOrderProductDTO, ReadOrderProductImageDTO, RejectReturnDTO, RequestReturnDTO, UpdateDeliveryDTO
 from .Store.products import (
     CreateProductDTO,
     ReadProductDTO,

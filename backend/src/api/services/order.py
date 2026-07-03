@@ -625,6 +625,11 @@ class OrderService:
         order.return_status = ReturnStatus.refunded
         order.payment_status = PaymentStatus.refunded
         order.status = OrderStatus.returned
+
+        for item in order.items:
+            if item.product:
+                item.product.quantity += item.quantity
+
         await NotificationService(self.db).create(
             user_id=order.user_id,
             title="Return approved",
@@ -640,6 +645,40 @@ class OrderService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not approve return",
+            ) from exc
+
+        return await self._get_order(order.id)
+
+    async def reject_return(
+        self,
+        order_id: int,
+        reason: str,
+    ) -> OrderModel:
+        order = await self._get_order(order_id)
+
+        if order.return_status != ReturnStatus.requested:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Order is not awaiting return review",
+            )
+
+        order.return_status = ReturnStatus.rejected
+        order.return_reason = reason.strip()
+        await NotificationService(self.db).create(
+            user_id=order.user_id,
+            title="Return rejected",
+            message=f"Return for order #{order.id} was rejected. Reason: {order.return_reason}",
+            link_url="/orders",
+            group_key=f"order:{order.id}:return",
+        )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not reject return",
             ) from exc
 
         return await self._get_order(order.id)

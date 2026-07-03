@@ -169,7 +169,7 @@ Checkout не списывает деньги: он создаёт неопла�
 
 Существует также API ручной фиксации оплаты с transaction ID, методом, платёжным документом, адресом и NIF, хотя текущая страница оплаты ведёт пользователя через Stripe.
 
-Возврат можно запросить для собственного оплаченного заказа, указав причину 10–400 символов. Администратор одобряет возврат; платежный статус становится `refunded`, статус возврата — `refunded`, общий статус — `returned`. Администратор также меняет состояние доставки и tracking number.
+Возврат можно запросить для собственного оплаченного заказа, указав причину 10–400 символов. Администратор может одобрить или отклонить возврат. При одобрении создаётся Stripe refund, платежный статус становится `refunded`, статус возврата — `refunded`, общий статус — `returned`, купленные количества возвращаются на склад и пользователь получает уведомление. При отклонении сохраняется причина, статус возврата становится `rejected`, платеж не возвращается. Администратор также меняет состояние доставки и tracking number.
 
 Информационная страница доставки описывает стандартную доставку 3–5 рабочих дней, защищённую упаковку и pickup point. Это статический текст интерфейса, а не расчёт тарифов перевозчика.
 
@@ -242,7 +242,7 @@ Checkout не списывает деньги: он создаёт неопла�
 
 1. **Product moderation** — очередь pending, подробный modal, approve/reject.
 2. **Product controls** — все товары, просмотр, блокировка и soft delete с причиной.
-3. **Transactions** — пагинированные заказы, фильтр по payment status, суммы, 10% fee, Stripe/session ID, доставка, возврат, tracking и платёжный документ; изменение доставки и одобрение возврата выполняются API.
+3. **Transactions** — пагинированные заказы, фильтр по payment status, суммы, 10% fee, Stripe/session ID, доставка, возврат, tracking и платёжный документ; изменение доставки, одобрение возврата и отклонение возврата выполняются API.
 4. **Seller requests** — просмотр данных и приватного документа, approve/reject.
 5. **Users** — поиск и пагинация, public ID/роли/блокировка, переход в профиль.
 6. **Sellers** — поиск, сортировка, переход в профиль и управление блокировкой продавца.
@@ -251,7 +251,7 @@ Checkout не списывает деньги: он создаёт неопла�
 
 Контекстные варианты сортировки включают дату, название, цену или сумму, статус, блокировку, позицию категории и видимость магазина — в зависимости от типа данных вкладки. Горизонтальная прокрутка пагинации остаётся доступной на маленьких экранах, но её полоса визуально скрыта.
 
-Управление категориями требует одновременно admin-cookie и отдельный заголовок `X-Category-Secret`. UI запрашивает секрет в modal и не хранит его как обычную публичную конфигурацию.
+Управление категориями требует одновременно admin-cookie и отдельный заголовок `X-Category-Secret`. UI запрашивает секрет в modal и не хранит его как обычную публичную конфигурацию. React-страница админки разделена на общие элементы и отдельные секции для пользователей, продавцов, транзакций, категорий и видимости продавцов в фильтрах.
 
 ## 14. Данные и связи
 
@@ -453,7 +453,7 @@ Product pages provide image carousel selection with an adaptive one-line thumbna
 
 Seller descriptions use Overview, Use case, Compatibility, Package includes, and Characteristics sections. Product detail pages render Characteristics in vertical name/value rows for scanning. Brand and Warranty attributes are mandatory and cannot be removed from the editor; category-aware options and custom filter requests are supported.
 
-An authenticated user may create one rated review per product (1–5) and any user may add a text reply through authenticated API. Rating aggregates update incrementally. Replies carry no rating, do not change the aggregate, and cannot be nested below one reply level. Reviews survive account deletion with a nullable author.
+An authenticated user may create one rated review per product (1–5) and any user may add a text reply through authenticated API. Rating aggregates update incrementally. Replies carry no rating, do not change the aggregate, and cannot be nested below one reply level. Review authors and admins can delete reviews or replies; deleting a rated root review also removes its replies and recalculates the product aggregate. Reviews survive account deletion with a nullable author.
 
 ## 5. Cart, favorites, checkout, and orders
 
@@ -473,7 +473,7 @@ The main payment flow selects an unpaid order and creates a Stripe Checkout Sess
 
 A manual payment-recording endpoint also exists, although the current UI uses Stripe.
 
-Users may request a return for their own paid order with a 10–400 character reason. Admin approval creates an idempotent Stripe refund and then updates refund/return/order states in the database. Admin can also update delivery state and tracking number.
+Users may request a return for their own paid order with a 10–400 character reason. Admin approval creates an idempotent Stripe refund, updates refund/return/order states in the database, restores the purchased stock quantities, and notifies the customer. Admin rejection stores a reason, marks the return as rejected, and notifies the customer without refunding the payment. Admin can also update delivery state and tracking number.
 
 The delivery page’s 3–5 day shipping, protected packaging, and pickup pricing are static product copy, not a carrier-rate integration.
 
@@ -511,13 +511,13 @@ The admin panel provides:
 
 1. pending product moderation;
 2. all-product block/delete controls;
-3. payment-status-filtered transactions with fees, Stripe data, delivery and return details;
+3. payment-status-filtered transactions with fees, Stripe data, delivery and return details, including approve/reject return actions;
 4. seller application/document review;
 5. paginated user search and blocking;
 6. category create/edit/order/icon/delete;
 7. named seller-filter visibility.
 
-Category mutation requires both admin authentication and a separate `X-Category-Secret`, requested by a modal in the UI.
+Category mutation requires both admin authentication and a separate `X-Category-Secret`, requested by a modal in the UI. The admin React page is split into shared controls plus dedicated section components for users, sellers, transactions, categories, and seller-filter controls.
 
 ## 10. Data model and architecture
 
@@ -594,6 +594,7 @@ All paths below are relative to the backend origin. `Auth` means any signed-in u
 | `GET /products/{id}` | Public product details |
 | `POST /products/{id}/reviews` | Create rated review (Auth) |
 | `POST /products/{id}/reviews/{reviewId}/replies` | Reply to review (Auth) |
+| `DELETE /products/{id}/reviews/{reviewId}` | Delete own/admin review or reply |
 | `POST /seller/products` | Create draft (seller) |
 | `GET /seller/products` | Seller’s paginated listings |
 | `GET /seller/products/{id}` | Seller’s listing details |
@@ -643,6 +644,7 @@ All paths below are relative to the backend origin. `Auth` means any signed-in u
 | `GET /orders/admin/transactions` | Filtered transaction list (admin) |
 | `PATCH /orders/admin/{id}/delivery` | Update delivery/tracking (admin) |
 | `PATCH /orders/admin/{id}/returns/approve` | Approve return (admin) |
+| `PATCH /orders/admin/{id}/returns/reject` | Reject return with reason (admin) |
 | `GET /users` | Public paginated user list/search |
 | `GET /users/search?public_id=...` | Exact public-ID lookup |
 | `GET /users/{publicId}` | Public profile |

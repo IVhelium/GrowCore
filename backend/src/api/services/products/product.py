@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.schemas.pagination import PaginationDTO
 from src.core.pagination import PaginationParams, PaginationService
 from src.api.services.files.file_storage import FileStorageService
-from src.core.constants import ProductModerationStatus
+from src.core.constants import ProductModerationStatus, RoleStatus
 from src.core.upload_policies import PRODUCT_IMAGE_POLICY
-from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, StoreModel, UserModel
+from src.models import CartItemModel, FavoriteItemModel, ProductModel, ReviewModel, RoleModel, StoreModel, UserModel, UserRoleModel
 from src.schemas import CreateProductDTO, CreateReviewDTO, CreateReviewReplyDTO, DeleteProductDTO, UpdateProductAvailabilityDTO, UpdateProductDTO
 from src.utils.storage_paths import product_images_directory_key, seller_products_directory_key
 from .product_base import ProductBaseService
@@ -45,6 +45,29 @@ class ProductService(ProductBaseService):
                 cleaned_attributes[clean_key] = clean_value
 
         return cleaned_attributes
+
+    async def _user_has_role(self, user: UserModel, role: RoleStatus) -> bool:
+        query = (
+            select(UserRoleModel.id)
+            .join(RoleModel, UserRoleModel.role_id == RoleModel.id)
+            .where(
+                UserRoleModel.user_id == user.id,
+                RoleModel.role == role,
+            )
+            .limit(1)
+        )
+
+        try:
+            result = await self.db.execute(query)
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not check user role",
+            ) from exc
+
+        return result.scalar_one_or_none() is not None
 
     async def create_draft(
         self,
@@ -637,6 +660,93 @@ class ProductService(ProductBaseService):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Could not create reply",
+            ) from exc
+
+        return await self._get_product(product.id)
+
+    async def delete_review(
+        self,
+        current_user: UserModel,
+        product_id: int,
+        review_id: int,
+    ) -> ProductModel:
+        product = await self.get_public_product(product_id)
+
+        review_query = (
+            select(ReviewModel)
+            .where(
+                ReviewModel.id == review_id,
+                ReviewModel.product_id == product.id,
+            )
+        )
+
+        try:
+            review = (
+                await self.db.execute(review_query)
+            ).scalar_one_or_none()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not load review",
+            ) from exc
+
+        if not review:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Review not found",
+            )
+
+        is_author = str(review.user_id) == str(current_user.id)
+        is_admin = await self._user_has_role(current_user, RoleStatus.admin)
+
+        if not is_author and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You cannot delete this review",
+            )
+
+        try:
+            if review.parent_id is None:
+                await self.db.execute(
+                    delete(ReviewModel)
+                    .where(ReviewModel.parent_id == review.id)
+                )
+
+            await self.db.execute(
+                delete(ReviewModel)
+                .where(
+                    ReviewModel.id == review.id,
+                    ReviewModel.product_id == product.id,
+                )
+            )
+
+            rating_stats = (
+                await self.db.execute(
+                    select(
+                        func.coalesce(func.avg(ReviewModel.rating), 0),
+                        func.count(ReviewModel.id),
+                    )
+                    .where(
+                        ReviewModel.product_id == product.id,
+                        ReviewModel.parent_id.is_(None),
+                        ReviewModel.rating.is_not(None),
+                    )
+                )
+            ).one()
+
+            product.rating_avg = rating_stats[0]
+            product.rating_count = rating_stats[1]
+
+            await self.db.commit()
+
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not delete review",
             ) from exc
 
         return await self._get_product(product.id)

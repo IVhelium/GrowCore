@@ -67,7 +67,7 @@ export default function Toast() {
           <div key={notice.id} className={`pointer-events-auto w-full rounded-lg border px-4 py-3 shadow-lg ${isSuccess ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
             <div className="flex items-start gap-3">
               <Icon className={`mt-0.5 shrink-0 ${isSuccess ? "text-emerald-600" : "text-amber-600"}`} size={20} />
-              <p className="min-w-0 flex-1 wrap-break-word text-sm font-semibold leading-5">{notice.message}</p>
+              <p className="break-anywhere min-w-0 flex-1 text-sm font-semibold leading-5">{notice.message}</p>
               <button type="button" onClick={() => closeNotice(notice.id)} aria-label="Close notification" className="grid h-6 w-6 shrink-0 place-items-center rounded text-current/70 transition hover:bg-white/70"><X size={16} /></button>
             </div>
           </div>

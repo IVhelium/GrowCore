@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-07-03
+
+- Added styled confirmation and reason dialogs across the app, replacing native browser prompts.
+- Added review and reply deletion for authors and administrators, with product rating recalculation.
+- Improved long-text wrapping across layouts so saved reasons, comments, addresses, and notices do not break cards.
+- Clarified the seller application document upload area and updated placeholders with Portugal-focused examples.
+- Completed the return workflow with administrator approve/reject actions, Stripe refunds, notifications, and stock restoration after approved returns.
+- Split the admin panel into shared building blocks and dedicated section modules for users, sellers, transactions, categories, and seller-filter controls.
+- Prepared frontend and backend version metadata for the 0.1.2 release.
+
 ## 0.1.1 - 2026-06-27
 
 - Added seller product media improvements: multiple selected images now remain as local draft previews while sellers add more files before saving or submitting.

@@ -85,6 +85,25 @@ export async function requestOrderReturn(orderId, reason) {
   return normalizeOrder(data);
 }
 
+export async function approveOrderReturn(orderId) {
+  // Lets an administrator approve a return and trigger the Stripe refund.
+  const { data } = await apiClient.patch(
+    `/orders/admin/${orderId}/returns/approve`,
+  );
+
+  return normalizeOrder(data);
+}
+
+export async function rejectOrderReturn(orderId, reason) {
+  // Lets an administrator reject a return request with a written reason.
+  const { data } = await apiClient.patch(
+    `/orders/admin/${orderId}/returns/reject`,
+    { reason },
+  );
+
+  return normalizeOrder(data);
+}
+
 export async function deleteOrder(orderId) {
   // Deletes an order only when backend business rules allow it.
   await apiClient.delete(`/orders/${orderId}`);

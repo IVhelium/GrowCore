@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   Star,
   Store,
+  Trash2,
   Truck,
 } from "lucide-react";
 import Container from "../components/common/Container";
@@ -22,6 +23,7 @@ import UserMiniCard from "../components/user/UserMiniCard";
 import { formatPrice } from "../utils/formatPrice";
 import { formatDate } from "../utils/formatDateTime";
 import { getApiError } from "../utils/getApiError";
+import { useActionDialog } from "../hooks/useActionDialog";
 import {
   parseProductDescription,
   PRODUCT_DESCRIPTION_SECTIONS,
@@ -165,7 +167,22 @@ function getProductSummary(description = "") {
   return sections.overview?.trim() || description;
 }
 
-function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
+function hasRole(user, role) {
+  return (user?.roles || []).some((item) => item.role?.role === role || item.role === role);
+}
+
+function getPublicId(user) {
+  return user?.public_id || user?.publicId || "";
+}
+
+function ProductTabs({
+  product,
+  currentUser,
+  onReviewSubmit,
+  onReviewReply,
+  onReviewDelete,
+}) {
+  const { confirmAction } = useActionDialog();
   const [activeTab, setActiveTab] = useState("description");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
@@ -175,12 +192,15 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
   const [replyComment, setReplyComment] = useState("");
   const [replyError, setReplyError] = useState("");
   const [replyBusyId, setReplyBusyId] = useState(null);
+  const [deleteBusyId, setDeleteBusyId] = useState(null);
   const reviews = product.reviews || [];
   const reviewThreads = getReviewThreads(reviews);
+  const isAdmin = hasRole(currentUser, "admin");
+  const currentUserPublicId = getPublicId(currentUser);
   const hasOwnReview = Boolean(
-    currentUser?.public_id &&
+    currentUserPublicId &&
       reviewThreads.some(
-        (review) => review.user?.public_id === currentUser.public_id,
+        (review) => getPublicId(review.user) === currentUserPublicId,
       ),
   );
 
@@ -234,6 +254,39 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
       setReplyError(getApiError(error, "Could not add reply"));
     } finally {
       setReplyBusyId(null);
+    }
+  }
+
+  function canDeleteReview(review) {
+    return Boolean(
+      onReviewDelete &&
+        currentUserPublicId &&
+        (isAdmin || getPublicId(review.user) === currentUserPublicId),
+    );
+  }
+
+  async function handleReviewDelete(review) {
+    const confirmed = await confirmAction({
+      title: review.parentId ? "Delete reply?" : "Delete review?",
+      description: review.parentId
+        ? "This reply will be removed from the discussion."
+        : "This review and its replies will be removed. Product rating will be recalculated.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+
+    if (!confirmed) return;
+
+    setDeleteBusyId(review.id);
+    setReviewError("");
+    setReplyError("");
+
+    try {
+      await onReviewDelete?.(review.id);
+    } catch (error) {
+      setReviewError(getApiError(error, "Could not delete review"));
+    } finally {
+      setDeleteBusyId(null);
     }
   }
 
@@ -402,7 +455,7 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
                     {review.text || "No comment provided."}
                   </p>
 
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button
                       type="button"
                       style="ghost"
@@ -418,6 +471,18 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
                       <MessageSquare size={16} />
                       Reply
                     </Button>
+                    {canDeleteReview(review) && (
+                      <Button
+                        type="button"
+                        style="danger"
+                        size="sm"
+                        disabled={deleteBusyId === review.id}
+                        onClick={() => handleReviewDelete(review)}
+                      >
+                        <Trash2 size={16} />
+                        {deleteBusyId === review.id ? "Deleting..." : "Delete"}
+                      </Button>
+                    )}
                   </div>
 
                   {replyingToId === review.id && (
@@ -464,9 +529,23 @@ function ProductTabs({ product, currentUser, onReviewSubmit, onReviewReply }) {
                         >
                           <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                             <UserMiniCard user={reply.user} />
-                            <p className="pl-1 text-sm text-slate-400">
-                              {formatDate(reply.date)}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="pl-1 text-sm text-slate-400">
+                                {formatDate(reply.date)}
+                              </p>
+                              {canDeleteReview(reply) && (
+                                <Button
+                                  type="button"
+                                  style="danger"
+                                  size="sm"
+                                  disabled={deleteBusyId === reply.id}
+                                  onClick={() => handleReviewDelete(reply)}
+                                >
+                                  <Trash2 size={16} />
+                                  {deleteBusyId === reply.id ? "Deleting..." : "Delete"}
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <p className="mt-3 text-sm leading-6 text-slate-600">
                             {reply.text}
@@ -495,6 +574,7 @@ export default function ProductPage({
   onToggleFavorite,
   onReviewSubmit,
   onReviewReply,
+  onReviewDelete,
   currentUser,
 }) {
   const images = useMemo(
@@ -756,6 +836,7 @@ export default function ProductPage({
             currentUser={currentUser}
             onReviewSubmit={onReviewSubmit}
             onReviewReply={onReviewReply}
+            onReviewDelete={onReviewDelete}
           />
         </div>
 

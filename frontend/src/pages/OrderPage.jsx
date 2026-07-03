@@ -12,6 +12,7 @@ import PageHeader from "../components/common/PageHader";
 import OrderCard from "../components/orders/OrderCard";
 import OrdersTabs from "../components/orders/OrdersTabs";
 import { useAuth } from "../hooks/useAuth";
+import { useActionDialog } from "../hooks/useActionDialog";
 import { formatDateTime } from "../utils/formatDateTime";
 import { getApiError } from "../utils/getApiError";
 import { getOrderDeliveryAddress } from "../utils/orderDeliveryAddress";
@@ -22,6 +23,7 @@ import {
 import { showToast } from "../utils/showToast";
 
 export default function OrderPage() {
+  const { confirmAction, promptAction } = useActionDialog();
   const { user } = useAuth();
   const location = useLocation();
   const [orders, setOrders] = useState([]);
@@ -84,15 +86,16 @@ export default function OrderPage() {
   }, [location.search]);
 
   async function handleReturnRequest(order) {
-    const reason = window.prompt(`Reason for returning order #${order.id}`);
-    const trimmedReason = reason?.trim();
+    const trimmedReason = await promptAction({
+      title: `Return order #${order.id}?`,
+      description: "Tell support why this order should be returned.",
+      inputLabel: "Return reason",
+      confirmLabel: "Request return",
+      minLength: 10,
+      minLengthMessage: "Return reason must be at least 10 characters.",
+    });
 
     if (!trimmedReason) return;
-
-    if (trimmedReason.length < 10) {
-      showToast("Return reason must be at least 10 characters");
-      return;
-    }
 
     setErrorMessage("");
 
@@ -133,7 +136,12 @@ export default function OrderPage() {
   }
 
   async function handleDeleteOrder(order) {
-    const confirmed = window.confirm(`Delete unpaid order #${order.id}?`);
+    const confirmed = await confirmAction({
+      title: `Delete unpaid order #${order.id}?`,
+      description: "This unpaid order will be removed from your order history.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
 
     if (!confirmed) return;
 

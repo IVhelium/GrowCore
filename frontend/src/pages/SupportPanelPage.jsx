@@ -16,6 +16,7 @@ import { getApiError } from "../utils/getApiError";
 import { formatDateTime } from "../utils/formatDateTime";
 import { showToast } from "../utils/showToast";
 import { useAuth } from "../hooks/useAuth";
+import { useActionDialog } from "../hooks/useActionDialog";
 
 const TICKETS_PAGE_SIZE = 8;
 
@@ -66,6 +67,7 @@ export default function SupportPanelPage() {
   const [expandedTicketId, setExpandedTicketId] = useState(null);
   const [responseDrafts, setResponseDrafts] = useState({});
   const { user: currentUser } = useAuth();
+  const { promptAction } = useActionDialog();
   const isAdmin = hasRole(currentUser, "admin");
   const queryStatus = searchParams.get("status") || "open";
   const statusFilter = statusFilterValues.includes(queryStatus)
@@ -329,16 +331,18 @@ export default function SupportPanelPage() {
                         size="sm"
                         style="danger"
                         disabled={busyKey === `block-user-${ticket.id}`}
-                        onClick={() => {
-                          const reason = window.prompt(`Reason for blocking ${ticket.user.username}`);
-                          const trimmedReason = reason?.trim();
+                        onClick={async () => {
+                          const trimmedReason = await promptAction({
+                            title: `Block ${ticket.user.username}?`,
+                            description: "Add a reason that explains why this account is being blocked.",
+                            inputLabel: "Block reason",
+                            confirmLabel: "Block",
+                            tone: "danger",
+                            minLength: 10,
+                            minLengthMessage: "Block reason must be at least 10 characters.",
+                          });
 
                           if (!trimmedReason) return;
-
-                          if (trimmedReason.length < 10) {
-                            showToast("Block reason must be at least 10 characters");
-                            return;
-                          }
 
                           runTicketAction(
                             `block-user-${ticket.id}`,

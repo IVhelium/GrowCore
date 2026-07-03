@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   createProductReview,
   createProductReviewReply,
+  deleteProductReview,
   getProduct,
 } from "../api/productApi";
 import ProductPage from "../pages/ProductPage";
@@ -84,6 +85,13 @@ export default function ProductRoute({
     return updatedProduct;
   }
 
+  async function handleReviewDelete(reviewId) {
+    const updatedProduct = await deleteProductReview(productId, reviewId);
+    setProduct(updatedProduct);
+    showToast("Review deleted", "success");
+    return updatedProduct;
+  }
+
   return (
     <ProductPage
       product={product}
@@ -94,6 +102,7 @@ export default function ProductRoute({
       onToggleFavorite={onToggleFavorite}
       onReviewSubmit={handleReviewSubmit}
       onReviewReply={handleReviewReply}
+      onReviewDelete={handleReviewDelete}
       currentUser={user}
       favoriteProductIds={favoriteProductIds}
     />

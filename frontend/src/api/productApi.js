@@ -253,6 +253,15 @@ export async function deleteSellerProductImage(productId, imageId) {
   return normalizeProduct(data);
 }
 
+export async function deleteProductReview(productId, reviewId) {
+  // Removes a review or reply when the signed-in user is allowed to delete it.
+  const { data } = await apiClient.delete(
+    `/products/${productId}/reviews/${reviewId}`,
+  );
+
+  return normalizeProduct(data);
+}
+
 export async function submitSellerProduct(productId) {
   // Sends a seller's completed product draft to the moderation queue.
   const { data } = await apiClient.post(`/seller/products/${productId}/submit`);

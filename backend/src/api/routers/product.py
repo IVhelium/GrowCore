@@ -117,6 +117,25 @@ async def create_product_review_reply(
     )
 
 
+@router.delete(
+    "/products/{product_id}/reviews/{review_id}",
+    response_model=ReadProductDTO,
+)
+async def delete_product_review(
+    product_id: int,
+    review_id: int,
+    current_user: CurrentUserDependency,
+    product_service: ProductServiceDependency,
+):
+    """Deletes a review owned by the current user, or any review for administrators."""
+
+    return await product_service.delete_review(
+        current_user=current_user,
+        product_id=product_id,
+        review_id=review_id,
+    )
+
+
 @router.post(
     "/seller/products",
     response_model=ReadProductDTO,

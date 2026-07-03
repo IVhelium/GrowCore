@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2, FileText, Phone, ShieldCheck } from "lucide-react";
+import { Building2, FileText, Phone, ShieldCheck, UploadCloud } from "lucide-react";
 import {
   createSellerRequest,
   getMySellerRequest,
@@ -206,7 +206,7 @@ export default function SellerRequestPage() {
                 minLength={2}
                 maxLength={100}
                 defaultValue={request?.fullName || ""}
-                placeholder="Max Green"
+                placeholder="Joao Silva"
               />
 
               <FormField
@@ -218,7 +218,7 @@ export default function SellerRequestPage() {
                 pattern="[A-Za-z0-9]{8,10}"
                 title="Use 8-10 letters and numbers"
                 defaultValue={request?.passportId || ""}
-                placeholder="AB123456"
+                placeholder="PT123456"
               />
 
               <FormField
@@ -229,7 +229,7 @@ export default function SellerRequestPage() {
                 pattern="\+?[0-9][0-9 ()-]{6,19}"
                 title="Enter a valid phone number using digits, spaces, brackets, + or -"
                 defaultValue={request?.phoneNumber || ""}
-                placeholder="+1 800 800 8080"
+                placeholder="+351 912 345 678"
               />
 
               <FormField
@@ -239,7 +239,7 @@ export default function SellerRequestPage() {
                 minLength={2}
                 maxLength={100}
                 defaultValue={request?.country || ""}
-                placeholder="USA"
+                placeholder="Portugal"
               />
 
               <label className="grid gap-2 md:col-span-2">
@@ -254,20 +254,31 @@ export default function SellerRequestPage() {
                   rows={6}
                   defaultValue={request?.message || ""}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
-                  placeholder="Describe what products you want to sell, your experience and store details..."
+                  placeholder="Describe your greenhouse parts business in Portugal, the products you want to sell, your experience and store details..."
                 />
               </label>
 
               <label className="grid gap-2 md:col-span-2">
                 <span className="text-sm font-semibold text-slate-700">
-                  PDF documents
+                  Business verification document
                 </span>
-                <span className="flex min-w-0 cursor-pointer flex-col gap-3 overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-4 text-sm transition hover:border-[#4F8A5B] sm:flex-row sm:items-center">
-                  <span className="inline-flex min-h-11 w-fit shrink-0 items-center rounded-md bg-[#4F8A5B] px-4 py-2 font-semibold text-white transition hover:bg-[#3F7148]">
-                    Choose PDF file
+                <span className="flex min-w-0 cursor-pointer flex-col gap-4 overflow-hidden rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-5 text-sm transition hover:border-[#4F8A5B] hover:bg-[#F2F8F3] sm:flex-row sm:items-center">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-white text-[#4F8A5B] shadow-sm">
+                    <UploadCloud size={24} />
                   </span>
-                  <span className="block min-w-0 max-w-full truncate text-slate-500" title={documentName || request?.documentName || "No file selected"}>
-                    {documentName || request?.documentName || "No file selected"}
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-bold text-slate-950">
+                      Attach your seller verification document
+                    </span>
+                    <span className="mt-1 block break-anywhere text-slate-500">
+                      Upload a PDF document, such as company registration, tax certificate, or business proof.
+                    </span>
+                    <span className="mt-2 block min-w-0 max-w-full truncate font-semibold text-[#4F8A5B]" title={documentName || request?.documentName || "No document selected"}>
+                      {documentName || request?.documentName || "No document selected"}
+                    </span>
+                  </span>
+                  <span className="inline-flex min-h-11 w-fit shrink-0 items-center rounded-md bg-[#4F8A5B] px-4 py-2 font-semibold text-white transition hover:bg-[#3F7148]">
+                    Choose document
                   </span>
                   <input
                     name="document"
