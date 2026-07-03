@@ -18,18 +18,18 @@ export default function OrderCard({
   const deliveryAddress = getOrderDeliveryAddress(order);
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-3">
+    <article className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex min-w-0 flex-col justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-lg bg-[#4F8A5B]/10 text-[#4F8A5B]">
             <PackageCheck size={22} />
           </span>
-          <div>
-            <h2 className="font-bold text-slate-950">Order #{order.id}</h2>
-            <p className="text-sm text-slate-500">
+          <div className="min-w-0">
+            <h2 className="break-anywhere font-bold text-slate-950">Order #{order.id}</h2>
+            <p className="break-anywhere text-sm text-slate-500">
               {formatDateTime(order.date)} - {humanizeStatus(order.status)}
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="break-anywhere mt-1 text-xs text-slate-500">
               Payment: {humanizeStatus(order.paymentStatus)} - Delivery:{" "}
               {humanizeStatus(order.deliveryStatus)} - Return:{" "}
               {humanizeStatus(order.returnStatus)}
@@ -53,7 +53,7 @@ export default function OrderCard({
       </div>
 
       <div className="mt-4 grid gap-3 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
-        <div>
+        <div className="break-anywhere">
           <span className="font-semibold text-slate-800">
             Delivery address:
           </span>{" "}
@@ -90,7 +90,7 @@ export default function OrderCard({
           </div>
         )}
         {order.returnReason && (
-          <div className="rounded-md bg-white p-3">
+          <div className="break-anywhere whitespace-pre-wrap rounded-md bg-white p-3">
             Return reason: {order.returnReason}
           </div>
         )}
@@ -110,7 +110,7 @@ export default function OrderCard({
           <Link
             key={item.id}
             to={`/product/${item.productId}`}
-            className="flex items-center gap-4 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
+            className="flex min-w-0 items-center gap-4 rounded-lg border border-slate-100 p-3 transition hover:border-[#4F8A5B]"
           >
             <ImageWithFallback
               src={item.image}

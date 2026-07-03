@@ -37,6 +37,21 @@ class RequestReturnDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class RejectReturnDTO(BaseModel):
+    reason: str = Field(min_length=10, max_length=400)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def trim_reason(cls, value):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                raise ValueError("Reject reason cannot be empty")
+        return value
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class UpdateDeliveryDTO(BaseModel):
     delivery_status: DeliveryStatus
     tracking_number: str | None = Field(default=None, max_length=80)

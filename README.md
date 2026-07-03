@@ -21,14 +21,14 @@ The repository contains a React single-page application and an asynchronous Fast
 - **Product pages:** image carousel with adaptive thumbnail row, missing-image fallback icons, clamped manufacturer overview beside price, discounts with expiry, stock-aware quantity selection, seller/category information, structured descriptions with vertical characteristics, attributes, ratings, threaded review replies, and related products.
 - **Accounts:** registration, cookie-based JWT login, automatic token refresh, logout, public IDs, profile editing, avatar upload/removal, role-aware shortcuts, and account blocking.
 - **Shopping:** authenticated persistent cart and favorites, stock validation, debounced quantity editing, individual/bulk favorite-to-cart movement, and pending-order creation.
-- **Payments and fulfillment:** Stripe Checkout, signed webhooks, redirect confirmation, payment documents, platform/seller fee accounting, delivery state and tracking, order history, and return requests.
+- **Payments and fulfillment:** Stripe Checkout, signed webhooks, redirect confirmation, payment documents, platform/seller fee accounting, delivery state and tracking, order history, return requests, and admin-approved Stripe refunds with stock restoration.
 - **Seller onboarding:** private proof-document upload, admin review, rejection and resubmission, automatic seller-role/store creation, and applicant notifications.
 - **Seller workspace:** store profile, listing drafts, structured descriptions and attributes with non-removable Brand and Warranty fields, local multi-image draft previews, image management, discount and inventory controls, moderation submission, publication toggle, and safe deletion.
 - **Moderation:** draft/pending/approved/rejected/blocked/deleted listing lifecycle, evidence review, reasoned decisions, and seller notifications.
 - **Social features:** user discovery, follows with abuse throttling, friend requests with messages, accept/decline/removal, searchable friend lists, and public seller stores.
 - **Chat and notifications:** REST history, real-time WebSocket delivery, short-lived WebSocket tickets, message throttling, grouped notifications, read/unread actions, and live counters.
 - **Support:** categorized customer tickets, history and staff responses, status workflow, staff assignment, search/filtering, and admin escalation.
-- **Administration:** searchable and sortable product moderation/control, seller requests and private documents, users and sellers, Stripe transactions, delivery and returns, categories, and named seller-filter visibility.
+- **Administration:** searchable and sortable product moderation/control, seller requests and private documents, users and sellers, Stripe transactions, delivery and returns, categories, named seller-filter visibility, and modular section components for easier maintenance.
 
 ### Roles
 

@@ -34,6 +34,14 @@ body {
   margin: 0;
   min-width: 320px;
   overflow-x: clip;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-break: anywhere;
+}
+
+#root,
+#root * {
+  min-width: 0;
 }
 
 .pagination-scrollbar {
@@ -60,6 +68,7 @@ img {
 .break-anywhere {
   overflow-wrap: anywhere;
   word-break: break-word;
+  line-break: anywhere;
 }
 
 .chat-message-bubble {

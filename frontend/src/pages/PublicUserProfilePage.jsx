@@ -25,6 +25,7 @@ import Button from "../components/common/Button";
 import UserProfileCard from "../components/user/UserProfileCard";
 import PublicProfileTabsPanel from "../components/user/PublicProfileTabsPanel";
 import { useAuth } from "../hooks/useAuth";
+import { useActionDialog } from "../hooks/useActionDialog";
 import { getApiError } from "../utils/getApiError";
 import { showToast } from "../utils/showToast";
 import { getChatMessageTooLongText, isChatMessageTooLong } from "../utils/chatMessage";
@@ -34,6 +35,7 @@ function hasRole(user, role) {
 }
 
 export default function PublicUserProfilePage() {
+  const { promptAction } = useActionDialog();
   const { publicId } = useParams();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,15 +154,17 @@ export default function PublicUserProfilePage() {
   }, [currentUser?.isBlocked, currentUser?.public_id, isOwnProfile, user?.public_id]);
 
   async function handleBlock() {
-    const reason = window.prompt(`Reason for blocking ${user.username}`);
-    const trimmedReason = reason?.trim();
+    const trimmedReason = await promptAction({
+      title: `Block ${user.username}?`,
+      description: "Add a reason that explains why this account is being blocked.",
+      inputLabel: "Block reason",
+      confirmLabel: "Block",
+      tone: "danger",
+      minLength: 10,
+      minLengthMessage: "Block reason must be at least 10 characters.",
+    });
 
     if (!trimmedReason) return;
-
-    if (trimmedReason.length < 10) {
-      showToast("Block reason must be at least 10 characters");
-      return;
-    }
 
     setIsActionBusy(true);
     setErrorMessage("");

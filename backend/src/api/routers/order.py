@@ -3,7 +3,7 @@ from fastapi import APIRouter, Query, Request, Response, status
 from src.core.dependencies import AdminDependency, CurrentUserDependency, OrderServiceDependency
 from src.core.constants import PaymentStatus
 from src.core.pagination import PaginationDependency
-from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, ReadOrderDTO, RequestReturnDTO, UpdateDeliveryDTO
+from src.schemas import CreateStripeCheckoutDTO, PaginationDTO, ReadOrderDTO, RejectReturnDTO, RequestReturnDTO, UpdateDeliveryDTO
 
 
 # This router handles customer orders, Stripe payments, delivery updates, and returns.
@@ -154,3 +154,20 @@ async def approve_order_return(
 ):
     """Approves a return request and starts the order return workflow."""
     return await order_service.approve_return(order_id=order_id)
+
+
+@router.patch(
+    "/admin/{order_id}/returns/reject",
+    response_model=ReadOrderDTO,
+)
+async def reject_order_return(
+    order_id: int,
+    schema: RejectReturnDTO,
+    admin: AdminDependency,
+    order_service: OrderServiceDependency,
+):
+    """Rejects a return request and keeps the order paid."""
+    return await order_service.reject_return(
+        order_id=order_id,
+        reason=schema.reason,
+    )

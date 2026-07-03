@@ -5,7 +5,7 @@ from src.core.custom_types import uuidPk, createdAt
 from src.core.database import Base
 
 def generate_public_id():
-    return "#" + uuid.uuid4().hex[:10].upper()    # Ограничивает айди до 10 символов
+    return "#" + uuid.uuid4().hex[:10].upper()
 
 class UserModel(Base):
     __tablename__ = "users"

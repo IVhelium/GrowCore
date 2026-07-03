@@ -1,6 +1,6 @@
-# GrowCore 0.1.1 release checklist
+# GrowCore 0.1.2 release checklist
 
-Planned release date: 2026-06-27
+Planned release date: 2026-07-03
 
 - [ ] Merge the intended `dev` changes into `main` and review the final diff.
 - [ ] Set `ENV=production` and generate a unique JWT secret of at least 32 characters.
@@ -12,5 +12,6 @@ Planned release date: 2026-06-27
 - [ ] Apply `alembic upgrade head` against the production database.
 - [ ] Run `alembic check` against a production-like database; no upgrade operations may be pending.
 - [ ] Verify `/health`, registration/login/logout, catalog, cart, Stripe checkout/webhook, and an admin refund.
+- [ ] Smoke-test admin sections, seller document review, review deletion as author/admin, and long rejection/return reasons.
 - [ ] Confirm `RUN_STAFF_SEED=false` and `RUN_CATALOG_SEED=false` after provisioning.
-- [ ] Create GitHub release `v0.1.1` from the merged `main` commit only after the production smoke check passes.
+- [ ] Create GitHub release `v0.1.2` from the merged `main` commit only after the production smoke check passes.

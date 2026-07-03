@@ -18,6 +18,7 @@ import {
 } from "../utils/formSpaceValidation";
 import { showToast } from "../utils/showToast";
 import { useAuth } from "../hooks/useAuth";
+import { useActionDialog } from "../hooks/useActionDialog";
 
 function StatusBadge({ status }) {
   const styles = {
@@ -54,6 +55,7 @@ function formatDateTime(value) {
 export default function SellerStorePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { promptAction } = useActionDialog();
   const [store, setStore] = useState(null);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,17 +111,17 @@ export default function SellerStorePage() {
   }
 
   async function handleDeleteProduct(product) {
-    const reason = window.prompt(`Reason for deleting ${product.title}`);
-    const trimmedReason = reason?.trim();
+    const trimmedReason = await promptAction({
+      title: `Delete ${product.title}?`,
+      description: "Add a reason for removing this product.",
+      inputLabel: "Deletion reason",
+      confirmLabel: "Delete",
+      tone: "danger",
+      minLength: 10,
+      minLengthMessage: "Deletion reason must be at least 10 characters.",
+    });
 
-    if (!trimmedReason) {
-      return;
-    }
-
-    if (trimmedReason.length < 10) {
-      showToast("Deletion reason must be at least 10 characters");
-      return;
-    }
+    if (!trimmedReason) return;
 
     setErrorMessage("");
 
@@ -256,8 +258,8 @@ export default function SellerStorePage() {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {filteredProducts.map((product) => (
-                    <article key={product.id} className="p-5">
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                    <article key={product.id} className="min-w-0 p-5">
+                      <div className="flex min-w-0 flex-col gap-4 md:flex-row md:items-start">
                         <ImageWithFallback
                           src={product.image}
                           alt={product.title}
@@ -267,7 +269,7 @@ export default function SellerStorePage() {
 
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="font-bold text-slate-950">
+                            <h3 className="break-anywhere font-bold text-slate-950">
                               {product.title}
                             </h3>
                             <StatusBadge status={product.moderationStatus} />
@@ -285,12 +287,12 @@ export default function SellerStorePage() {
                             </p>
                           )}
 
-                          <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+                          <p className="break-anywhere mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
                             {product.description}
                           </p>
 
                           {product.rejectionReason && (
-                            <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+                            <p className="break-anywhere mt-3 whitespace-pre-wrap rounded-lg bg-red-50 p-3 text-sm text-red-600">
                               {product.rejectionReason}
                             </p>
                           )}
