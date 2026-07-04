@@ -7,6 +7,7 @@
 - Added a 50-product test catalog seed with electronics, irrigation, sensors, controllers, and replacement parts for local marketplace testing.
 - Added product image URLs for seeded catalog items so online products show relevant product photos.
 - Improved paid, failed, refunded, and returned payment handling for Stripe Checkout sessions, payment failures, canceled payments, expired sessions, refunds, and refunded charges.
+- Added a customer-side Stripe session sync fallback so failed local test payments can appear in the Failed orders tab even when the webhook is delayed or unavailable.
 - Added customer notifications for failed payments, completed refunds, and refund failures.
 - Allowed failed orders to be paid again or deleted from the order history.
 - Improved the orders page with search, sorting, pagination, and dedicated tabs for all, paid, awaiting payment, failed, return, and refunded orders.

@@ -466,6 +466,88 @@ class OrderService:
         await self._mark_order_paid_from_stripe(order, session)
         return await self._get_user_order(current_user, order.id)
 
+    async def sync_stripe_checkout_order(
+        self,
+        current_user: UserModel,
+        order_id: int,
+    ) -> OrderModel:
+        order = await self._get_user_order(current_user, order_id)
+
+        if order.payment_status in {PaymentStatus.paid, PaymentStatus.refunded}:
+            return order
+
+        session_id = order.payment_transaction_id
+        if not session_id or not session_id.startswith("cs_"):
+            return order
+
+        if not settings.STRIPE_SECRET_KEY:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Stripe is not configured",
+            )
+
+        try:
+            import stripe
+        except ImportError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Stripe package is not installed",
+            ) from exc
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        try:
+            session = stripe.checkout.Session.retrieve(
+                session_id,
+                expand=["payment_intent"],
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="Could not sync Stripe checkout session",
+            ) from exc
+
+        session = stripe_object_to_dict(session)
+        metadata = session.get("metadata") or {}
+        metadata_order_id = metadata.get("order_id")
+        metadata_user_id = metadata.get("user_id")
+
+        if (
+            (metadata_order_id and metadata_order_id != str(order.id))
+            or (metadata_user_id and metadata_user_id != str(current_user.id))
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Stripe session does not belong to this order",
+            )
+
+        if session.get("payment_status") == "paid":
+            await self._mark_order_paid_from_stripe(order, session)
+            return await self._get_user_order(current_user, order.id)
+
+        if self._stripe_session_has_failed_payment(session):
+            await self._mark_order_payment_failed(order, session)
+            return await self._get_user_order(current_user, order.id)
+
+        return order
+
+    @staticmethod
+    def _stripe_session_has_failed_payment(session: dict) -> bool:
+        if session.get("status") == "expired":
+            return True
+
+        payment_intent = session.get("payment_intent")
+        if not isinstance(payment_intent, dict):
+            return False
+
+        if payment_intent.get("status") == "canceled":
+            return True
+
+        return (
+            payment_intent.get("status") == "requires_payment_method"
+            and bool(payment_intent.get("last_payment_error"))
+        )
+
     async def handle_stripe_webhook(self, request: Request) -> dict[str, bool]:
         if not settings.STRIPE_WEBHOOK_SECRET:
             raise HTTPException(

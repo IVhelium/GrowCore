@@ -97,6 +97,22 @@ async def confirm_stripe_checkout(
 
 
 @router.post(
+    "/{order_id}/stripe/sync",
+    response_model=ReadOrderDTO,
+)
+async def sync_stripe_checkout(
+    order_id: int,
+    current_user: CurrentUserDependency,
+    order_service: OrderServiceDependency,
+):
+    """Synchronizes one order with its saved Stripe Checkout session."""
+    return await order_service.sync_stripe_checkout_order(
+        current_user=current_user,
+        order_id=order_id,
+    )
+
+
+@router.post(
     "/stripe/webhook",
     response_model=dict[str, bool],
 )

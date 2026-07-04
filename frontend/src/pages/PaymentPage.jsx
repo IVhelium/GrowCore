@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { CreditCard, ShieldCheck } from "lucide-react";
-import { createStripeCheckout, getOrders } from "../api/orderApi";
+import {
+  createStripeCheckout,
+  getOrders,
+  syncStripeOrderPayment,
+} from "../api/orderApi";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHader";
 import Button from "../components/common/Button";
@@ -24,14 +28,23 @@ export default function PaymentPage({ items = [] }) {
       setError("");
 
       try {
+        const params = new URLSearchParams(location.search);
+        const requestedOrderId = params.get("order");
+
+        if (params.get("stripe") === "cancel" && requestedOrderId) {
+          try {
+            await syncStripeOrderPayment(Number(requestedOrderId));
+          } catch {
+            // The order list still loads even if Stripe sync is temporarily unavailable.
+          }
+        }
+
         const loadedOrders = await getOrders();
         const payableOrders = loadedOrders.filter(
           (order) =>
             order.paymentStatus === "pending" ||
             order.paymentStatus === "failed",
         );
-        const params = new URLSearchParams(location.search);
-        const requestedOrderId = params.get("order");
         const requestedOrder = payableOrders.find(
           (order) => String(order.id) === requestedOrderId,
         );
