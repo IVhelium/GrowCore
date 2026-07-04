@@ -6,6 +6,7 @@ import {
   deleteOrder,
   getOrders,
   requestOrderReturn,
+  syncStripeOrderPayment,
 } from "../api/orderApi";
 import Container from "../components/common/Container";
 import EmptyState from "../components/common/EmptyState";
@@ -119,6 +120,36 @@ function sortOrders(orders, sortMode, recentPaidOrderId) {
   });
 }
 
+async function syncPendingStripeOrders(orders) {
+  const pendingStripeOrders = orders.filter(
+    (order) =>
+      order.paymentStatus === "pending" &&
+      order.paymentMethod === "stripe" &&
+      order.transactionId,
+  );
+
+  if (!pendingStripeOrders.length) {
+    return orders;
+  }
+
+  const results = await Promise.allSettled(
+    pendingStripeOrders.map((order) => syncStripeOrderPayment(order.id)),
+  );
+  const syncedOrdersById = new Map();
+
+  results.forEach((result) => {
+    if (result.status === "fulfilled") {
+      syncedOrdersById.set(result.value.id, result.value);
+    }
+  });
+
+  if (!syncedOrdersById.size) {
+    return orders;
+  }
+
+  return orders.map((order) => syncedOrdersById.get(order.id) || order);
+}
+
 export default function OrderPage() {
   const { confirmAction, promptAction } = useActionDialog();
   const { user } = useAuth();
@@ -200,7 +231,7 @@ export default function OrderPage() {
           }
         }
 
-        const loadedOrders = await getOrders();
+        const loadedOrders = await syncPendingStripeOrders(await getOrders());
 
         if (isActive) {
           const nextOrders = confirmedOrder

@@ -76,6 +76,13 @@ export async function confirmStripeCheckout(sessionId) {
   return normalizeOrder(data);
 }
 
+export async function syncStripeOrderPayment(orderId) {
+  // Synchronizes one order with its saved Stripe Checkout session.
+  const { data } = await apiClient.post(`/orders/${orderId}/stripe/sync`);
+
+  return normalizeOrder(data);
+}
+
 export async function requestOrderReturn(orderId, reason) {
   // Sends a customer request to return an order with a written reason.
   const { data } = await apiClient.post(`/orders/${orderId}/returns`, {
