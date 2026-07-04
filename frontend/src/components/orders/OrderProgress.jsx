@@ -13,7 +13,7 @@ export default function OrderProgress({ order }) {
       label: "Payment",
       value: humanizeStatus(order.paymentStatus),
       active: order.paymentStatus !== "pending",
-      done: order.paymentStatus === "paid",
+      done: ["paid", "refunded"].includes(order.paymentStatus),
       icon: CheckCircle2,
     },
     {
@@ -27,7 +27,7 @@ export default function OrderProgress({ order }) {
       label: "Return",
       value: humanizeStatus(order.returnStatus),
       active: order.returnStatus !== "none",
-      done: order.returnStatus === "approved",
+      done: order.returnStatus === "refunded",
       icon: Clock,
     },
   ];

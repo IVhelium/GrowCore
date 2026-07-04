@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-07-04
+
+- Added a 50-product test catalog seed with electronics, irrigation, sensors, controllers, and replacement parts for local marketplace testing.
+- Added product image URLs for seeded catalog items so online products show relevant product photos.
+- Improved paid, failed, refunded, and returned payment handling for Stripe Checkout sessions, payment failures, canceled payments, expired sessions, refunds, and refunded charges.
+- Added customer notifications for failed payments, completed refunds, and refund failures.
+- Allowed failed orders to be paid again or deleted from the order history.
+- Improved the orders page with search, sorting, pagination, and dedicated tabs for all, paid, awaiting payment, failed, return, and refunded orders.
+- Fixed local order history after Stripe success so a confirmed payment is loaded without hiding the rest of the order list.
+- Restored return request visibility for paid orders and kept the backend return request rule aligned with the customer UI.
+- Prepared frontend and backend version metadata for the 0.1.3 release.
+
 ## 0.1.2 - 2026-07-03
 
 - Added styled confirmation and reason dialogs across the app, replacing native browser prompts.

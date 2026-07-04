@@ -118,7 +118,7 @@ async def request_order_return(
     current_user: CurrentUserDependency,
     order_service: OrderServiceDependency,
 ):
-    """Submits a customer's request to return a delivered order."""
+    """Submits a customer's request to return a paid order."""
     return await order_service.request_return(
         current_user=current_user,
         order_id=order_id,

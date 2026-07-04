@@ -25,9 +25,14 @@ export default function ReturnsPage({ onSubmit }) {
     async function loadOrders() {
       try {
         const loadedOrders = await getOrders();
+        const returnableOrders = loadedOrders.filter(
+          (order) =>
+            order.paymentStatus === "paid" &&
+            order.returnStatus === "none",
+        );
 
         if (isActive) {
-          setOrders(loadedOrders);
+          setOrders(returnableOrders);
         }
       } catch {
         if (isActive) {
@@ -106,7 +111,11 @@ export default function ReturnsPage({ onSubmit }) {
                   className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#4F8A5B]"
                 >
                   <option value="">
-                    {isLoadingOrders ? "Loading orders..." : "Choose order"}
+                    {isLoadingOrders
+                      ? "Loading orders..."
+                      : orders.length
+                        ? "Choose order"
+                        : "No paid orders"}
                   </option>
                   {orders.map((order) => (
                     <option key={order.id} value={order.id}>
