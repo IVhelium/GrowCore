@@ -208,10 +208,10 @@ class OrderService:
     ) -> None:
         order = await self._get_user_order(current_user, order_id)
 
-        if order.payment_status != PaymentStatus.pending:
+        if order.payment_status not in {PaymentStatus.pending, PaymentStatus.failed}:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Only unpaid orders can be deleted",
+                detail="Only unpaid or failed orders can be deleted",
             )
 
         try:
@@ -236,7 +236,7 @@ class OrderService:
     ) -> dict[str, str]:
         order = await self._get_user_order(current_user, order_id)
 
-        if order.payment_status != PaymentStatus.pending:
+        if order.payment_status not in {PaymentStatus.pending, PaymentStatus.failed}:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Order is not awaiting payment",
@@ -365,6 +365,8 @@ class OrderService:
             ) from exc
 
         order.payment_method = "stripe"
+        order.payment_status = PaymentStatus.pending
+        order.payment_transaction_id = session.id
 
         try:
             await self.db.commit()
@@ -494,31 +496,109 @@ class OrderService:
                 detail="Invalid Stripe webhook",
             ) from exc
 
-        if event["type"] != "checkout.session.completed":
-            return {"received": True}
+        event_type = event["type"]
+        stripe_object = stripe_object_to_dict(event["data"]["object"])
 
-        session = event["data"]["object"]
-        session = stripe_object_to_dict(session)
+        if event_type in {
+            "checkout.session.completed",
+            "checkout.session.async_payment_succeeded",
+        }:
+            order = await self._get_order_from_stripe_object(stripe_object)
+
+            if order.payment_status == PaymentStatus.paid:
+                return {"received": True}
+
+            if stripe_object.get("payment_status") != "paid":
+                return {"received": True}
+
+            return await self._mark_order_paid_from_stripe(order, stripe_object)
+
+        if event_type in {
+            "checkout.session.async_payment_failed",
+            "checkout.session.expired",
+            "payment_intent.payment_failed",
+            "payment_intent.canceled",
+        }:
+            order = await self._get_order_from_stripe_object(
+                stripe_object,
+                required=False,
+            )
+
+            if not order:
+                return {"received": True}
+
+            return await self._mark_order_payment_failed(order, stripe_object)
+
+        if event_type == "refund.updated":
+            return await self._sync_order_refund(stripe_object)
+
+        if event_type == "charge.refunded":
+            return await self._sync_order_refunded_charge(stripe_object)
+
+        return {"received": True}
+
+    async def _get_order_from_stripe_object(
+        self,
+        stripe_object: dict,
+        required: bool = True,
+    ) -> OrderModel | None:
+        metadata = stripe_object.get("metadata") or {}
+
         try:
-            order_id = int((session.get("metadata") or {}).get("order_id") or 0)
+            order_id = int(metadata.get("order_id") or stripe_object.get("client_reference_id") or 0)
         except (TypeError, ValueError) as exc:
+            if not required:
+                return None
+
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Stripe session is missing order metadata",
+                detail="Stripe object is missing order metadata",
             ) from exc
 
         if not order_id:
+            if not required:
+                return None
+
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Stripe session is missing order metadata",
+                detail="Stripe object is missing order metadata",
             )
 
-        order = await self._get_order(order_id)
+        return await self._get_order(order_id)
 
-        if order.payment_status == PaymentStatus.paid:
+    async def _mark_order_payment_failed(
+        self,
+        order: OrderModel,
+        stripe_object: dict,
+    ) -> dict[str, bool]:
+        if order.payment_status in {PaymentStatus.paid, PaymentStatus.refunded}:
             return {"received": True}
 
-        return await self._mark_order_paid_from_stripe(order, session)
+        order.payment_status = PaymentStatus.failed
+        order.payment_method = "stripe"
+
+        stripe_id = stripe_object.get("id")
+        if stripe_id:
+            order.payment_transaction_id = str(stripe_id)
+
+        await NotificationService(self.db).create(
+            user_id=order.user_id,
+            title="Payment failed",
+            message=f"Payment for order #{order.id} was not completed. You can try paying again.",
+            link_url=f"/payment?order={order.id}",
+            group_key=f"order:{order.id}:payment-failed",
+        )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not mark payment as failed",
+            ) from exc
+
+        return {"received": True}
 
     async def _mark_order_paid_from_stripe(
         self,
@@ -574,6 +654,96 @@ class OrderService:
 
         return {"received": True}
 
+    def _restore_order_stock_once(self, order: OrderModel) -> None:
+        if order.return_status == ReturnStatus.refunded:
+            return
+
+        for item in order.items:
+            if item.product:
+                item.product.quantity += item.quantity
+                if item.product.quantity > 0:
+                    item.product.enabled = True
+
+    async def _mark_order_refunded_from_stripe(
+        self,
+        order: OrderModel,
+        refund_id: str | None = None,
+    ) -> dict[str, bool]:
+        self._restore_order_stock_once(order)
+
+        order.return_status = ReturnStatus.refunded
+        order.payment_status = PaymentStatus.refunded
+        order.status = OrderStatus.returned
+
+        if refund_id:
+            order.payment_transaction_id = refund_id
+
+        await NotificationService(self.db).create(
+            user_id=order.user_id,
+            title="Return refunded",
+            message=f"Return for order #{order.id} was refunded.",
+            link_url="/orders",
+            group_key=f"order:{order.id}:return-refunded",
+        )
+
+        try:
+            await self.db.commit()
+        except SQLAlchemyError as exc:
+            await self._safe_rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Could not mark order as refunded",
+            ) from exc
+
+        return {"received": True}
+
+    async def _sync_order_refund(self, refund: dict) -> dict[str, bool]:
+        order = await self._get_order_from_stripe_object(refund, required=False)
+
+        if not order:
+            return {"received": True}
+
+        refund_status = refund.get("status")
+
+        if refund_status == "succeeded":
+            return await self._mark_order_refunded_from_stripe(
+                order,
+                refund_id=refund.get("id"),
+            )
+
+        if refund_status in {"failed", "canceled"}:
+            order.return_status = ReturnStatus.requested
+            order.payment_status = PaymentStatus.paid
+
+            await NotificationService(self.db).create(
+                user_id=order.user_id,
+                title="Refund failed",
+                message=f"Refund for order #{order.id} did not complete. Support will review it.",
+                link_url="/orders",
+                group_key=f"order:{order.id}:refund-failed",
+            )
+
+            try:
+                await self.db.commit()
+            except SQLAlchemyError as exc:
+                await self._safe_rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Could not sync failed refund",
+                ) from exc
+
+        return {"received": True}
+
+    async def _sync_order_refunded_charge(self, charge: dict) -> dict[str, bool]:
+        metadata = charge.get("metadata") or {}
+        order_id = metadata.get("order_id")
+
+        if not order_id:
+            return {"received": True}
+
+        order = await self._get_order_from_stripe_object(charge)
+        return await self._mark_order_refunded_from_stripe(order, refund_id=charge.get("id"))
+
     async def approve_return(
         self,
         order_id: int,
@@ -612,8 +782,12 @@ class OrderService:
             if not payment_intent:
                 raise ValueError("Stripe session has no payment intent")
 
-            stripe.Refund.create(
+            refund = stripe.Refund.create(
                 payment_intent=payment_intent,
+                metadata={
+                    "order_id": str(order.id),
+                    "user_id": str(order.user_id),
+                },
                 idempotency_key=f"growcore-order-{order.id}-return",
             )
         except Exception as exc:
@@ -622,18 +796,29 @@ class OrderService:
                 detail="Stripe refund could not be created",
             ) from exc
 
-        order.return_status = ReturnStatus.refunded
-        order.payment_status = PaymentStatus.refunded
-        order.status = OrderStatus.returned
+        refund = stripe_object_to_dict(refund)
+        refund_status = refund.get("status")
 
-        for item in order.items:
-            if item.product:
-                item.product.quantity += item.quantity
+        if refund_status == "succeeded":
+            self._restore_order_stock_once(order)
+            order.return_status = ReturnStatus.refunded
+            order.payment_status = PaymentStatus.refunded
+            order.status = OrderStatus.returned
+            order.payment_transaction_id = refund.get("id") or order.payment_transaction_id
+            notification_title = "Return refunded"
+            notification_message = f"Return for order #{order.id} was approved and refunded."
+        else:
+            order.return_status = ReturnStatus.approved
+            notification_title = "Return approved"
+            notification_message = (
+                f"Return for order #{order.id} was approved. "
+                "Refund processing is waiting for Stripe confirmation."
+            )
 
         await NotificationService(self.db).create(
             user_id=order.user_id,
-            title="Return approved",
-            message=f"Return for order #{order.id} was approved and refunded.",
+            title=notification_title,
+            message=notification_message,
             link_url="/orders",
             group_key=f"order:{order.id}:return",
         )

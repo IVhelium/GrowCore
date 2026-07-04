@@ -1,16 +1,10 @@
 export default function OrdersTabs({
   activeTab,
-  paidCount,
-  unpaidCount,
+  tabs,
   onChange,
 }) {
-  const tabs = [
-    { id: "paid", label: `Paid (${paidCount})` },
-    { id: "unpaid", label: `Unpaid (${unpaidCount})` },
-  ];
-
   return (
-    <div className="mb-6 inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+    <div className="inline-flex max-w-full flex-wrap rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
       {tabs.map((tab) => (
         <button
           key={tab.id}

@@ -25,22 +25,24 @@ export default function PaymentPage({ items = [] }) {
 
       try {
         const loadedOrders = await getOrders();
-        const pendingOrders = loadedOrders.filter(
-          (order) => order.paymentStatus === "pending",
+        const payableOrders = loadedOrders.filter(
+          (order) =>
+            order.paymentStatus === "pending" ||
+            order.paymentStatus === "failed",
         );
         const params = new URLSearchParams(location.search);
         const requestedOrderId = params.get("order");
-        const requestedOrder = pendingOrders.find(
+        const requestedOrder = payableOrders.find(
           (order) => String(order.id) === requestedOrderId,
         );
 
         if (isActive) {
-          setOrders(pendingOrders);
+          setOrders(payableOrders);
           setSelectedOrderId(
             requestedOrder?.id
               ? String(requestedOrder.id)
-              : pendingOrders[0]?.id
-                ? String(pendingOrders[0].id)
+              : payableOrders[0]?.id
+                ? String(payableOrders[0].id)
                 : "",
           );
         }
@@ -115,7 +117,7 @@ export default function PaymentPage({ items = [] }) {
         ) : orders.length === 0 ? (
           <EmptyState
             title="No orders awaiting payment"
-            text="Create an order first, then unpaid orders will appear here."
+            text="Create an order first, then unpaid or failed orders will appear here."
           />
         ) : (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">

@@ -14,7 +14,10 @@ export default function OrderCard({
   onDownloadReceipt,
   onReturnRequest,
 }) {
-  const isPaid = order.paymentStatus === "paid";
+  const hasReceipt = ["paid", "refunded"].includes(order.paymentStatus);
+  const canPay = ["pending", "failed"].includes(order.paymentStatus);
+  const canRequestReturn =
+    order.paymentStatus === "paid" && order.returnStatus === "none";
   const deliveryAddress = getOrderDeliveryAddress(order);
 
   return (
@@ -59,7 +62,7 @@ export default function OrderCard({
           </span>{" "}
           {deliveryAddress}
         </div>
-        {isPaid ? (
+        {hasReceipt ? (
           <Button
             type="button"
             style="secondary"
@@ -69,7 +72,7 @@ export default function OrderCard({
             <FileText size={17} />
             Download PDF receipt
           </Button>
-        ) : (
+        ) : canPay ? (
           <div className="flex flex-wrap gap-3">
             <Link
               to={`/payment?order=${order.id}`}
@@ -88,13 +91,17 @@ export default function OrderCard({
               Delete order
             </Button>
           </div>
+        ) : (
+          <p className="text-sm font-semibold text-slate-500">
+            This order is not payable.
+          </p>
         )}
         {order.returnReason && (
           <div className="break-anywhere whitespace-pre-wrap rounded-md bg-white p-3">
             Return reason: {order.returnReason}
           </div>
         )}
-        {order.returnStatus === "none" && (
+        {canRequestReturn && (
           <button
             type="button"
             onClick={() => onReturnRequest(order)}
