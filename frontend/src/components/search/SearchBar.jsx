@@ -23,15 +23,15 @@ export default function SearchBar({
         name="search"
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="w-full bg-transparent px-5 py-3 text-sm outline-none placeholder:text-slate-400"
+        className="min-w-0 flex-1 bg-transparent px-5 py-3 text-sm outline-none placeholder:text-slate-400"
       />
       <button
         type="submit"
         aria-label="Search"
-        className="inline-flex min-h-11 items-center justify-center gap-2 border-l border-slate-200 bg-white px-4 text-sm font-semibold text-slate-500 transition hover:bg-[#4F8A5B] hover:text-white"
+        className="inline-flex min-h-11 min-w-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap border-l border-slate-200 bg-white px-4 text-sm font-semibold text-slate-500 transition hover:bg-[#4F8A5B] hover:text-white"
       >
         <Search size={18} />
-        {buttonlabel && <span>{buttonlabel}</span>}
+        {buttonlabel && <span className="whitespace-nowrap">{buttonlabel}</span>}
       </button>
     </form>
   );
