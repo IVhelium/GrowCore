@@ -16,7 +16,7 @@ class CategoryService:
         self.db = db
 
     async def _ensure_default_categories(self) -> None:
-        """Adds missing default categories and refreshes their saved image links."""
+        """Adds missing default categories and refreshes their saved metadata."""
         changed = False
 
         for seed in CATEGORIES:
@@ -30,12 +30,17 @@ class CategoryService:
                     category.image_url = seed.image_url
                     changed = True
 
+                if category.icon_name != seed.icon_name:
+                    category.icon_name = seed.icon_name
+                    changed = True
+
                 continue
 
             self.db.add(
                 CategoryModel(
                     name=seed.name,
                     image_url=seed.image_url,
+                    icon_name=seed.icon_name,
                 )
             )
             changed = True

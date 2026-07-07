@@ -24,6 +24,7 @@ from src.utils.storage_paths import product_images_directory_key, seller_product
 class CategorySeed:
     name: str
     image_url: str
+    icon_name: str
 
 
 @dataclass(frozen=True)
@@ -47,42 +48,52 @@ CATEGORIES = [
     CategorySeed(
         name="Soil Sensors",
         image_url="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?q=80&w=600&auto=format&fit=crop",
+        icon_name="Droplets",
     ),
     CategorySeed(
         name="Climate Sensors",
         image_url="https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?q=80&w=600&auto=format&fit=crop",
+        icon_name="Thermometer",
     ),
     CategorySeed(
         name="Irrigation Parts",
         image_url="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=600&auto=format&fit=crop",
+        icon_name="Waves",
     ),
     CategorySeed(
         name="Greenhouse Control",
         image_url="https://images.unsplash.com/photo-1495107334309-fcf20504a5ab?q=80&w=600&auto=format&fit=crop",
+        icon_name="Cpu",
     ),
     CategorySeed(
         name="Grow Lights",
         image_url="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=600&auto=format&fit=crop",
+        icon_name="Sun",
     ),
     CategorySeed(
         name="Pumps & Valves",
         image_url="https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=600&auto=format&fit=crop",
+        icon_name="Gauge",
     ),
     CategorySeed(
         name="Cables & Connectors",
         image_url="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=600&auto=format&fit=crop",
+        icon_name="Cable",
     ),
     CategorySeed(
         name="Replacement Parts",
         image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+        icon_name="Wrench",
     ),
     CategorySeed(
         name="Hydroponics",
-        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop"
+        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+        icon_name="FlaskConical",
     ),
     CategorySeed(
         name="Controllers",
-        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop"
+        image_url="https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+        icon_name="SlidersHorizontal",
     )
 ]
 
@@ -274,11 +285,13 @@ async def _ensure_categories(db) -> dict[str, CategoryModel]:
             category = CategoryModel(
                 name=seed.name,
                 image_url=seed.image_url,
+                icon_name=seed.icon_name,
             )
             db.add(category)
             await db.flush()
         else:
             category.image_url = seed.image_url
+            category.icon_name = seed.icon_name
 
         categories[seed.name] = category
 
