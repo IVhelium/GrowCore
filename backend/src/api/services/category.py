@@ -30,10 +30,6 @@ class CategoryService:
                     category.image_url = seed.image_url
                     changed = True
 
-                if category.icon_name != seed.icon_name:
-                    category.icon_name = seed.icon_name
-                    changed = True
-
                 continue
 
             self.db.add(
@@ -70,6 +66,8 @@ class CategoryService:
 
     async def list_categories(self) -> list[CategoryModel]:
         """Returns categories in the order chosen for the catalogue interface."""
+        await self._ensure_default_categories()
+
         query = (
             select(CategoryModel)
             .order_by(CategoryModel.sort_order, CategoryModel.name)

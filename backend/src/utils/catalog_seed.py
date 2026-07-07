@@ -291,7 +291,6 @@ async def _ensure_categories(db) -> dict[str, CategoryModel]:
             await db.flush()
         else:
             category.image_url = seed.image_url
-            category.icon_name = seed.icon_name
 
         categories[seed.name] = category
 
